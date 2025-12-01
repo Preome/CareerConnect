@@ -1,18 +1,18 @@
 const multer = require("multer");
-const path = require("path");
 
-// where to store files
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // backend/uploads folder
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, unique + ext); // e.g. 1700000000-123456789.jpg
-  },
+// Store uploaded files in memory as Buffer objects.
+// The controller will take req.file.buffer and send it to Cloudinary.
+const storage = multer.memoryStorage();
+
+const upload = multer({
+  storage,
+  // optional: add basic limits or file filters if you want
+  // limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  // fileFilter: (req, file, cb) => {
+  //   if (file.mimetype.startsWith("image/")) cb(null, true);
+  //   else cb(new Error("Only image files are allowed"), false);
+  // },
 });
 
-const upload = multer({ storage });
-
 module.exports = upload;
+

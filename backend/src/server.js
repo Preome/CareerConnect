@@ -15,8 +15,8 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-// serve uploaded images (from backend/uploads folder)
-app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+// NO longer need to serve local /uploads because images go to Cloudinary
+// app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 // routes
 app.use("/api/auth", require("./routes/authRoutes"));

@@ -3,8 +3,30 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Company = require("../models/Company");
 
+// NEW: cloudinary + streamifier
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
+
 const createToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
+
+// helper to upload a buffer to Cloudinary and get back the URL
+const uploadToCloudinary = (buffer, folder) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
+
+    streamifier.createReadStream(buffer).pipe(uploadStream);
+  });
 };
 
 // POST /api/auth/register-user
@@ -32,7 +54,11 @@ const registerUser = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    // upload image buffer to Cloudinary instead of local /uploads
+    const imageUrl = await uploadToCloudinary(
+      req.file.buffer,
+      "careerconnect/users"
+    );
 
     const user = await User.create({
       name,
@@ -100,7 +126,11 @@ const registerCompany = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    // upload logo to Cloudinary
+    const imageUrl = await uploadToCloudinary(
+      req.file.buffer,
+      "careerconnect/companies"
+    );
 
     const company = await Company.create({
       companyName,

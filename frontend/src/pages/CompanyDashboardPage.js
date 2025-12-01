@@ -6,10 +6,8 @@ const CompanyDashboardPage = () => {
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
 
-  const avatarPath = profile?.imageUrl || null;
-  const avatarUrl = avatarPath
-    ? `http://localhost:5000${avatarPath}`
-    : null;
+  // imageUrl already contains full Cloudinary URL
+  const avatarUrl = profile?.imageUrl || null;
 
   const [menuOpen, setMenuOpen] = useState(false);
 

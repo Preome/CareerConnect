@@ -6,8 +6,8 @@ const UserDashboardPage = () => {
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
 
-  const avatarPath = profile?.imageUrl || null;
-  const avatarUrl = avatarPath ? `http://localhost:5000${avatarPath}` : null;
+  // imageUrl already contains full Cloudinary URL
+  const avatarUrl = profile?.imageUrl || null;
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -63,14 +63,17 @@ const UserDashboardPage = () => {
               <img
                 src={avatarUrl}
                 alt="Profile"
-                className="w-14 h-14 rounded bg-slate-700 mb-3 object-cover"
+                className="w-14 h-14 rounded bg-slate-700 mb-2 object-cover"
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
               />
             ) : (
-              <div className="w-14 h-14 rounded bg-slate-700 mb-3" />
+              <div className="w-14 h-14 rounded bg-slate-700 mb-2" />
             )}
+            <span className="text-xs text-gray-300">
+              {profile?.name || "User"}
+            </span>
           </div>
 
           <nav className="flex flex-col text-sm">
@@ -101,4 +104,5 @@ const UserDashboardPage = () => {
 };
 
 export default UserDashboardPage;
+
 
