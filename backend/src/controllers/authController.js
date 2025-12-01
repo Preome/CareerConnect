@@ -1,0 +1,266 @@
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const Company = require("../models/Company");
+
+const createToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
+
+// POST /api/auth/register-user
+const registerUser = async (req, res) => {
+  try {
+    const { name, gender, email, mobile, password, studentType, department } =
+      req.body;
+
+    // make all fields + image mandatory
+    if (
+      !name ||
+      !gender ||
+      !email ||
+      !mobile ||
+      !password ||
+      !studentType ||
+      !department ||
+      !req.file
+    ) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ message: "Email already used" });
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const imageUrl = `/uploads/${req.file.filename}`;
+
+    const user = await User.create({
+      name,
+      gender,
+      email,
+      mobile,
+      password: hashed,
+      studentType,
+      department,
+      imageUrl,
+    });
+
+    const token = createToken(user._id, "user");
+    res.status(201).json({
+      token,
+      profile: {
+        id: user._id,
+        name: user.name,
+        role: "user",
+        imageUrl: user.imageUrl || null,
+        gender: user.gender,
+        mobile: user.mobile,
+        studentType: user.studentType,
+        department: user.department,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// POST /api/auth/register-company
+const registerCompany = async (req, res) => {
+  try {
+    const {
+      companyName,
+      establishmentYear,
+      contactNo,
+      email,
+      password,
+      industryType,
+      address,
+      licenseNo,
+    } = req.body;
+
+    // make all company fields + image mandatory
+    if (
+      !companyName ||
+      !establishmentYear ||
+      !contactNo ||
+      !email ||
+      !password ||
+      !industryType ||
+      !address ||
+      !licenseNo ||
+      !req.file
+    ) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const existing = await Company.findOne({ email });
+    if (existing) return res.status(400).json({ message: "Email already used" });
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const imageUrl = `/uploads/${req.file.filename}`;
+
+    const company = await Company.create({
+      companyName,
+      establishmentYear,
+      contactNo,
+      email,
+      password: hashed,
+      industryType,
+      address,
+      licenseNo,
+      imageUrl,
+    });
+
+    const token = createToken(company._id, "company");
+    res.status(201).json({
+      token,
+      profile: {
+        id: company._id,
+        name: company.companyName,
+        role: "company",
+        imageUrl: company.imageUrl || null,
+        email: company.email,
+        contactNo: company.contactNo,
+        establishmentYear: company.establishmentYear,
+        industryType: company.industryType,
+        address: company.address,
+        licenseNo: company.licenseNo,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// POST /api/auth/login (email+password)
+const login = async (req, res) => {
+  try {
+    const { email, password, role } = req.body; // role: "user" or "company"
+
+    let account;
+    if (role === "company") {
+      account = await Company.findOne({ email });
+    } else {
+      account = await User.findOne({ email });
+    }
+
+    if (!account) return res.status(400).json({ message: "Invalid credentials" });
+
+    const match = await bcrypt.compare(password, account.password);
+    if (!match) return res.status(400).json({ message: "Invalid credentials" });
+
+    const effectiveRole = role === "company" ? "company" : "user";
+
+    const token = createToken(account._id, effectiveRole);
+
+    // Build profile differently for user vs company
+    let profile;
+    if (effectiveRole === "user") {
+      profile = {
+        id: account._id,
+        name: account.name,
+        role: "user",
+        imageUrl: account.imageUrl || null,
+        gender: account.gender,
+        mobile: account.mobile,
+        studentType: account.studentType,
+        department: account.department,
+        email: account.email,
+      };
+    } else {
+      profile = {
+        id: account._id,
+        name: account.companyName,
+        role: "company",
+        imageUrl: account.imageUrl || null,
+        email: account.email,
+        contactNo: account.contactNo,
+        establishmentYear: account.establishmentYear,
+        industryType: account.industryType,
+        address: account.address,
+        licenseNo: account.licenseNo,
+      };
+    }
+
+    res.json({ token, profile });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// POST /api/auth/google-login  (works for BOTH user and company)
+const googleLogin = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // 1) try to find a User
+    let account = await User.findOne({ email });
+    let role = "user";
+
+    // 2) if no user, try Company
+    if (!account) {
+      account = await Company.findOne({ email });
+      role = "company";
+    }
+
+    // 3) if neither exists, return error
+    if (!account) {
+      return res
+        .status(400)
+        .json({ message: "No account with this Google email. Please register first." });
+    }
+
+    const token = createToken(account._id, role);
+
+    let profile;
+    if (role === "user") {
+      profile = {
+        id: account._id,
+        name: account.name,
+        role: "user",
+        imageUrl: account.imageUrl || null,
+        gender: account.gender,
+        mobile: account.mobile,
+        studentType: account.studentType,
+        department: account.department,
+        email: account.email,
+      };
+    } else {
+      profile = {
+        id: account._id,
+        name: account.companyName,
+        role: "company",
+        imageUrl: account.imageUrl || null,
+        email: account.email,
+        contactNo: account.contactNo,
+        establishmentYear: account.establishmentYear,
+        industryType: account.industryType,
+        address: account.address,
+        licenseNo: account.licenseNo,
+      };
+    }
+
+    res.json({ token, profile });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = {
+  registerUser,
+  registerCompany,
+  login,
+  googleLogin,
+};
+
+
+
+
+
+
