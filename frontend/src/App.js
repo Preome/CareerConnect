@@ -1,12 +1,19 @@
+// frontend/src/App.js
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import UserRegisterPage from "./pages/UserRegisterPage";
 import CompanyRegisterPage from "./pages/CompanyRegisterPage";
 import UserDashboardPage from "./pages/UserDashboardPage";
 import CompanyDashboardPage from "./pages/CompanyDashboardPage";
+import UserProfilePage from "./pages/UserProfilePage";       // NEW
+import CompanyProfilePage from "./pages/CompanyProfilePage"; // NEW
+import ChangePasswordPage from "./pages/ChangePasswordPage";
+import AboutPage from "./pages/AboutPage";
 
+// inside <Routes>
 
 
 function App() {
@@ -20,8 +27,10 @@ function App() {
           <Route path="/register-company" element={<CompanyRegisterPage />} />
           <Route path="/user-dashboard" element={<UserDashboardPage />} />
           <Route path="/company-dashboard" element={<CompanyDashboardPage />} />
-
-
+          <Route path="/user-profile" element={<UserProfilePage />} />           
+          <Route path="/company-profile" element={<CompanyProfilePage />} />     
+          <Route path="/change-password" element={<ChangePasswordPage />} />
+          <Route path="/about" element={<AboutPage />} />
         </Routes>
       </div>
     </Router>
@@ -29,3 +38,6 @@ function App() {
 }
 
 export default App;
+
+
+

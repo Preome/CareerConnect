@@ -2,10 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import homeBg from "../images/home.jpg"; // background image
 
-
 const HomePage = () => {
   const navigate = useNavigate();
-
 
   return (
     <div className="min-h-screen flex flex-col bg-sky-100">
@@ -14,19 +12,20 @@ const HomePage = () => {
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
         <nav className="space-x-6 text-sm">
           <button className="hover:text-gray-300">Contact Us</button>
-          <button className="hover:text-gray-300">About Us</button>
+          <button
+            onClick={() => navigate("/about")}
+            className="hover:text-gray-300"
+          >
+            About Us
+          </button>
         </nav>
       </header>
 
-
       <main
-  className="flex-1 flex items-center justify-start px-16 bg-cover bg-center bg-no-repeat"
-  style={{ backgroundImage: `url(${homeBg})` }}
->
-  <div className="max-w-2xl w-full flex items-center bg-sky-100/80 rounded-xl p-8 ml-10">
-
-
-          {/* Only left text section now */}
+        className="flex-1 flex items-center justify-start px-16 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${homeBg})` }}
+      >
+        <div className="max-w-2xl w-full flex items-center bg-sky-100/80 rounded-xl p-8 ml-10">
           <div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Welcome to <span className="text-black-700">CareerConnect</span>
@@ -34,7 +33,6 @@ const HomePage = () => {
             <p className="text-gray-600 mb-8">
               A bridge between Companies and BRAC University Students.
             </p>
-
 
             <div className="flex flex-wrap gap-4">
               <button
@@ -63,8 +61,8 @@ const HomePage = () => {
   );
 };
 
-
 export default HomePage;
+
 
 
 

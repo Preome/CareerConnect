@@ -6,7 +6,6 @@ const CompanyDashboardPage = () => {
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
 
-  // imageUrl already contains full Cloudinary URL
   const avatarUrl = profile?.imageUrl || null;
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -43,7 +42,16 @@ const CompanyDashboardPage = () => {
 
           {/* dropdown */}
           {menuOpen && (
-            <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-32 z-10">
+            <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  navigate("/change-password");
+                }}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                Change password
+              </button>
               <button
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
@@ -92,13 +100,16 @@ const CompanyDashboardPage = () => {
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Query Forum
             </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/company-profile")}
+            >
               Profile
             </button>
           </nav>
         </aside>
 
-        {/* Main area */}
+        {/* Main area (dashboard content) */}
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 flex">
           <div className="w-full mt-6 px-6">
             <div className="bg-white shadow-lg rounded-md p-6 flex justify-between items-center">
@@ -122,5 +133,7 @@ const CompanyDashboardPage = () => {
 };
 
 export default CompanyDashboardPage;
+
+
 
 

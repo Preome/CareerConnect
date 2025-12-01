@@ -7,6 +7,7 @@ const {
   registerCompany,
   login,
   googleLogin,
+  changePassword,
 } = require("../controllers/authController");
 
 // user registration WITH image file named "image"
@@ -21,8 +22,10 @@ router.post("/login", login);
 // google login
 router.post("/google-login", googleLogin);
 
-
+// NEW: change password for logged-in user or company
+router.post("/change-password", changePassword);
 
 module.exports = router;
+
 
 

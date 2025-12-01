@@ -1,13 +1,13 @@
+// frontend/src/pages/CompanyProfilePage.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const UserDashboardPage = () => {
+const CompanyProfilePage = () => {
   const navigate = useNavigate();
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
 
   const avatarUrl = profile?.imageUrl || null;
-
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -64,35 +64,38 @@ const UserDashboardPage = () => {
       </header>
 
       <div className="flex flex-1">
-        {/* Left sidebar */}
-        <aside className="w-52 bg-slate-900 text-white pt-6">
+        {/* Left sidebar (same width as dashboard) */}
+        <aside className="w-56 bg-slate-900 text-white pt-6">
           <div className="flex flex-col items-center mb-6">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
-                alt="Profile"
-                className="w-14 h-14 rounded bg-slate-700 mb-2 object-cover"
+                alt="Company"
+                className="w-16 h-16 rounded-md bg-slate-700 mb-2 object-cover"
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
               />
             ) : (
-              <div className="w-14 h-14 rounded bg-slate-700 mb-2" />
+              <div className="w-16 h-16 rounded-md bg-slate-700 mb-2" />
             )}
             <span className="text-xs text-gray-300">
-              {profile?.name || "User"}
+              {profile?.companyName || profile?.name || "Company"}
             </span>
           </div>
 
           <nav className="flex flex-col text-sm">
-            <button className="text-left px-4 py-2 bg-indigo-600">
-              Home
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/company-dashboard")}
+            >
+              Dashboard
             </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
-              Applied Jobs
+              Posted Jobs
             </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
-              Followed Jobs
+              Candidate list
             </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Messages
@@ -100,25 +103,66 @@ const UserDashboardPage = () => {
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Query Forum
             </button>
-            <button
-              className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/user-profile")}
-            >
+            <button className="text-left px-4 py-2 bg-indigo-600">
               Profile
             </button>
           </nav>
         </aside>
 
-        {/* Main area (simple placeholder) */}
-        <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 flex items-center justify-center text-gray-600">
-          
+        {/* Main area with company info card */}
+        <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 p-6 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl p-8">
+            <h2 className="text-lg font-semibold mb-6">Company Information</h2>
+
+            <div className="flex justify-center mb-6">
+              {avatarUrl && (
+                <img
+                  src={avatarUrl}
+                  alt="Company"
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+              )}
+            </div>
+
+            {profile && (
+              <div className="border rounded-md overflow-hidden text-sm">
+                <div className="flex border-b px-4 py-2">
+                  <span className="w-44 font-medium">Company Name:</span>
+                  <span>{profile.companyName || profile.name}</span>
+                </div>
+                <div className="flex border-b px-4 py-2">
+                  <span className="w-44 font-medium">Email:</span>
+                  <span>{profile.email}</span>
+                </div>
+                <div className="flex border-b px-4 py-2">
+                  <span className="w-44 font-medium">Phone:</span>
+                  <span>{profile.contactNo}</span>
+                </div>
+                <div className="flex border-b px-4 py-2">
+                  <span className="w-44 font-medium">Establishment Year:</span>
+                  <span>{profile.establishmentYear}</span>
+                </div>
+                <div className="flex border-b px-4 py-2">
+                  <span className="w-44 font-medium">Industry:</span>
+                  <span>{profile.industryType}</span>
+                </div>
+                <div className="flex border-b px-4 py-2">
+                  <span className="w-44 font-medium">Address:</span>
+                  <span>{profile.address}</span>
+                </div>
+                <div className="flex px-4 py-2">
+                  <span className="w-44 font-medium">License No:</span>
+                  <span>{profile.licenseNo}</span>
+                </div>
+              </div>
+            )}
+          </div>
         </main>
       </div>
     </div>
   );
 };
 
-export default UserDashboardPage;
-
+export default CompanyProfilePage;
 
 

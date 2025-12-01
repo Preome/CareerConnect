@@ -11,6 +11,13 @@ const createToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
+// password must have at least ONE letter, ONE number and ONE special character
+// (no minimum length enforced)
+const isStrongPassword = (password) => {
+  const pattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&]).+$/;
+  return pattern.test(password);
+};
+
 // helper to upload a buffer to Cloudinary and get back the URL
 const uploadToCloudinary = (buffer, folder) => {
   return new Promise((resolve, reject) => {
@@ -47,6 +54,13 @@ const registerUser = async (req, res) => {
       !req.file
     ) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({
+        message:
+          "Password must include at least one letter, one number and one special character.",
+      });
     }
 
     const existing = await User.findOne({ email });
@@ -119,6 +133,13 @@ const registerCompany = async (req, res) => {
       !req.file
     ) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({
+        message:
+          "Password must include at least one letter, one number and one special character.",
+      });
     }
 
     const existing = await Company.findOne({ email });
@@ -240,9 +261,9 @@ const googleLogin = async (req, res) => {
 
     // 3) if neither exists, return error
     if (!account) {
-      return res
-        .status(400)
-        .json({ message: "No account with this Google email. Please register first." });
+      return res.status(400).json({
+        message: "No account with this Google email. Please register first.",
+      });
     }
 
     const token = createToken(account._id, role);
@@ -282,12 +303,70 @@ const googleLogin = async (req, res) => {
   }
 };
 
+// POST /api/auth/change-password
+const changePassword = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : null;
+
+    if (!token) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { id, role } = decoded; // "user" or "company"
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Current and new password are required" });
+    }
+
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({
+        message:
+          "New password must include at least one letter, one number and one special character.",
+      });
+    }
+
+    const Model = role === "company" ? Company : User;
+    const account = await Model.findById(id);
+
+    if (!account) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, account.password);
+    if (!isMatch) {
+      return res
+        .status(400)
+        .json({ message: "Previous password is incorrect" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    account.password = hashed;
+    await account.save();
+
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   registerCompany,
   login,
   googleLogin,
+  changePassword,
 };
+
+
 
 
 
