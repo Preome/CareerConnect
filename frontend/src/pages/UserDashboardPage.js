@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+// src/pages/UserDashboardPage.js
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const UserDashboardPage = () => {
   const navigate = useNavigate();
@@ -9,12 +11,35 @@ const UserDashboardPage = () => {
   const avatarUrl = profile?.imageUrl || null;
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
-    navigate("/"); // redirect to homepage
+    navigate("/");
   };
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get("http://localhost:5000/api/jobs");
+        setJobs(res.data || []);
+      } catch (err) {
+        console.error(err.response?.data || err.message);
+        alert(
+          err.response?.data?.error ||
+            err.response?.data?.message ||
+            "Failed to load jobs"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
@@ -32,7 +57,6 @@ const UserDashboardPage = () => {
             />
           </div>
 
-          {/* menu button */}
           <button
             className="text-2xl font-bold relative"
             onClick={() => setMenuOpen((prev) => !prev)}
@@ -40,7 +64,6 @@ const UserDashboardPage = () => {
             ☰
           </button>
 
-          {/* dropdown */}
           {menuOpen && (
             <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
               <button
@@ -109,9 +132,152 @@ const UserDashboardPage = () => {
           </nav>
         </aside>
 
-        {/* Main area (simple placeholder) */}
-        <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 flex items-center justify-center text-gray-600">
-          
+        {/* Main area: job feed */}
+        <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 py-8 px-4 md:px-8">
+          <div className="max-w-5xl mx-auto">
+            {/* filter buttons */}
+            <div className="flex flex-wrap gap-4 mb-4">
+              <button className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow">
+                Filter by Job Category
+              </button>
+              <button className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow">
+                Filter by Department
+              </button>
+            </div>
+
+            {loading ? (
+              <p className="text-sm text-gray-600">Loading jobs...</p>
+            ) : jobs.length === 0 ? (
+              <p className="text-sm text-gray-600">No jobs available.</p>
+            ) : (
+              <div className="space-y-6">
+                {jobs.map((job) => {
+                  const companyName =
+                    job.company?.companyName ||
+                    job.company?.name ||
+                    "Company";
+                  const companyLogo = job.company?.imageUrl || null;
+                  const logoFallback =
+                    companyName && typeof companyName === "string"
+                      ? companyName[0].toUpperCase()
+                      : "C";
+
+                  return (
+                    <div
+                      key={job._id}
+                      className="bg-white rounded-xl shadow-md p-4 md:p-5"
+                    >
+                      {/* company header: ONLY navy bar with logo + name */}
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center">
+                          <div className="bg-[#10215a] text-white rounded-md shadow-md flex items-center h-14 md:h-16 px-4">
+                            {/* logo inside navy bar */}
+                            <div className="w-10 h-10 mr-3 rounded-md overflow-hidden bg-[#00a9e7] flex items-center justify-center">
+                              {companyLogo ? (
+                                <img
+                                  src={companyLogo}
+                                  alt={companyName}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <span className="text-xl font-bold">
+                                  {logoFallback}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-base md:text-lg font-semibold tracking-wide whitespace-nowrap">
+                              {companyName}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-1.5 rounded-full text-sm font-semibold shadow">
+                            Apply
+                          </button>
+                          <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-1.5 rounded-full text-sm font-semibold shadow">
+                            Follow
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* job meta rows */}
+                      <div className="text-xs md:text-sm text-slate-900 leading-relaxed">
+                        <div className="space-x-4">
+                          <span>
+                            <span className="font-semibold">Job Title:</span>{" "}
+                            {job.title}
+                          </span>
+                          <span>
+                            <span className="font-semibold">
+                              Job Category:
+                            </span>{" "}
+                            {job.category}
+                          </span>
+                          <span>
+                            <span className="font-semibold">Department:</span>{" "}
+                            {job.department}
+                          </span>
+                        </div>
+
+                        <div className="space-x-4 mt-1">
+                          <span>
+                            <span className="font-semibold">
+                              Student Category:
+                            </span>{" "}
+                            {job.studentCategory}
+                          </span>
+                          <span>
+                            <span className="font-semibold">Gender:</span>{" "}
+                            {job.gender}
+                          </span>
+                          <span>
+                            <span className="font-semibold">Deadline:</span>{" "}
+                            {job.deadline
+                              ? new Date(job.deadline).toLocaleDateString()
+                              : ""}
+                          </span>
+                        </div>
+
+                        <p className="mt-1">
+                          <span className="font-semibold">Address:</span>{" "}
+                          {job.address}
+                        </p>
+
+                        <p className="mt-3 font-semibold">Job Description</p>
+                        <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
+                          {job.description}
+                        </div>
+
+                        <p className="mt-3 font-semibold">Requirements</p>
+                        <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
+                          {job.requirements}
+                        </div>
+
+                        <p className="mt-3 font-semibold">Benefits</p>
+                        <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
+                          {job.benefits}
+                        </div>
+
+                        <p className="mt-3 font-semibold">Experience</p>
+                        <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
+                          {job.experience}
+                        </div>
+
+                        <p className="mt-3 font-semibold">Salary Range</p>
+                        <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
+                          {job.salaryRange}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </main>
       </div>
     </div>
@@ -119,6 +285,11 @@ const UserDashboardPage = () => {
 };
 
 export default UserDashboardPage;
+
+
+
+
+
 
 
 

@@ -8,10 +8,15 @@ const {
   getJobById,
   updateJob,
   deleteJob,
+  getAllJobsForUsers,
 } = require("../controllers/jobController");
 
 // company creates job
 router.post("/", auth, createJob);
+
+// PUBLIC / USER: get all jobs
+// If you want only logged-in students, add `auth` here too.
+router.get("/", getAllJobsForUsers);
 
 // company sees own jobs
 router.get("/company", auth, getCompanyJobs);
@@ -26,3 +31,4 @@ router.put("/:id", auth, updateJob);
 router.delete("/:id", auth, deleteJob);
 
 module.exports = router;
+

@@ -62,6 +62,19 @@ exports.createJob = async (req, res) => {
   }
 };
 
+// GET /api/jobs  (all jobs for user side, with company info)
+exports.getAllJobsForUsers = async (req, res) => {
+  try {
+    const jobs = await Job.find()
+      .populate("company", "companyName name imageUrl")
+      .sort("-createdAt");
+    res.json(jobs);
+  } catch (err) {
+    console.error("Get all jobs error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 // GET /api/jobs/company  (jobs for logged-in company)
 exports.getCompanyJobs = async (req, res) => {
   try {
@@ -146,3 +159,4 @@ exports.deleteJob = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
