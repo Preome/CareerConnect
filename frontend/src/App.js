@@ -1,4 +1,4 @@
-// frontend/src/App.js
+// frontend/src/App.js 
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
@@ -8,18 +8,15 @@ import UserRegisterPage from "./pages/UserRegisterPage";
 import CompanyRegisterPage from "./pages/CompanyRegisterPage";
 import UserDashboardPage from "./pages/UserDashboardPage";
 import CompanyDashboardPage from "./pages/CompanyDashboardPage";
-import UserProfilePage from "./pages/UserProfilePage";       // NEW
-import CompanyProfilePage from "./pages/CompanyProfilePage"; // NEW
+import UserProfilePage from "./pages/UserProfilePage";
+import CompanyProfilePage from "./pages/CompanyProfilePage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import AboutPage from "./pages/AboutPage";
-
-// inside <Routes>
-
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-sky-100">
+      <div className="min-h-screen bg-white">  {/* FIXED HERE */}
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -27,8 +24,8 @@ function App() {
           <Route path="/register-company" element={<CompanyRegisterPage />} />
           <Route path="/user-dashboard" element={<UserDashboardPage />} />
           <Route path="/company-dashboard" element={<CompanyDashboardPage />} />
-          <Route path="/user-profile" element={<UserProfilePage />} />           
-          <Route path="/company-profile" element={<CompanyProfilePage />} />     
+          <Route path="/user-profile" element={<UserProfilePage />} />
+          <Route path="/company-profile" element={<CompanyProfilePage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/about" element={<AboutPage />} />
         </Routes>
