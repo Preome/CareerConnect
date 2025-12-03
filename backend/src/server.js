@@ -21,5 +21,12 @@ app.use(express.json());
 // routes
 app.use("/api/auth", require("./routes/authRoutes"));
 
+// Import admin routes with auth and role-based middleware
+const adminRoutes = require("./routes/adminRoutes");
+const { auth, isRole } = require("./middleware/authMiddleware"); // updated middleware
+
+// Protect admin routes: only admin role
+app.use("/api/admin", auth, isRole("admin"), adminRoutes);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
