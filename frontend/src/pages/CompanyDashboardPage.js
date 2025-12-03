@@ -7,7 +7,6 @@ const CompanyDashboardPage = () => {
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
 
   const avatarUrl = profile?.imageUrl || null;
-
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -85,12 +84,22 @@ const CompanyDashboardPage = () => {
           </div>
 
           <nav className="flex flex-col text-sm">
-            <button className="text-left px-4 py-2 bg-indigo-600">
+            {/* stay on dashboard */}
+            <button
+              className="text-left px-4 py-2 bg-indigo-600"
+              onClick={() => navigate("/company-dashboard")}
+            >
               Dashboard
             </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+
+            {/* go to posted jobs page */}
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/company/posted-jobs")}
+            >
               Posted Jobs
             </button>
+
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Candidate list
             </button>
@@ -121,7 +130,12 @@ const CompanyDashboardPage = () => {
                   Start Your Journey by sharing your first post!
                 </p>
               </div>
-              <button className="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow">
+
+              {/* navigate to Add Job page */}
+              <button
+                className="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow"
+                onClick={() => navigate("/company/jobs/new")}
+              >
                 Add Job post
               </button>
             </div>
@@ -133,7 +147,6 @@ const CompanyDashboardPage = () => {
 };
 
 export default CompanyDashboardPage;
-
 
 
 
