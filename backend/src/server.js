@@ -2,31 +2,28 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
-const path = require("path");
 
 dotenv.config();
-
 const app = express();
 
-// connect to MongoDB
+// Connect to MongoDB
 connectDB();
 
-// middleware
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// NO longer need to serve local /uploads because images go to Cloudinary
-// app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
-
-// routes
+// Routes
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/user", require("./routes/userRoutes"));
+app.use("/api/company", require("./routes/companyRoutes"));
+app.use("/api/admin", require("./routes/adminRoutes"));
 
-// Import admin routes with auth and role-based middleware
-const adminRoutes = require("./routes/adminRoutes");
-const { auth, isRole } = require("./middleware/authMiddleware"); // updated middleware
-
-// Protect admin routes: only admin role
-app.use("/api/admin", auth, isRole("admin"), adminRoutes);
+// Global error handler (catch unhandled errors)
+app.use((err, req, res, next) => {
+  console.error("Global error:", err);
+  res.status(500).json({ message: err.message });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

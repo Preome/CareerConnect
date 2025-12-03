@@ -17,17 +17,26 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setLoading(true);
 
     try {
-      setLoading(true);
+      let url = "";
 
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      // Admin login → backend: /admin/login
+      if (form.role === "admin") {
+        url = `${API_BASE_URL}/admin/login`;
+      } 
+      // User/company login → backend: /auth/login
+      else {
+        url = `${API_BASE_URL}/auth/login`;
+      }
+
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: form.email,
           password: form.password,
-          role: form.role, // "user" or "company"
         }),
       });
 
@@ -39,14 +48,22 @@ const LoginPage = () => {
         return;
       }
 
+      // Store token
       localStorage.setItem("token", data.token);
-      if (data.profile) {
+
+      // Store profile depending on role
+      if (form.role === "admin" && data.admin) {
+        localStorage.setItem("profile", JSON.stringify(data.admin));
+      } else if (data.profile) {
         localStorage.setItem("profile", JSON.stringify(data.profile));
       }
 
       setLoading(false);
 
-      if (data.profile?.role === "company") {
+      // Redirect based on role
+      if (form.role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (data.profile?.role === "company") {
         navigate("/company-dashboard");
       } else {
         navigate("/user-dashboard");
@@ -58,7 +75,6 @@ const LoginPage = () => {
     }
   };
 
-  // Google login – now works for both user and company
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
@@ -86,11 +102,11 @@ const LoginPage = () => {
         }
 
         localStorage.setItem("token", data.token);
+
         if (data.profile) {
           localStorage.setItem("profile", JSON.stringify(data.profile));
         }
 
-        // backend tells us if it's a user or company
         if (data.profile?.role === "company") {
           navigate("/company-dashboard");
         } else {
@@ -129,7 +145,6 @@ const LoginPage = () => {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* role selector (for email+password login only) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Login as
@@ -142,6 +157,7 @@ const LoginPage = () => {
               >
                 <option value="user">User</option>
                 <option value="company">Company</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
 
@@ -173,9 +189,7 @@ const LoginPage = () => {
               />
             </div>
 
-            {message && (
-              <p className="text-sm text-red-600 mt-1">{message}</p>
-            )}
+            {message && <p className="text-sm text-red-600 mt-1">{message}</p>}
 
             <button
               type="submit"
@@ -186,7 +200,6 @@ const LoginPage = () => {
             </button>
           </form>
 
-          {/* Google login visible for BOTH roles */}
           <div className="mt-6 flex flex-col items-center">
             <span className="text-sm text-gray-500 mb-2">Or</span>
             <button
@@ -207,7 +220,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
-
-
-

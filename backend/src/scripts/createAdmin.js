@@ -1,24 +1,26 @@
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 dotenv.config();
-
 const Admin = require("../models/admin");
+const connectDB = require("../config/db");
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(async () => {
-    const exists = await Admin.findOne({ email: "admin@example.com" });
-    if (exists) {
-      console.log("Admin already exists!");
-      return mongoose.disconnect();
-    }
+const createAdmin = async () => {
+  await connectDB();
 
-    const admin = new Admin({
-      email: "admin@example.com",
-      password: "admin123"
-    });
+  const email = "admin@careerconnect.com";
+  const password = "Admin@123";
 
-    await admin.save();
-    console.log("Admin created successfully!");
-    mongoose.disconnect();
-  })
-  .catch(err => console.log(err));
+  const existingAdmin = await Admin.findOne({ email });
+  if (existingAdmin) {
+    console.log("Admin already exists:", email);
+    process.exit();
+  }
+
+  const admin = new Admin({ email, password });
+  await admin.save();
+  console.log("Admin created:", email);
+  process.exit();
+};
+
+createAdmin();
+

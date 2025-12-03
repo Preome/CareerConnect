@@ -7,148 +7,114 @@ const AdminDashboardPage = () => {
   const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
-
   const token = localStorage.getItem("token");
 
+  // Redirect to login if no token
   useEffect(() => {
     if (!token) {
       navigate("/login");
-      return;
     }
+  }, [token, navigate]);
 
+  // Fetch users and companies
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const usersRes = await fetch(`${API_BASE_URL}/admin/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const usersData = await usersRes.json();
-        setUsers(usersData);
 
         const companiesRes = await fetch(`${API_BASE_URL}/admin/companies`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const companiesData = await companiesRes.json();
-        setCompanies(companiesData);
 
-        setLoading(false);
+        setUsers(usersData);
+        setCompanies(companiesData);
       } catch (err) {
-        console.error(err);
-        setMessage("Failed to load data");
+        console.error("Failed to fetch admin data:", err);
+      } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [navigate, token]);
+  }, [token]);
 
-  const handleDeleteUser = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/admin/user/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error("Delete failed");
-
-      setUsers(users.filter((u) => u._id !== id));
-    } catch (err) {
-      console.error(err);
-      setMessage("Failed to delete user");
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
-  const handleDeleteCompany = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this company?")) return;
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/admin/company/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error("Delete failed");
-
-      setCompanies(companies.filter((c) => c._id !== id));
-    } catch (err) {
-      console.error(err);
-      setMessage("Failed to delete company");
-    }
-  };
+  if (loading) return <p className="p-6">Loading...</p>;
 
   return (
-    <div className="min-h-screen bg-sky-100">
-      <header className="w-full bg-blue-900 text-white flex items-center px-10 py-4 shadow-md">
-        <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
+    <div className="min-h-screen flex flex-col bg-gray-100">
+      <header className="w-full bg-indigo-700 text-white flex justify-between px-8 py-4">
+        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded"
+        >
+          Logout
+        </button>
       </header>
 
-      <main className="p-8">
-        {message && <p className="text-red-600 mb-4">{message}</p>}
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <>
-            <section className="mb-10">
-              <h2 className="text-xl font-semibold mb-4">Users</h2>
-              <table className="w-full border border-gray-300 rounded-md">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="p-2 border">Name</th>
-                    <th className="p-2 border">Email</th>
-                    <th className="p-2 border">Action</th>
+      <main className="flex-1 p-6">
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">Users</h2>
+          {users.length === 0 ? (
+            <p>No users found.</p>
+          ) : (
+            <table className="w-full border border-gray-300">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="border px-2 py-1">#</th>
+                  <th className="border px-2 py-1">Name</th>
+                  <th className="border px-2 py-1">Email</th>
+                  <th className="border px-2 py-1">Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user, i) => (
+                  <tr key={user._id}>
+                    <td className="border px-2 py-1">{i + 1}</td>
+                    <td className="border px-2 py-1">{user.name || "N/A"}</td>
+                    <td className="border px-2 py-1">{user.email}</td>
+                    <td className="border px-2 py-1">{user.role}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user._id}>
-                      <td className="p-2 border">{user.name || "-"}</td>
-                      <td className="p-2 border">{user.email}</td>
-                      <td className="p-2 border">
-                        <button
-                          onClick={() => handleDeleteUser(user._id)}
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
 
-            <section>
-              <h2 className="text-xl font-semibold mb-4">Companies</h2>
-              <table className="w-full border border-gray-300 rounded-md">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="p-2 border">Company Name</th>
-                    <th className="p-2 border">Email</th>
-                    <th className="p-2 border">Action</th>
+        <section>
+          <h2 className="text-xl font-semibold mb-2">Companies</h2>
+          {companies.length === 0 ? (
+            <p>No companies found.</p>
+          ) : (
+            <table className="w-full border border-gray-300">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="border px-2 py-1">#</th>
+                  <th className="border px-2 py-1">Company Name</th>
+                  <th className="border px-2 py-1">Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                {companies.map((c, i) => (
+                  <tr key={c._id}>
+                    <td className="border px-2 py-1">{i + 1}</td>
+                    <td className="border px-2 py-1">{c.companyName || c.name}</td>
+                    <td className="border px-2 py-1">{c.email}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {companies.map((company) => (
-                    <tr key={company._id}>
-                      <td className="p-2 border">{company.name || "-"}</td>
-                      <td className="p-2 border">{company.email}</td>
-                      <td className="p-2 border">
-                        <button
-                          onClick={() => handleDeleteCompany(company._id)}
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
-          </>
-        )}
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
       </main>
     </div>
   );
