@@ -2,6 +2,7 @@ const Admin = require("../models/admin"); // <-- use Admin model
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
+//POST /api/admin/login
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
