@@ -2,10 +2,11 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import AdminDashboardPage from "./pages/AdminDashboardPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import UserRegisterPage from "./pages/UserRegisterPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminPanelPage from "./pages/AdminPanelPage";
 import CompanyRegisterPage from "./pages/CompanyRegisterPage";
 import UserDashboardPage from "./pages/UserDashboardPage";
 import CompanyDashboardPage from "./pages/CompanyDashboardPage";
@@ -24,6 +25,7 @@ function App() {
           <Route path="/register-user" element={<UserRegisterPage />} />
           <Route path="/register-company" element={<CompanyRegisterPage />} />
           <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin-panel" element={<AdminPanelPage />} />
           <Route path="/user-dashboard" element={<UserDashboardPage />} />
           <Route path="/company-dashboard" element={<CompanyDashboardPage />} />
           <Route path="/user-profile" element={<UserProfilePage />} />
