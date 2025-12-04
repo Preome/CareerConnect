@@ -1,10 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const CompanyDashboardPage = () => {
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
+
+  useEffect(() => {
+    if (!token) navigate("/login");
+  }, [token, navigate]);
 
   const avatarUrl = profile?.imageUrl || null;
 

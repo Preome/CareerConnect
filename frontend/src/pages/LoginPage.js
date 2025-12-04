@@ -37,6 +37,7 @@ const LoginPage = () => {
         body: JSON.stringify({
           email: form.email,
           password: form.password,
+          role: form.role === "admin" ? undefined : form.role,
         }),
       });
 
