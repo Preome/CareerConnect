@@ -62,12 +62,34 @@ exports.createJob = async (req, res) => {
   }
 };
 
-// GET /api/jobs  (all jobs for user side, with company info)
+// GET /api/jobs  (all jobs for user side, with filters + company info)
 exports.getAllJobsForUsers = async (req, res) => {
   try {
-    const jobs = await Job.find()
+    const { category, department } = req.query;
+
+    const filter = {};
+
+    // Job category filter (Part-time, Full-time)
+    if (category && category !== "Any") {
+      filter.category = category;
+    }
+
+    // Department filter logic:
+    // - "All"  => no department filter
+    // - "Any"  => only jobs where department === "Any"
+    // - others => filter by that department
+    if (department) {
+      if (department === "Any") {
+        filter.department = "Any";
+      } else if (department !== "All") {
+        filter.department = department;
+      }
+    }
+
+    const jobs = await Job.find(filter)
       .populate("company", "companyName name imageUrl")
       .sort("-createdAt");
+
     res.json(jobs);
   } catch (err) {
     console.error("Get all jobs error:", err);
@@ -159,4 +181,5 @@ exports.deleteJob = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
 

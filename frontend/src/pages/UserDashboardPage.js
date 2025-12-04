@@ -14,32 +14,66 @@ const UserDashboardPage = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // filters
+  const [categoryFilter, setCategoryFilter] = useState("All"); // All | Part-time | Full-time
+  const [departmentFilter, setDepartmentFilter] = useState("All"); // All | Any | specific dept
+
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+  const [showDepartmentMenu, setShowDepartmentMenu] = useState(false);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
     navigate("/");
   };
 
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get("http://localhost:5000/api/jobs");
-        setJobs(res.data || []);
-      } catch (err) {
-        console.error(err.response?.data || err.message);
-        alert(
-          err.response?.data?.error ||
-            err.response?.data?.message ||
-            "Failed to load jobs"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+  const departmentOptions = [
+    "All", // show all departments
+    "Any", // only jobs whose department is literally "Any"
+    "CSE",
+    "EEE",
+    "Architecture",
+    "Pharmacy",
+    "Economics",
+    "Law",
+    "BBA",
+    "English and Humanities",
+    "General education",
+  ];
 
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+
+      const params = new URLSearchParams();
+      // All = no category filter
+      if (categoryFilter !== "All") params.append("category", categoryFilter);
+      // All = no department filter
+      if (departmentFilter !== "All")
+        params.append("department", departmentFilter);
+
+      const url = `http://localhost:5000/api/jobs${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
+
+      const res = await axios.get(url);
+      setJobs(res.data || []);
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Failed to load jobs"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // refetch whenever filters change
+  useEffect(() => {
     fetchJobs();
-  }, []);
+  }, [categoryFilter, departmentFilter]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
@@ -108,9 +142,7 @@ const UserDashboardPage = () => {
           </div>
 
           <nav className="flex flex-col text-sm">
-            <button className="text-left px-4 py-2 bg-indigo-600">
-              Home
-            </button>
+            <button className="text-left px-4 py-2 bg-indigo-600">Home</button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Applied Jobs
             </button>
@@ -135,14 +167,75 @@ const UserDashboardPage = () => {
         {/* Main area: job feed */}
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 py-8 px-4 md:px-8">
           <div className="max-w-5xl mx-auto">
-            {/* filter buttons */}
-            <div className="flex flex-wrap gap-4 mb-4">
-              <button className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow">
-                Filter by Job Category
-              </button>
-              <button className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow">
-                Filter by Department
-              </button>
+            {/* Filter buttons + menus */}
+            <div className="flex flex-wrap gap-4 mb-4 relative">
+              {/* Category filter */}
+              <div className="relative">
+                <button
+                  className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow flex items-center gap-2"
+                  type="button"
+                  onClick={() => {
+                    setShowCategoryMenu((p) => !p);
+                    setShowDepartmentMenu(false);
+                  }}
+                >
+                  Filter by Job Category
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                    {categoryFilter}
+                  </span>
+                </button>
+
+                {showCategoryMenu && (
+                  <div className="absolute z-20 mt-1 w-40 bg-white rounded-md shadow border text-sm text-gray-700">
+                    {["All", "Part-time", "Full-time"].map((cat) => (
+                      <button
+                        key={cat}
+                        className="w-full text-left px-3 py-1.5 hover:bg-gray-100"
+                        onClick={() => {
+                          setCategoryFilter(cat);
+                          setShowCategoryMenu(false);
+                        }}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Department filter */}
+              <div className="relative">
+                <button
+                  className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow flex items-center gap-2"
+                  type="button"
+                  onClick={() => {
+                    setShowDepartmentMenu((p) => !p);
+                    setShowCategoryMenu(false);
+                  }}
+                >
+                  Filter by Department
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                    {departmentFilter}
+                  </span>
+                </button>
+
+                {showDepartmentMenu && (
+                  <div className="absolute z-20 mt-1 w-56 bg-white rounded-md shadow border text-sm text-gray-700 max-h-64 overflow-y-auto">
+                    {departmentOptions.map((dep) => (
+                      <button
+                        key={dep}
+                        className="w-full text-left px-3 py-1.5 hover:bg-gray-100"
+                        onClick={() => {
+                          setDepartmentFilter(dep);
+                          setShowDepartmentMenu(false);
+                        }}
+                      >
+                        {dep}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {loading ? (
@@ -167,11 +260,10 @@ const UserDashboardPage = () => {
                       key={job._id}
                       className="bg-white rounded-xl shadow-md p-4 md:p-5"
                     >
-                      {/* company header: ONLY navy bar with logo + name */}
+                      {/* company header */}
                       <div className="flex items-center justify-between mb-5">
                         <div className="flex items-center">
                           <div className="bg-[#10215a] text-white rounded-md shadow-md flex items-center h-14 md:h-16 px-4">
-                            {/* logo inside navy bar */}
                             <div className="w-10 h-10 mr-3 rounded-md overflow-hidden bg-[#00a9e7] flex items-center justify-center">
                               {companyLogo ? (
                                 <img
@@ -212,9 +304,7 @@ const UserDashboardPage = () => {
                             {job.title}
                           </span>
                           <span>
-                            <span className="font-semibold">
-                              Job Category:
-                            </span>{" "}
+                            <span className="font-semibold">Job Category:</span>{" "}
                             {job.category}
                           </span>
                           <span>
@@ -285,6 +375,7 @@ const UserDashboardPage = () => {
 };
 
 export default UserDashboardPage;
+
 
 
 

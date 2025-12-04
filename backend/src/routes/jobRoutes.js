@@ -14,8 +14,7 @@ const {
 // company creates job
 router.post("/", auth, createJob);
 
-// PUBLIC / USER: get all jobs
-// If you want only logged-in students, add `auth` here too.
+// PUBLIC / USER: get all jobs (with optional filters ?category=&department=)
 router.get("/", getAllJobsForUsers);
 
 // company sees own jobs
