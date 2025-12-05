@@ -8,6 +8,7 @@ const LoginPage = () => {
   const [form, setForm] = useState({ email: "", password: "", role: "user" });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // NEW
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -90,7 +91,6 @@ const LoginPage = () => {
           localStorage.setItem("profile", JSON.stringify(data.profile));
         }
 
-        // backend tells us if it's a user or company
         if (data.profile?.role === "company") {
           navigate("/company-dashboard");
         } else {
@@ -129,7 +129,7 @@ const LoginPage = () => {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* role selector (for email+password login only) */}
+            {/* role selector */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Login as
@@ -163,14 +163,23 @@ const LoginPage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password
               </label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter your password"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-xs text-gray-500"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
 
             {message && (
@@ -186,7 +195,7 @@ const LoginPage = () => {
             </button>
           </form>
 
-          {/* Google login visible for BOTH roles */}
+          {/* Google login */}
           <div className="mt-6 flex flex-col items-center">
             <span className="text-sm text-gray-500 mb-2">Or</span>
             <button
@@ -207,6 +216,7 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
 
 
 
