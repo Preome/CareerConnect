@@ -17,24 +17,10 @@ const upload = require("../middleware/upload"); // multer for images
 // -----------------------
 
 // Get logged-in company profile
-router.get("/me", auth, isRole("company"), async (req, res) => {
-  try {
-    const company = await CompanyController.getMyCompany(req.user.id);
-    res.json(company);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+router.get("/me", auth, isRole("company"), CompanyController.getMyCompany);
 
 // Update company info
-router.put("/:id", auth, isRole("company"), async (req, res) => {
-  try {
-    const updatedCompany = await CompanyController.updateCompany(req.params.id, req.body);
-    res.json(updatedCompany);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+router.put("/:id", auth, isRole("company"), CompanyController.updateCompany);
 
 // Upload company image
 router.post(
@@ -42,14 +28,7 @@ router.post(
   auth,
   isRole("company"),
   upload.single("image"),
-  async (req, res) => {
-    try {
-      const updatedCompany = await CompanyController.uploadImage(req.user.id, req.file);
-      res.json(updatedCompany);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  }
+  CompanyController.uploadImage
 );
 
 module.exports = router;

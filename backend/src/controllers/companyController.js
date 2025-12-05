@@ -1,23 +1,31 @@
 const Company = require("../models/Company");
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
 
-// Get company profile by ID
-exports.getCompany = async (req, res) => {
+// GET my company profile
+exports.getMyCompany = async (req, res) => {
   try {
-    const company = await Company.findById(req.params.id);
-    if (!company) return res.status(404).json({ message: "Company not found" });
-    res.json(company);
+    const company = await Company.findById(req.user.id);
+
+    if (!company) {
+      return res.status(404).json({ message: "Company not found" });
+    }
+
+    return res.json(company);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("GET /company/me error:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 // Update company profile
 exports.updateCompany = async (req, res) => {
   try {
-    const { name, email, website, location, description } = req.body;
+    const { companyName, establishmentYear, contactNo, email, industryType, address, licenseNo, imageUrl, description } = req.body;
     const company = await Company.findByIdAndUpdate(
       req.params.id,
-      { name, email, website, location, description },
+      { companyName, establishmentYear, contactNo, email, industryType, address, licenseNo, imageUrl, description },
       { new: true }
     );
     if (!company) return res.status(404).json({ message: "Company not found" });
@@ -44,10 +52,10 @@ exports.addJob = async (req, res) => {
 // Get all jobs
 exports.getJobs = async (req, res) => {
   try {
-    const companies = await Company.find({}, "name jobs");
+    const companies = await Company.find({}, "companyName jobs");
     const jobs = [];
     companies.forEach(c => {
-      c.jobs.forEach(j => jobs.push({ ...j.toObject(), companyName: c.name, companyId: c._id }));
+      c.jobs.forEach(j => jobs.push({ ...j.toObject(), companyName: c.companyName, companyId: c._id }));
     });
     res.json(jobs);
   } catch (err) {
@@ -62,10 +70,38 @@ exports.getJobById = async (req, res) => {
     for (let c of companies) {
       const job = c.jobs.id(req.params.jobId);
       if (job) {
-        return res.json({ ...job.toObject(), companyName: c.name, companyId: c._id });
+        return res.json({ ...job.toObject(), companyName: c.companyName, companyId: c._id });
       }
     }
     res.status(404).json({ message: "Job not found" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Upload company image (expects `upload` middleware to populate `req.file`)
+exports.uploadImage = async (req, res) => {
+  try {
+    const companyId = req.user && req.user.id;
+    if (!companyId) return res.status(401).json({ message: "Unauthorized" });
+    if (!req.file || !req.file.buffer) return res.status(400).json({ message: "No file uploaded" });
+
+    const uploadFromBuffer = (buffer) =>
+      new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "company_logos" },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+        streamifier.createReadStream(buffer).pipe(uploadStream);
+      });
+
+    const result = await uploadFromBuffer(req.file.buffer);
+    const company = await Company.findByIdAndUpdate(companyId, { imageUrl: result.secure_url }, { new: true });
+    if (!company) return res.status(404).json({ message: "Company not found" });
+    res.json(company);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

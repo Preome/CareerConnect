@@ -1,6 +1,7 @@
 // frontend/src/pages/CompanyProfilePage.js
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 const CompanyProfilePage = () => {
   const navigate = useNavigate();
@@ -13,6 +14,9 @@ const CompanyProfilePage = () => {
     if (!data) return {};
 
     return {
+      id: data.id || data._id || null,
+      role: data.role || data.userRole || data.roleType || null,
+      email: data.email || data.contactEmail || "",
       companyName: data.companyName || data.name || data.company?.name || "",
       email: data.email || "",
       contactNo: data.contactNo || "",
@@ -58,10 +62,54 @@ const CompanyProfilePage = () => {
     setTempProfile({ ...tempProfile, [e.target.name]: e.target.value });
   };
 
-  const handleSave = () => {
-    setProfile(tempProfile);
-    localStorage.setItem("profile", JSON.stringify(tempProfile));
-    setIsEditing(false);
+  const handleSave = async () => {
+    // Persist to backend and update localStorage with server's canonical data
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return alert("Not authenticated");
+
+      // Preserve id from stored profile (login sets id), if present
+      const stored = JSON.parse(localStorage.getItem("profile") || "{}");
+      let companyId = stored.id || stored._id || profile.id;
+      if (!companyId) return alert("Company id not found. Please re-login.");
+
+      const res = await fetch(`${API_BASE_URL}/company/${companyId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(tempProfile),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("Save failed", data);
+        return alert(data.message || "Failed to save profile");
+      }
+
+      // Build a lightweight profile object to store in localStorage
+      const newProfile = {
+        id: data._id || data.id || companyId,
+        name: data.companyName || tempProfile.companyName || stored.name,
+        role: "company",
+        imageUrl: data.imageUrl || tempProfile.imageUrl || stored.imageUrl,
+        email: data.email || tempProfile.email || stored.email,
+        contactNo: data.contactNo || tempProfile.contactNo || stored.contactNo,
+        establishmentYear: data.establishmentYear || tempProfile.establishmentYear || stored.establishmentYear,
+        industryType: data.industryType || tempProfile.industryType || stored.industryType,
+        address: data.address || tempProfile.address || stored.address,
+        licenseNo: data.licenseNo || tempProfile.licenseNo || stored.licenseNo,
+      };
+
+      setProfile({ ...profile, ...tempProfile });
+      setTempProfile({ ...tempProfile });
+      localStorage.setItem("profile", JSON.stringify(newProfile));
+      setIsEditing(false);
+    } catch (err) {
+      console.error(err);
+      alert("Server error while saving profile");
+    }
   };
 
   const handleCancel = () => {
