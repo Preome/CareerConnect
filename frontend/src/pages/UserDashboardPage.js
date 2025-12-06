@@ -14,9 +14,8 @@ const UserDashboardPage = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // filters
-  const [categoryFilter, setCategoryFilter] = useState("All"); // All | Part-time | Full-time
-  const [departmentFilter, setDepartmentFilter] = useState("All"); // All | Any | specific dept
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [departmentFilter, setDepartmentFilter] = useState("All");
 
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showDepartmentMenu, setShowDepartmentMenu] = useState(false);
@@ -28,8 +27,8 @@ const UserDashboardPage = () => {
   };
 
   const departmentOptions = [
-    "All", // show all departments
-    "Any", // only jobs whose department is literally "Any"
+    "All",
+    "Any",
     "CSE",
     "EEE",
     "Architecture",
@@ -46,9 +45,7 @@ const UserDashboardPage = () => {
       setLoading(true);
 
       const params = new URLSearchParams();
-      // All = no category filter
       if (categoryFilter !== "All") params.append("category", categoryFilter);
-      // All = no department filter
       if (departmentFilter !== "All")
         params.append("department", departmentFilter);
 
@@ -70,9 +67,12 @@ const UserDashboardPage = () => {
     }
   };
 
-  // refetch whenever filters change
   useEffect(() => {
-    fetchJobs();
+    const run = async () => {
+      await fetchJobs();
+    };
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryFilter, departmentFilter]);
 
   return (
@@ -121,8 +121,8 @@ const UserDashboardPage = () => {
       </header>
 
       <div className="flex flex-1">
-        {/* Left sidebar */}
-        <aside className="w-52 bg-slate-900 text-white pt-6">
+        {/* Left sidebar – sticky */}
+        <aside className="w-52 bg-slate-900 text-white pt-6 sticky top-0 self-start h-screen">
           <div className="flex flex-col items-center mb-6">
             {avatarUrl ? (
               <img
@@ -296,7 +296,7 @@ const UserDashboardPage = () => {
                         </div>
                       </div>
 
-                      {/* job meta rows */}
+                      {/* job meta + details */}
                       <div className="text-xs md:text-sm text-slate-900 leading-relaxed">
                         <div className="space-x-4">
                           <span>
@@ -375,6 +375,7 @@ const UserDashboardPage = () => {
 };
 
 export default UserDashboardPage;
+
 
 
 
