@@ -357,21 +357,21 @@ const UserDashboardPage = () => {
                         </div>
 
                         <p className="mt-3 font-semibold text-pink-700">
-                          Requirements
+                          Job Requirements
                         </p>
                         <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
                           {job.requirements}
                         </div>
 
                         <p className="mt-3 font-semibold text-pink-700">
-                          Benefits
+                          Job Benefits
                         </p>
                         <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
                           {job.benefits}
                         </div>
 
                         <p className="mt-3 font-semibold text-pink-700">
-                          Experience
+                          Job Experience
                         </p>
                         <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
                           {job.experience}
