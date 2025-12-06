@@ -263,7 +263,7 @@ const UserDashboardPage = () => {
                       {/* company header */}
                       <div className="flex items-center justify-between mb-5">
                         <div className="flex items-center">
-                          <div className="bg-[#10215a] text-white rounded-md shadow-md flex items-center h-14 md:h-16 px-4">
+                          <div className="bg-[#10215a] text-white rounded-md shadow-md flex items-center h-14 md:h-16 px-5">
                             <div className="w-10 h-10 mr-3 rounded-md overflow-hidden bg-[#00a9e7] flex items-center justify-center">
                               {companyLogo ? (
                                 <img
@@ -300,32 +300,42 @@ const UserDashboardPage = () => {
                       <div className="text-xs md:text-sm text-slate-900 leading-relaxed">
                         <div className="space-x-4">
                           <span>
-                            <span className="font-semibold">Job Title:</span>{" "}
+                            <span className="font-semibold text-pink-700">
+                              Job Title:
+                            </span>{" "}
                             {job.title}
                           </span>
                           <span>
-                            <span className="font-semibold">Job Category:</span>{" "}
+                            <span className="font-semibold text-pink-700">
+                              Job Category:
+                            </span>{" "}
                             {job.category}
                           </span>
                           <span>
-                            <span className="font-semibold">Department:</span>{" "}
+                            <span className="font-semibold text-pink-700">
+                              Department:
+                            </span>{" "}
                             {job.department}
                           </span>
                         </div>
 
                         <div className="space-x-4 mt-1">
                           <span>
-                            <span className="font-semibold">
+                            <span className="font-semibold text-pink-700">
                               Student Category:
                             </span>{" "}
                             {job.studentCategory}
                           </span>
                           <span>
-                            <span className="font-semibold">Gender:</span>{" "}
+                            <span className="font-semibold text-pink-700">
+                              Gender:
+                            </span>{" "}
                             {job.gender}
                           </span>
                           <span>
-                            <span className="font-semibold">Deadline:</span>{" "}
+                            <span className="font-semibold text-pink-700">
+                              Deadline:
+                            </span>{" "}
                             {job.deadline
                               ? new Date(job.deadline).toLocaleDateString()
                               : ""}
@@ -333,31 +343,43 @@ const UserDashboardPage = () => {
                         </div>
 
                         <p className="mt-1">
-                          <span className="font-semibold">Address:</span>{" "}
+                          <span className="font-semibold text-pink-700">
+                            Address:
+                          </span>{" "}
                           {job.address}
                         </p>
 
-                        <p className="mt-3 font-semibold">Job Description</p>
+                        <p className="mt-3 font-semibold text-pink-700">
+                          Job Description
+                        </p>
                         <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
                           {job.description}
                         </div>
 
-                        <p className="mt-3 font-semibold">Requirements</p>
+                        <p className="mt-3 font-semibold text-pink-700">
+                          Requirements
+                        </p>
                         <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
                           {job.requirements}
                         </div>
 
-                        <p className="mt-3 font-semibold">Benefits</p>
+                        <p className="mt-3 font-semibold text-pink-700">
+                          Benefits
+                        </p>
                         <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
                           {job.benefits}
                         </div>
 
-                        <p className="mt-3 font-semibold">Experience</p>
+                        <p className="mt-3 font-semibold text-pink-700">
+                          Experience
+                        </p>
                         <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
                           {job.experience}
                         </div>
 
-                        <p className="mt-3 font-semibold">Salary Range</p>
+                        <p className="mt-3 font-semibold text-pink-700">
+                          Salary Range
+                        </p>
                         <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
                           {job.salaryRange}
                         </div>
