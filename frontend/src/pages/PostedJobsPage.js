@@ -5,9 +5,9 @@ import axios from "axios";
 const PostedJobsPage = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // read profile from localStorage (same structure as CompanyDashboardPage)
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
   const avatarUrl = profile?.imageUrl || null;
@@ -54,13 +54,19 @@ const PostedJobsPage = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("profile");
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
       {/* top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 relative">
           <div className="flex items-center bg-white rounded-full px-3 py-1">
             <span className="text-gray-500 mr-2">🔍</span>
             <input
@@ -69,20 +75,44 @@ const PostedJobsPage = () => {
               className="bg-transparent outline-none text-sm text-gray-700"
             />
           </div>
-          <button
-            className="text-2xl font-bold"
-            onClick={() => navigate("/company-dashboard")}
-          >
-            ☰
-          </button>
+
+          {/* hamburger menu with dropdown */}
+          <div className="relative">
+            <button
+              className="text-2xl font-bold"
+              type="button"
+              onClick={() => setMenuOpen((prev) => !prev)}
+            >
+              ☰
+            </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 top-8 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    navigate("/change-password");
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                >
+                  Change password
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
       {/* main area with sidebar + content */}
       <div className="flex flex-1">
-        {/* left sidebar with avatar and links */}
-        <aside className="w-64 bg-slate-900 text-white pt-6 hidden md:flex flex-col items-center">
-          {/* profile picture + name (same style as dashboard) */}
+        {/* left sidebar */}
+        <aside className="w-56 bg-slate-900 text-white pt-6 hidden md:flex flex-col items-center">
           <div className="mb-6 flex flex-col items-center">
             {avatarUrl ? (
               <img
@@ -109,7 +139,7 @@ const PostedJobsPage = () => {
               Dashboard
             </button>
             <button
-              className="w-full text-left px-4 py-2 rounded bg-slate-800"
+              className="w-full text-left px-4 py-2 rounded bg-indigo-600"
               onClick={() => navigate("/company/posted-jobs")}
             >
               Posted Jobs
@@ -143,12 +173,7 @@ const PostedJobsPage = () => {
                 <h2 className="text-xl font-semibold text-slate-900">
                   Posted Jobs
                 </h2>
-                <button
-                  className="bg-[#2e7d32] hover:bg-[#1b5e20] text-white px-5 py-2 rounded shadow text-sm font-semibold"
-                  onClick={() => navigate("/company/jobs/new")}
-                >
-                  + New Job
-                </button>
+                {/* New Job button removed */}
               </div>
 
               {loading ? (
@@ -163,7 +188,6 @@ const PostedJobsPage = () => {
                       className="border border-slate-200 rounded-lg p-4 md:p-5 flex justify-between items-start gap-4"
                     >
                       <div className="text-sm text-slate-900 leading-relaxed w-full">
-                        {/* first row: title, category, department */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                           <p>
                             <span className="font-semibold text-pink-700">
@@ -185,7 +209,6 @@ const PostedJobsPage = () => {
                           </p>
                         </div>
 
-                        {/* second row: student category, gender, deadline */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-1">
                           <p>
                             <span className="font-semibold text-pink-700">
@@ -216,7 +239,6 @@ const PostedJobsPage = () => {
                           {job.address}
                         </p>
 
-                        {/* extra sections */}
                         <p className="font-semibold text-pink-700 mt-3">
                           Job Description
                         </p>
@@ -251,9 +273,9 @@ const PostedJobsPage = () => {
                         <p className="text-gray-700">{job.salaryRange}</p>
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="flex flex-col space-y-2 items-stretch">
                         <button
-                          className="bg-green-600 hover:bg-green-700 text-white px-5 py-1.5 rounded shadow text-sm"
+                          className="bg-green-600 hover:bg-green-700 text-white w-24 py-1.5 rounded shadow text-sm text-center"
                           onClick={() =>
                             navigate(`/company/jobs/${job._id}/edit`)
                           }
@@ -261,7 +283,7 @@ const PostedJobsPage = () => {
                           Edit
                         </button>
                         <button
-                          className="bg-red-600 hover:bg-red-700 text-white px-5 py-1.5 rounded shadow text-sm"
+                          className="bg-red-600 hover:bg-red-700 text-white w-24 py-1.5 rounded shadow text-sm text-center"
                           onClick={() => handleDelete(job._id)}
                         >
                           Delete
@@ -280,6 +302,9 @@ const PostedJobsPage = () => {
 };
 
 export default PostedJobsPage;
+
+
+
 
 
 
