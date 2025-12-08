@@ -8,6 +8,8 @@ const {
   login,
   googleLogin,
   changePassword,
+  updateUserProfile,
+  deleteAccount
 } = require("../controllers/authController");
 
 // user registration WITH image file named "image"
@@ -22,8 +24,22 @@ router.post("/login", login);
 // google login
 router.post("/google-login", googleLogin);
 
-// NEW: change password for logged-in user or company
+// change password for logged-in user or company
 router.post("/change-password", changePassword);
+
+// update profile with multiple file uploads
+router.put(
+  "/update-profile", 
+  upload.fields([
+    { name: "profilePhoto", maxCount: 1 },
+    { name: "certificate", maxCount: 1 },
+    { name: "cv", maxCount: 1 }
+  ]),
+  updateUserProfile
+);
+
+// NEW: delete account route
+router.delete("/delete-account", deleteAccount);
 
 module.exports = router;
 
