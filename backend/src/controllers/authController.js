@@ -221,6 +221,15 @@ const login = async (req, res) => {
         studentType: account.studentType,
         department: account.department,
         email: account.email,
+        // Include new profile fields
+        currentAddress: account.currentAddress || "",
+        academicBackground: account.academicBackground || "",
+        cgpa: account.cgpa || null,
+        skills: account.skills || "",
+        certificateUrl: account.certificateUrl || "",
+        cvUrl: account.cvUrl || "",
+        projectLink: account.projectLink || "",
+        linkedinLink: account.linkedinLink || ""
       };
     } else {
       profile = {
@@ -280,6 +289,15 @@ const googleLogin = async (req, res) => {
         studentType: account.studentType,
         department: account.department,
         email: account.email,
+        // Include new profile fields
+        currentAddress: account.currentAddress || "",
+        academicBackground: account.academicBackground || "",
+        cgpa: account.cgpa || null,
+        skills: account.skills || "",
+        certificateUrl: account.certificateUrl || "",
+        cvUrl: account.cvUrl || "",
+        projectLink: account.projectLink || "",
+        linkedinLink: account.linkedinLink || ""
       };
     } else {
       profile = {
@@ -358,18 +376,175 @@ const changePassword = async (req, res) => {
   }
 };
 
+// PUT /api/auth/update-profile (NOW HANDLES STUDENT TYPE AND DEPARTMENT)
+const updateUserProfile = async (req, res) => {
+  try {
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+    if (!token) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    // Verify token and get user ID
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { id, role } = decoded;
+
+    // Only allow users (not companies) to update profile
+    if (role !== "user") {
+      return res.status(403).json({ message: "Only users can update profile" });
+    }
+
+    // Find the user
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Extract text fields from request body
+    const {
+      currentAddress,
+      academicBackground,
+      cgpa,
+      skills,
+      projectLink,
+      linkedinLink,
+      studentType,
+      department
+    } = req.body;
+
+    // Update text fields (only if provided)
+    if (currentAddress !== undefined) user.currentAddress = currentAddress;
+    if (academicBackground !== undefined) user.academicBackground = academicBackground;
+    if (cgpa !== undefined) user.cgpa = cgpa || null;
+    if (skills !== undefined) user.skills = skills;
+    if (projectLink !== undefined) user.projectLink = projectLink;
+    if (linkedinLink !== undefined) user.linkedinLink = linkedinLink;
+    if (studentType !== undefined) user.studentType = studentType;
+    if (department !== undefined) user.department = department;
+
+    // Handle file uploads (profile photo, certificate, CV)
+    if (req.files) {
+      // Update profile photo if uploaded
+      if (req.files.profilePhoto) {
+        const photoUrl = await uploadToCloudinary(
+          req.files.profilePhoto[0].buffer,
+          "careerconnect/users"
+        );
+        user.imageUrl = photoUrl;
+      }
+
+      // Update certificate if uploaded (IMAGE ONLY)
+      if (req.files.certificate) {
+        const certUrl = await uploadToCloudinary(
+          req.files.certificate[0].buffer,
+          "careerconnect/certificates"
+        );
+        user.certificateUrl = certUrl;
+      }
+
+      // Update CV if uploaded (IMAGE ONLY)
+      if (req.files.cv) {
+        const cvUrl = await uploadToCloudinary(
+          req.files.cv[0].buffer,
+          "careerconnect/cvs"
+        );
+        user.cvUrl = cvUrl;
+      }
+    }
+
+    // Save updated user
+    await user.save();
+
+    // Return updated profile data (same format as login response)
+    const updatedProfile = {
+      id: user._id,
+      name: user.name,
+      role: "user",
+      imageUrl: user.imageUrl || null,
+      gender: user.gender,
+      mobile: user.mobile,
+      studentType: user.studentType,
+      department: user.department,
+      email: user.email,
+      // Include new fields in response
+      currentAddress: user.currentAddress,
+      academicBackground: user.academicBackground,
+      cgpa: user.cgpa,
+      skills: user.skills,
+      certificateUrl: user.certificateUrl,
+      cvUrl: user.cvUrl,
+      projectLink: user.projectLink,
+      linkedinLink: user.linkedinLink
+    };
+
+    res.json({ 
+      message: "Profile updated successfully",
+      profile: updatedProfile 
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// DELETE /api/auth/delete-account
+const deleteAccount = async (req, res) => {
+  try {
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+    if (!token) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    // Verify token and get user ID
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { id, role } = decoded;
+
+    // Get password from request body
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: "Password is required" });
+    }
+
+    // Find the account (user or company)
+    const Model = role === "company" ? Company : User;
+    const account = await Model.findById(id);
+
+    if (!account) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+
+    // Verify password
+    const isMatch = await bcrypt.compare(password, account.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect password" });
+    }
+
+    // Delete the account
+    await Model.findByIdAndDelete(id);
+
+    res.json({ message: "Account deleted successfully" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   registerCompany,
   login,
   googleLogin,
   changePassword,
+  updateUserProfile,
+  deleteAccount
 };
-
-
-
-
-
-
 
 
