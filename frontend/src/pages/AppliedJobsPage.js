@@ -6,7 +6,6 @@ import axios from "axios";
 const AppliedJobsPage = () => {
   const navigate = useNavigate();
   
-  // Get user profile
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
   const avatarUrl = profile?.imageUrl || null;
@@ -43,18 +42,21 @@ const AppliedJobsPage = () => {
   const handleDeleteApplication = async (applicationId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/applications/${applicationId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.delete(
+        `http://localhost:5000/api/applications/${applicationId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       
       // Refresh the applications list
       await fetchApplications();
       setDeleteConfirm(null);
     } catch (err) {
       console.error("Error deleting application:", err);
-      alert("Failed to delete application. Please try again.");
+      alert(err.response?.data?.error || "Failed to delete application. Please try again.");
     }
   };
 
@@ -63,10 +65,8 @@ const AppliedJobsPage = () => {
     const fileExtension = filePath.split('.').pop().toLowerCase();
     
     if (fileExtension === 'pdf') {
-      // Open PDF in new tab
       window.open(fileUrl, '_blank');
     } else {
-      // Show image in modal
       setFullImageView(fileUrl);
     }
   };
@@ -81,7 +81,6 @@ const AppliedJobsPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
-      {/* Full Image View Modal */}
       {fullImageView && (
         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
           <div className="relative max-w-4xl max-h-screen">
@@ -100,7 +99,6 @@ const AppliedJobsPage = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
@@ -128,7 +126,6 @@ const AppliedJobsPage = () => {
         </div>
       )}
 
-      {/* Top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
 
@@ -172,7 +169,6 @@ const AppliedJobsPage = () => {
       </header>
 
       <div className="flex flex-1">
-        {/* Left sidebar */}
         <aside className="w-52 bg-slate-900 text-white pt-6 sticky top-0 self-start h-screen">
           <div className="flex flex-col items-center mb-6">
             {avatarUrl ? (
@@ -223,10 +219,8 @@ const AppliedJobsPage = () => {
           </nav>
         </aside>
 
-        {/* Main content area */}
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 py-8 px-4 md:px-8">
           <div className="max-w-5xl mx-auto">
-            {/* Success Message */}
             {applications.length > 0 && (
               <div className="bg-blue-100 border border-blue-400 text-blue-800 px-6 py-4 rounded-lg mb-6 text-center">
                 <h2 className="text-xl font-bold">
@@ -235,7 +229,6 @@ const AppliedJobsPage = () => {
               </div>
             )}
 
-            {/* Applied Jobs List */}
             <div className="bg-white rounded-2xl shadow-2xl p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
                 List of your applied jobs:
@@ -254,7 +247,6 @@ const AppliedJobsPage = () => {
                   {applications.map((app, index) => (
                     <div key={app._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
                       <div className="flex items-center justify-between">
-                        {/* Left side - Number, Logo, Company Info */}
                         <div className="flex items-center flex-1">
                           <span className="text-2xl font-bold text-gray-800 mr-4">
                             {index + 1}.
@@ -281,7 +273,6 @@ const AppliedJobsPage = () => {
                             </div>
                           </div>
 
-                          {/* Job Title */}
                           <div className="flex-1">
                             <p className="text-sm text-gray-600">Job Title:</p>
                             <p className="text-base font-semibold text-gray-800">
@@ -290,7 +281,6 @@ const AppliedJobsPage = () => {
                           </div>
                         </div>
 
-                        {/* Right side - Apply Date & Delete Button */}
                         <div className="text-right ml-4">
                           <p className="text-sm font-semibold text-pink-700">
                             Apply Date: {new Date(app.createdAt).toLocaleDateString()}
@@ -307,7 +297,6 @@ const AppliedJobsPage = () => {
                         </div>
                       </div>
 
-                      {/* View Application Details Button */}
                       <div className="mt-4 border-t pt-4">
                         <button
                           onClick={() => setSelectedApplication(
@@ -318,10 +307,8 @@ const AppliedJobsPage = () => {
                           {selectedApplication === app._id ? "Hide Details ▲" : "View Uploaded Documents ▼"}
                         </button>
 
-                        {/* Application Details */}
                         {selectedApplication === app._id && (
                           <div className="mt-4 space-y-4">
-                            {/* CV */}
                             <div>
                               <h4 className="font-semibold text-gray-700 mb-2">
                                 Curriculum Vitae (CV):
@@ -350,7 +337,6 @@ const AppliedJobsPage = () => {
                               </p>
                             </div>
 
-                            {/* Recommendation Letters */}
                             {app.recommendationLetters && app.recommendationLetters.length > 0 && (
                               <div>
                                 <h4 className="font-semibold text-gray-700 mb-2">
@@ -386,7 +372,6 @@ const AppliedJobsPage = () => {
                               </div>
                             )}
 
-                            {/* Career Summary */}
                             {app.careerSummary && app.careerSummary.length > 0 && (
                               <div>
                                 <h4 className="font-semibold text-gray-700 mb-2">

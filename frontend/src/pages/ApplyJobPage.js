@@ -8,10 +8,8 @@ const ApplyJobPage = () => {
   const { jobId } = useParams();
   const location = useLocation();
   
-  // Get job details passed from UserDashboardPage
   const { companyName, companyId, jobTitle } = location.state || {};
 
-  // Get user profile
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
   const avatarUrl = profile?.imageUrl || null;
@@ -36,7 +34,6 @@ const ApplyJobPage = () => {
     navigate("/");
   };
 
-  // Handle CV upload
   const handleCvUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -44,7 +41,7 @@ const ApplyJobPage = () => {
       setCvFileType(file.type);
       
       if (file.type === 'application/pdf') {
-        setCvPreview(null); // No preview for PDF
+        setCvPreview(null);
       } else {
         setCvPreview(URL.createObjectURL(file));
       }
@@ -52,7 +49,6 @@ const ApplyJobPage = () => {
     }
   };
 
-  // Handle recommendation letters upload
   const handleRecommendationUpload = (e) => {
     const files = Array.from(e.target.files);
     setRecommendationLetters((prev) => [...prev, ...files]);
@@ -69,7 +65,6 @@ const ApplyJobPage = () => {
     setRecommendationTypes((prev) => [...prev, ...types]);
   };
 
-  // Handle career summary upload
   const handleCareerSummaryUpload = (e) => {
     const files = Array.from(e.target.files);
     setCareerSummary((prev) => [...prev, ...files]);
@@ -86,7 +81,6 @@ const ApplyJobPage = () => {
     setCareerSummaryTypes((prev) => [...prev, ...types]);
   };
 
-  // Remove uploaded file
   const removeFile = (type, index) => {
     if (type === "recommendation") {
       setRecommendationLetters((prev) => prev.filter((_, i) => i !== index));
@@ -99,9 +93,7 @@ const ApplyJobPage = () => {
     }
   };
 
-  // Handle form submission
   const handleSubmit = async () => {
-    // Validate CV upload
     if (!cvFile) {
       setError(
         "Sorry! without uploading your own Curriculum Vitae, you cannot apply for this company"
@@ -120,25 +112,27 @@ const ApplyJobPage = () => {
       formData.append("jobTitle", jobTitle);
       formData.append("cvImage", cvFile);
 
-      // Add recommendation letters
       recommendationLetters.forEach((file) => {
         formData.append("recommendationLetters", file);
       });
 
-      // Add career summary
       careerSummary.forEach((file) => {
         formData.append("careerSummary", file);
       });
 
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/applications/apply", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.post(
+        "http://localhost:5000/api/applications/apply",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      // Navigate to applied jobs page
+      console.log("Application submitted successfully:", response.data);
       navigate("/applied-jobs");
     } catch (err) {
       console.error("Error submitting application:", err);
@@ -152,7 +146,6 @@ const ApplyJobPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
-      {/* Full Image View Modal */}
       {fullImageView && (
         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
           <div className="relative max-w-4xl max-h-screen">
@@ -171,7 +164,6 @@ const ApplyJobPage = () => {
         </div>
       )}
 
-      {/* Top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
 
@@ -215,7 +207,6 @@ const ApplyJobPage = () => {
       </header>
 
       <div className="flex flex-1">
-        {/* Left sidebar */}
         <aside className="w-52 bg-slate-900 text-white pt-6 sticky top-0 self-start h-screen">
           <div className="flex flex-col items-center mb-6">
             {avatarUrl ? (
@@ -266,10 +257,8 @@ const ApplyJobPage = () => {
           </nav>
         </aside>
 
-        {/* Main content area */}
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 py-8 px-4 md:px-8">
           <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-2xl p-8">
-            {/* Header */}
             <div className="flex justify-between items-center mb-8">
               <h1 className="text-3xl font-bold text-pink-700">
                 Apply Easily For Your Job!!
@@ -282,21 +271,18 @@ const ApplyJobPage = () => {
               </button>
             </div>
 
-            {/* Error Message */}
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
                 {error}
               </div>
             )}
 
-            {/* CV Upload Section */}
             <div className="mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 Drop Your CV Please:
               </h2>
 
               <div className="grid md:grid-cols-2 gap-6">
-                {/* Upload Box */}
                 <div>
                   <p className="text-sm text-gray-600 mb-2">
                     (upload your file as photo or PDF)
@@ -327,7 +313,6 @@ const ApplyJobPage = () => {
                   </label>
                 </div>
 
-                {/* CV Preview */}
                 {cvFile && (
                   <div className="border-2 border-gray-300 rounded-lg p-4">
                     <p className="text-sm font-semibold text-gray-700 mb-2">
@@ -357,14 +342,12 @@ const ApplyJobPage = () => {
               </div>
             </div>
 
-            {/* Other Necessary Information */}
             <div className="mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 Other necessary information:
               </h2>
 
               <div className="grid md:grid-cols-2 gap-6">
-                {/* Recommendation Letters */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-700 mb-3">
                     Recommendation Letters
@@ -393,7 +376,6 @@ const ApplyJobPage = () => {
                     />
                   </label>
 
-                  {/* Display uploaded files */}
                   {recommendationLetters.length > 0 && (
                     <div className="mt-3 space-y-2">
                       {recommendationLetters.map((file, index) => (
@@ -429,7 +411,6 @@ const ApplyJobPage = () => {
                   )}
                 </div>
 
-                {/* Career Summary */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-700 mb-3">
                     Career Summary
@@ -458,7 +439,6 @@ const ApplyJobPage = () => {
                     />
                   </label>
 
-                  {/* Display uploaded files */}
                   {careerSummary.length > 0 && (
                     <div className="mt-3 space-y-2">
                       {careerSummary.map((file, index) => (
@@ -496,7 +476,6 @@ const ApplyJobPage = () => {
               </div>
             </div>
 
-            {/* Submit Button */}
             <div className="flex justify-end">
               <button
                 onClick={handleSubmit}
