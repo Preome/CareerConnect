@@ -16,6 +16,7 @@ const AppliedJobsPage = () => {
   const [loading, setLoading] = useState(true);
   const [fullImageView, setFullImageView] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -23,23 +24,58 @@ const AppliedJobsPage = () => {
     navigate("/");
   };
 
-  useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/applications/user", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setApplications(res.data);
-      } catch (err) {
-        console.error("Error fetching applications:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchApplications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("http://localhost:5000/api/applications/user", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setApplications(res.data);
+    } catch (err) {
+      console.error("Error fetching applications:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const handleDeleteApplication = async (applicationId) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:5000/api/applications/${applicationId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      // Refresh the applications list
+      await fetchApplications();
+      setDeleteConfirm(null);
+    } catch (err) {
+      console.error("Error deleting application:", err);
+      alert("Failed to delete application. Please try again.");
+    }
+  };
+
+  const openFile = (filePath) => {
+    const fileUrl = `http://localhost:5000/${filePath}`;
+    const fileExtension = filePath.split('.').pop().toLowerCase();
+    
+    if (fileExtension === 'pdf') {
+      // Open PDF in new tab
+      window.open(fileUrl, '_blank');
+    } else {
+      // Show image in modal
+      setFullImageView(fileUrl);
+    }
+  };
+
+  const isFilePDF = (filePath) => {
+    return filePath && filePath.toLowerCase().endsWith('.pdf');
+  };
+
+  useEffect(() => {
     fetchApplications();
   }, []);
 
@@ -60,6 +96,34 @@ const AppliedJobsPage = () => {
               alt="Full View"
               className="max-w-full max-h-screen object-contain"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Confirm Deletion
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this application? This action cannot be undone.
+            </p>
+            <div className="flex gap-4 justify-end">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteApplication(deleteConfirm)}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md font-semibold"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -226,7 +290,7 @@ const AppliedJobsPage = () => {
                           </div>
                         </div>
 
-                        {/* Right side - Apply Date */}
+                        {/* Right side - Apply Date & Delete Button */}
                         <div className="text-right ml-4">
                           <p className="text-sm font-semibold text-pink-700">
                             Apply Date: {new Date(app.createdAt).toLocaleDateString()}
@@ -234,6 +298,12 @@ const AppliedJobsPage = () => {
                           <p className="text-xs text-gray-500">
                             {new Date(app.createdAt).toLocaleTimeString()}
                           </p>
+                          <button
+                            onClick={() => setDeleteConfirm(app._id)}
+                            className="mt-2 bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-md text-sm font-semibold"
+                          >
+                            Delete Application
+                          </button>
                         </div>
                       </div>
 
@@ -256,14 +326,27 @@ const AppliedJobsPage = () => {
                               <h4 className="font-semibold text-gray-700 mb-2">
                                 Curriculum Vitae (CV):
                               </h4>
-                              <img
-                                src={`http://localhost:5000/${app.cvImage}`}
-                                alt="CV"
-                                className="w-48 h-48 object-contain border rounded cursor-pointer hover:opacity-80 transition"
-                                onClick={() => setFullImageView(`http://localhost:5000/${app.cvImage}`)}
-                              />
+                              {isFilePDF(app.cvImage) ? (
+                                <div 
+                                  onClick={() => openFile(app.cvImage)}
+                                  className="w-48 h-48 border rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
+                                >
+                                  <svg className="w-20 h-20 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                                  </svg>
+                                  <p className="text-sm font-semibold text-gray-700 mt-2">CV.pdf</p>
+                                  <p className="text-xs text-gray-500">Click to view PDF</p>
+                                </div>
+                              ) : (
+                                <img
+                                  src={`http://localhost:5000/${app.cvImage}`}
+                                  alt="CV"
+                                  className="w-48 h-48 object-contain border rounded cursor-pointer hover:opacity-80 transition"
+                                  onClick={() => openFile(app.cvImage)}
+                                />
+                              )}
                               <p className="text-xs text-gray-500 mt-1">
-                                Click to view full image
+                                Click to {isFilePDF(app.cvImage) ? 'view PDF' : 'view full image'}
                               </p>
                             </div>
 
@@ -276,17 +359,29 @@ const AppliedJobsPage = () => {
                                 <div className="flex flex-wrap gap-4">
                                   {app.recommendationLetters.map((letter, idx) => (
                                     <div key={idx}>
-                                      <img
-                                        src={`http://localhost:5000/${letter}`}
-                                        alt={`Recommendation ${idx + 1}`}
-                                        className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
-                                        onClick={() => setFullImageView(`http://localhost:5000/${letter}`)}
-                                      />
+                                      {isFilePDF(letter) ? (
+                                        <div 
+                                          onClick={() => openFile(letter)}
+                                          className="w-32 h-32 border rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
+                                        >
+                                          <svg className="w-12 h-12 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                                          </svg>
+                                          <p className="text-xs text-gray-600 mt-1">PDF</p>
+                                        </div>
+                                      ) : (
+                                        <img
+                                          src={`http://localhost:5000/${letter}`}
+                                          alt={`Recommendation ${idx + 1}`}
+                                          className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
+                                          onClick={() => openFile(letter)}
+                                        />
+                                      )}
                                     </div>
                                   ))}
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1">
-                                  Click on any image to view full size
+                                  Click on any file to view
                                 </p>
                               </div>
                             )}
@@ -300,17 +395,29 @@ const AppliedJobsPage = () => {
                                 <div className="flex flex-wrap gap-4">
                                   {app.careerSummary.map((summary, idx) => (
                                     <div key={idx}>
-                                      <img
-                                        src={`http://localhost:5000/${summary}`}
-                                        alt={`Career Summary ${idx + 1}`}
-                                        className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
-                                        onClick={() => setFullImageView(`http://localhost:5000/${summary}`)}
-                                      />
+                                      {isFilePDF(summary) ? (
+                                        <div 
+                                          onClick={() => openFile(summary)}
+                                          className="w-32 h-32 border rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
+                                        >
+                                          <svg className="w-12 h-12 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                                          </svg>
+                                          <p className="text-xs text-gray-600 mt-1">PDF</p>
+                                        </div>
+                                      ) : (
+                                        <img
+                                          src={`http://localhost:5000/${summary}`}
+                                          alt={`Career Summary ${idx + 1}`}
+                                          className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
+                                          onClick={() => openFile(summary)}
+                                        />
+                                      )}
                                     </div>
                                   ))}
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1">
-                                  Click on any image to view full size
+                                  Click on any file to view
                                 </p>
                               </div>
                             )}
