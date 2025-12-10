@@ -17,12 +17,15 @@ const ApplyJobPage = () => {
   const avatarUrl = profile?.imageUrl || null;
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [cvImage, setCvImage] = useState(null);
+  const [cvFile, setCvFile] = useState(null);
   const [cvPreview, setCvPreview] = useState(null);
+  const [cvFileType, setCvFileType] = useState(null);
   const [recommendationLetters, setRecommendationLetters] = useState([]);
   const [recommendationPreviews, setRecommendationPreviews] = useState([]);
+  const [recommendationTypes, setRecommendationTypes] = useState([]);
   const [careerSummary, setCareerSummary] = useState([]);
   const [careerSummaryPreviews, setCareerSummaryPreviews] = useState([]);
+  const [careerSummaryTypes, setCareerSummaryTypes] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fullImageView, setFullImageView] = useState(null);
@@ -37,8 +40,14 @@ const ApplyJobPage = () => {
   const handleCvUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setCvImage(file);
-      setCvPreview(URL.createObjectURL(file));
+      setCvFile(file);
+      setCvFileType(file.type);
+      
+      if (file.type === 'application/pdf') {
+        setCvPreview(null); // No preview for PDF
+      } else {
+        setCvPreview(URL.createObjectURL(file));
+      }
       setError("");
     }
   };
@@ -48,8 +57,16 @@ const ApplyJobPage = () => {
     const files = Array.from(e.target.files);
     setRecommendationLetters((prev) => [...prev, ...files]);
     
-    const previews = files.map(file => URL.createObjectURL(file));
+    const previews = files.map(file => {
+      if (file.type === 'application/pdf') {
+        return null;
+      }
+      return URL.createObjectURL(file);
+    });
     setRecommendationPreviews((prev) => [...prev, ...previews]);
+    
+    const types = files.map(file => file.type);
+    setRecommendationTypes((prev) => [...prev, ...types]);
   };
 
   // Handle career summary upload
@@ -57,8 +74,16 @@ const ApplyJobPage = () => {
     const files = Array.from(e.target.files);
     setCareerSummary((prev) => [...prev, ...files]);
     
-    const previews = files.map(file => URL.createObjectURL(file));
+    const previews = files.map(file => {
+      if (file.type === 'application/pdf') {
+        return null;
+      }
+      return URL.createObjectURL(file);
+    });
     setCareerSummaryPreviews((prev) => [...prev, ...previews]);
+    
+    const types = files.map(file => file.type);
+    setCareerSummaryTypes((prev) => [...prev, ...types]);
   };
 
   // Remove uploaded file
@@ -66,16 +91,18 @@ const ApplyJobPage = () => {
     if (type === "recommendation") {
       setRecommendationLetters((prev) => prev.filter((_, i) => i !== index));
       setRecommendationPreviews((prev) => prev.filter((_, i) => i !== index));
+      setRecommendationTypes((prev) => prev.filter((_, i) => i !== index));
     } else if (type === "summary") {
       setCareerSummary((prev) => prev.filter((_, i) => i !== index));
       setCareerSummaryPreviews((prev) => prev.filter((_, i) => i !== index));
+      setCareerSummaryTypes((prev) => prev.filter((_, i) => i !== index));
     }
   };
 
   // Handle form submission
   const handleSubmit = async () => {
     // Validate CV upload
-    if (!cvImage) {
+    if (!cvFile) {
       setError(
         "Sorry! without uploading your own Curriculum Vitae, you cannot apply for this company"
       );
@@ -91,7 +118,7 @@ const ApplyJobPage = () => {
       formData.append("companyId", companyId);
       formData.append("companyName", companyName);
       formData.append("jobTitle", jobTitle);
-      formData.append("cvImage", cvImage);
+      formData.append("cvImage", cvFile);
 
       // Add recommendation letters
       recommendationLetters.forEach((file) => {
@@ -269,10 +296,10 @@ const ApplyJobPage = () => {
               </h2>
 
               <div className="grid md:grid-cols-2 gap-6">
-                {/* Upload as Photo */}
+                {/* Upload Box */}
                 <div>
                   <p className="text-sm text-gray-600 mb-2">
-                    (upload your file as photo)
+                    (upload your file as photo or PDF)
                   </p>
                   <label className="flex flex-col items-center justify-center bg-gray-200 hover:bg-gray-300 border-2 border-dashed border-gray-400 rounded-lg p-6 cursor-pointer transition">
                     <svg
@@ -289,11 +316,11 @@ const ApplyJobPage = () => {
                       />
                     </svg>
                     <span className="text-sm font-semibold text-gray-700">
-                      Add Photos
+                      Add Photos or PDF
                     </span>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,application/pdf"
                       onChange={handleCvUpload}
                       className="hidden"
                     />
@@ -301,19 +328,29 @@ const ApplyJobPage = () => {
                 </div>
 
                 {/* CV Preview */}
-                {cvPreview && (
+                {cvFile && (
                   <div className="border-2 border-gray-300 rounded-lg p-4">
                     <p className="text-sm font-semibold text-gray-700 mb-2">
                       CV Preview:
                     </p>
-                    <img
-                      src={cvPreview}
-                      alt="CV Preview"
-                      className="w-full h-48 object-contain cursor-pointer hover:opacity-80 transition"
-                      onClick={() => setFullImageView(cvPreview)}
-                    />
+                    {cvFileType === 'application/pdf' ? (
+                      <div className="flex flex-col items-center justify-center h-48 bg-gray-100 rounded">
+                        <svg className="w-16 h-16 text-red-600 mb-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                        </svg>
+                        <p className="text-sm font-semibold text-gray-700">{cvFile.name}</p>
+                        <p className="text-xs text-gray-500 mt-1">PDF File</p>
+                      </div>
+                    ) : (
+                      <img
+                        src={cvPreview}
+                        alt="CV Preview"
+                        className="w-full h-48 object-contain cursor-pointer hover:opacity-80 transition"
+                        onClick={() => setFullImageView(cvPreview)}
+                      />
+                    )}
                     <p className="text-xs text-gray-500 text-center mt-2">
-                      Click to view full image
+                      {cvFileType === 'application/pdf' ? 'PDF uploaded' : 'Click to view full image'}
                     </p>
                   </div>
                 )}
@@ -349,7 +386,7 @@ const ApplyJobPage = () => {
                     </svg>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,application/pdf"
                       multiple
                       onChange={handleRecommendationUpload}
                       className="hidden"
@@ -372,12 +409,20 @@ const ApplyJobPage = () => {
                               ✕
                             </button>
                           </div>
-                          <img
-                            src={recommendationPreviews[index]}
-                            alt={`Recommendation ${index + 1}`}
-                            className="w-full h-32 object-contain cursor-pointer hover:opacity-80 transition"
-                            onClick={() => setFullImageView(recommendationPreviews[index])}
-                          />
+                          {recommendationTypes[index] === 'application/pdf' ? (
+                            <div className="flex items-center justify-center h-24 bg-gray-200 rounded">
+                              <svg className="w-12 h-12 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <img
+                              src={recommendationPreviews[index]}
+                              alt={`Recommendation ${index + 1}`}
+                              className="w-full h-32 object-contain cursor-pointer hover:opacity-80 transition"
+                              onClick={() => setFullImageView(recommendationPreviews[index])}
+                            />
+                          )}
                         </div>
                       ))}
                     </div>
@@ -406,7 +451,7 @@ const ApplyJobPage = () => {
                     </svg>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,application/pdf"
                       multiple
                       onChange={handleCareerSummaryUpload}
                       className="hidden"
@@ -429,12 +474,20 @@ const ApplyJobPage = () => {
                               ✕
                             </button>
                           </div>
-                          <img
-                            src={careerSummaryPreviews[index]}
-                            alt={`Career Summary ${index + 1}`}
-                            className="w-full h-32 object-contain cursor-pointer hover:opacity-80 transition"
-                            onClick={() => setFullImageView(careerSummaryPreviews[index])}
-                          />
+                          {careerSummaryTypes[index] === 'application/pdf' ? (
+                            <div className="flex items-center justify-center h-24 bg-gray-200 rounded">
+                              <svg className="w-12 h-12 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <img
+                              src={careerSummaryPreviews[index]}
+                              alt={`Career Summary ${index + 1}`}
+                              className="w-full h-32 object-contain cursor-pointer hover:opacity-80 transition"
+                              onClick={() => setFullImageView(careerSummaryPreviews[index])}
+                            />
+                          )}
                         </div>
                       ))}
                     </div>
