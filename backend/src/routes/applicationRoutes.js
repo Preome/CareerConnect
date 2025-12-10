@@ -1,8 +1,8 @@
-// backend/routes/applicationRoutes.js
+// backend/src/routes/applicationRoutes.js
 const express = require("express");
 const router = express.Router();
-const auth = require("../middleware/auth");
-const upload = require("../middleware/upload");
+const auth = require("../middlewares/auth");  // ✅ CORRECT (middlewares with 's')
+const upload = require("../middlewares/upload");  // ✅ CORRECT
 const applicationController = require("../controllers/applicationController");
 
 // Apply for a job with file uploads
