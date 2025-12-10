@@ -1,17 +1,31 @@
-// backend/src/controllers/applicationController.js
+// backend/controllers/applicationController.js
 const Application = require("../models/Application");
-const fs = require("fs");
 const path = require("path");
+const fs = require("fs");
 
-// Submit a job application
-exports.submitApplication = async (req, res) => {
+// Apply for a job
+exports.applyForJob = async (req, res) => {
   try {
     const { jobId, companyId, companyName, jobTitle } = req.body;
     const userId = req.user.id;
 
-    // Validate CV is uploaded
+    // Check if CV is uploaded
     if (!req.files || !req.files.cvImage || req.files.cvImage.length === 0) {
-      return res.status(400).json({ error: "CV is required" });
+      return res.status(400).json({
+        error: "Sorry! without uploading your own Curriculum Vitae, you cannot apply for this company"
+      });
+    }
+
+    // Check if user already applied for this job
+    const existingApplication = await Application.findOne({
+      userId,
+      jobId,
+    });
+
+    if (existingApplication) {
+      return res.status(400).json({
+        error: "You have already applied for this job",
+      });
     }
 
     // Get file paths
@@ -23,7 +37,7 @@ exports.submitApplication = async (req, res) => {
       ? req.files.careerSummary.map((file) => file.path)
       : [];
 
-    // Create application
+    // Create new application
     const application = new Application({
       userId,
       jobId,
@@ -41,9 +55,12 @@ exports.submitApplication = async (req, res) => {
       message: "Application submitted successfully",
       application,
     });
-  } catch (err) {
-    console.error("Error submitting application:", err);
-    res.status(500).json({ error: "Failed to submit application" });
+  } catch (error) {
+    console.error("Error applying for job:", error);
+    res.status(500).json({
+      error: "Failed to submit application",
+      details: error.message,
+    });
   }
 };
 
@@ -53,40 +70,37 @@ exports.getUserApplications = async (req, res) => {
     const userId = req.user.id;
 
     const applications = await Application.find({ userId })
-      .populate("companyId", "companyName imageUrl name")
+      .populate("companyId", "name imageUrl")
       .sort({ createdAt: -1 });
 
-    res.status(200).json(applications);
-  } catch (err) {
-    console.error("Error fetching applications:", err);
-    res.status(500).json({ error: "Failed to fetch applications" });
+    res.json(applications);
+  } catch (error) {
+    console.error("Error fetching applications:", error);
+    res.status(500).json({
+      error: "Failed to fetch applications",
+    });
   }
 };
 
-// Delete an application
+// Delete application
 exports.deleteApplication = async (req, res) => {
   try {
-    const { applicationId } = req.params;
+    const { id } = req.params;
     const userId = req.user.id;
 
     // Find the application
-    const application = await Application.findOne({
-      _id: applicationId,
-      userId: userId,
-    });
+    const application = await Application.findOne({ _id: id, userId });
 
     if (!application) {
-      return res.status(404).json({ error: "Application not found" });
+      return res.status(404).json({
+        error: "Application not found or you don't have permission to delete it",
+      });
     }
 
-    // Delete uploaded files from filesystem
+    // Delete uploaded files
     const deleteFile = (filePath) => {
       if (filePath && fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath);
-        } catch (err) {
-          console.error(`Error deleting file ${filePath}:`, err);
-        }
+        fs.unlinkSync(filePath);
       }
     };
 
@@ -94,21 +108,26 @@ exports.deleteApplication = async (req, res) => {
     deleteFile(application.cvImage);
 
     // Delete recommendation letters
-    if (application.recommendationLetters && application.recommendationLetters.length > 0) {
+    if (application.recommendationLetters) {
       application.recommendationLetters.forEach((file) => deleteFile(file));
     }
 
-    // Delete career summary files
-    if (application.careerSummary && application.careerSummary.length > 0) {
+    // Delete career summary
+    if (application.careerSummary) {
       application.careerSummary.forEach((file) => deleteFile(file));
     }
 
-    // Delete application from database
-    await Application.findByIdAndDelete(applicationId);
+    // Delete the application from database
+    await Application.findByIdAndDelete(id);
 
-    res.status(200).json({ message: "Application deleted successfully" });
-  } catch (err) {
-    console.error("Error deleting application:", err);
-    res.status(500).json({ error: "Failed to delete application" });
+    res.json({
+      message: "Application deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting application:", error);
+    res.status(500).json({
+      error: "Failed to delete application",
+      details: error.message,
+    });
   }
 };
