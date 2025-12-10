@@ -1,8 +1,10 @@
 const multer = require("multer");
 
+
 // Store uploaded files in memory as Buffer objects.
 // The controller will take req.file.buffer and send it to Cloudinary.
 const storage = multer.memoryStorage();
+
 
 const upload = multer({
   storage,
@@ -13,5 +15,6 @@ const upload = multer({
   //   else cb(new Error("Only image files are allowed"), false);
   // },
 });
+
 
 module.exports = upload;
