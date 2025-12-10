@@ -143,7 +143,10 @@ const UserDashboardPage = () => {
 
           <nav className="flex flex-col text-sm">
             <button className="text-left px-4 py-2 bg-indigo-600">Home</button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            <button 
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/applied-jobs")}
+            >
               Applied Jobs
             </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
@@ -287,7 +290,16 @@ const UserDashboardPage = () => {
                         </div>
 
                         <div className="flex flex-col gap-2">
-                          <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-1.5 rounded-full text-sm font-semibold shadow">
+                          <button 
+                            onClick={() => navigate(`/apply-job/${job._id}`, {
+                              state: {
+                                companyName: companyName,
+                                companyId: job.company?._id,
+                                jobTitle: job.title
+                              }
+                            })}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-1.5 rounded-full text-sm font-semibold shadow"
+                          >
                             Apply
                           </button>
                           <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-1.5 rounded-full text-sm font-semibold shadow">
@@ -397,13 +409,3 @@ const UserDashboardPage = () => {
 };
 
 export default UserDashboardPage;
-
-
-
-
-
-
-
-
-
-

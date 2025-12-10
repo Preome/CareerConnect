@@ -16,13 +16,13 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-// NO longer need to serve local /uploads because images go to Cloudinary
-// app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+// Serve uploaded application files (CV, recommendations, summaries)
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 // routes
 app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/jobs", require("./routes/jobRoutes")); // <-- add this line
+app.use("/api/jobs", require("./routes/jobRoutes"));
+app.use("/api/applications", require("./routes/applicationRoutes"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-

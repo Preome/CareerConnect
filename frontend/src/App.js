@@ -17,6 +17,8 @@ import AboutPage from "./pages/AboutPage";
 import AddJobPage from "./pages/AddJobPage";
 import EditJobPage from "./pages/EditJobPage";
 import PostedJobsPage from "./pages/PostedJobsPage";
+import ApplyJobPage from "./pages/ApplyJobPage";
+import AppliedJobsPage from "./pages/AppliedJobsPage";
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
           {/* user routes */}
           <Route path="/user-dashboard" element={<UserDashboardPage />} />
           <Route path="/user-profile" element={<UserProfilePage />} />
+          <Route path="/apply-job/:jobId" element={<ApplyJobPage />} />
+          <Route path="/applied-jobs" element={<AppliedJobsPage />} />
 
           {/* company routes */}
           <Route
@@ -53,8 +57,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
