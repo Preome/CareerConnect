@@ -7,6 +7,7 @@ const CompanyCandidatesPage = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [docView, setDocView] = useState({ url: null, isPdf: false }); // modal
 
   const navigate = useNavigate();
 
@@ -73,20 +74,75 @@ const CompanyCandidatesPage = () => {
     }
   };
 
-  // helper to choose status color
+  const deleteApplication = async (applicationId) => {
+    if (!window.confirm("Delete this application?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `http://localhost:5000/api/applications/company/${applicationId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setApplications((prev) => prev.filter((a) => a._id !== applicationId));
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Failed to delete application"
+      );
+    }
+  };
+
+  // status colors
   const getStatusClasses = (status) => {
-    if (status === "shortlisted")
-      return "bg-blue-600 text-white";
-    if (status === "hired")
-      return "bg-green-600 text-white";
-    if (status === "rejected")
-      return "bg-red-600 text-white";
-    // pending/default
+    if (status === "shortlisted") return "bg-blue-600 text-white";
+    if (status === "hired") return "bg-green-600 text-white";
+    if (status === "rejected") return "bg-red-600 text-white";
     return "bg-slate-200 text-slate-800";
   };
 
+  // open doc (image or pdf) in modal
+  const openDoc = (relativePath) => {
+    const url = `http://localhost:5000/${relativePath}`;
+    const isPdf = url.toLowerCase().endsWith(".pdf");
+    setDocView({ url, isPdf });
+  };
+
+  const closeDoc = () => setDocView({ url: null, isPdf: false });
+
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
+      {/* full-screen doc modal */}
+      {docView.url && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+          onClick={closeDoc}
+        >
+          <button
+            type="button"
+            onClick={closeDoc}
+            className="absolute top-4 right-4 text-white text-2xl font-bold px-3 py-1 bg-red-600 rounded-full hover:bg-red-700"
+          >
+            ×
+          </button>
+          {docView.isPdf ? (
+            <iframe
+              src={docView.url}
+              title="Document"
+              className="w-[95vw] h-[95vh] bg-white"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <img
+              src={docView.url}
+              alt="Document"
+              className="max-w-[95vw] max-h-[95vh] object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
+        </div>
+      )}
+
       {/* top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
@@ -272,42 +328,45 @@ const CompanyCandidatesPage = () => {
                             </span>
                           </p>
 
+                          {/* CV */}
                           {app.cvImage && (
                             <p className="mt-1">
                               <span className="font-semibold text-pink-700">
                                 CV:
                               </span>{" "}
-                              <a
-                                href={`http://localhost:5000/${app.cvImage}`}
-                                target="_blank"
-                                rel="noreferrer"
+                              <button
+                                type="button"
+                                onClick={() => openDoc(app.cvImage)}
                                 className="text-indigo-600 underline text-xs"
                               >
                                 View CV
-                              </a>
+                              </button>
                             </p>
                           )}
 
+                          {/* Recommendations */}
                           {app.recommendationLetters &&
                             app.recommendationLetters.length > 0 && (
                               <p className="mt-1">
                                 <span className="font-semibold text-pink-700">
                                   Recommendations:
                                 </span>{" "}
-                                {app.recommendationLetters.map((file, idx) => (
-                                  <a
-                                    key={idx}
-                                    href={`http://localhost:5000/${file}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-indigo-600 underline text-xs mr-2"
-                                  >
-                                    Doc {idx + 1}
-                                  </a>
-                                ))}
+                                {app.recommendationLetters.map(
+                                  (file, idx) => (
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      onClick={() => openDoc(file)}
+                                      className="text-indigo-600 underline text-xs mr-2"
+                                    >
+                                      View Recommendations {idx + 1}
+                                    </button>
+                                  )
+                                )}
                               </p>
                             )}
 
+                          {/* Career Summary */}
                           {app.careerSummary &&
                             app.careerSummary.length > 0 && (
                               <p className="mt-1">
@@ -315,22 +374,21 @@ const CompanyCandidatesPage = () => {
                                   Career Summary:
                                 </span>{" "}
                                 {app.careerSummary.map((file, idx) => (
-                                  <a
+                                  <button
                                     key={idx}
-                                    href={`http://localhost:5000/${file}`}
-                                    target="_blank"
-                                    rel="noreferrer"
+                                    type="button"
+                                    onClick={() => openDoc(file)}
                                     className="text-indigo-600 underline text-xs mr-2"
                                   >
-                                    Doc {idx + 1}
-                                  </a>
+                                    View Career Summary {idx + 1}
+                                  </button>
                                 ))}
                               </p>
                             )}
                         </div>
                       </div>
 
-                      {/* status buttons */}
+                      {/* status + delete buttons */}
                       <div className="flex flex-col gap-2">
                         <button
                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded text-xs"
@@ -350,6 +408,12 @@ const CompanyCandidatesPage = () => {
                         >
                           Reject
                         </button>
+                        <button
+                          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-1 rounded text-xs"
+                          onClick={() => deleteApplication(app._id)}
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -364,6 +428,8 @@ const CompanyCandidatesPage = () => {
 };
 
 export default CompanyCandidatesPage;
+
+
 
 
 

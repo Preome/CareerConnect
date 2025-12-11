@@ -222,3 +222,29 @@ exports.updateApplicationStatus = async (req, res) => {
   }
 };
 
+// Delete application (company side)
+exports.companyDeleteApplication = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const companyId = req.user.id;
+
+    const application = await Application.findOne({
+      _id: applicationId,
+      companyId,
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: "Application not found" });
+    }
+
+    await Application.findByIdAndDelete(applicationId);
+
+    res.json({ message: "Application deleted successfully" });
+  } catch (error) {
+    console.error("Company delete application error:", error);
+    res.status(500).json({
+      error: "Failed to delete application",
+      message: error.message,
+    });
+  }
+};

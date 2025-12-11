@@ -119,5 +119,11 @@ router.patch(
   applicationController.updateApplicationStatus
 );
 
+router.delete(
+  "/company/:applicationId",
+  authMiddleware,
+  applicationController.companyDeleteApplication
+);
+
 module.exports = router;
 
