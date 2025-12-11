@@ -6,47 +6,48 @@ const applicationSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
     jobId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Job",
-      required: true
+      required: true,
     },
     companyId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Company",
-      required: true
+      required: true,
     },
     companyName: {
       type: String,
-      required: true
+      required: true,
     },
     jobTitle: {
       type: String,
-      required: true
+      required: true,
     },
     cvImage: {
       type: String,
-      required: true
+      required: true,
     },
     recommendationLetters: [
       {
-        type: String
-      }
+        type: String,
+      },
     ],
     careerSummary: [
       {
-        type: String
-      }
+        type: String,
+      },
     ],
     status: {
       type: String,
-      enum: ["pending", "reviewed", "accepted", "rejected"],
-      default: "pending"
-    }
+      enum: ["pending", "shortlisted", "hired", "rejected"],
+      default: "pending",
+    },
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model("Application", applicationSchema);
+

@@ -35,23 +35,19 @@ const storage = multer.diskStorage({
     const filename = uniqueSuffix + path.extname(file.originalname);
     console.log(`Saving as: ${filename}`);
     cb(null, filename);
-  }
+  },
 });
 
 // File filter to accept images AND PDFs
 const fileFilter = (req, file, cb) => {
-  // Get file extension
   const ext = path.extname(file.originalname).toLowerCase();
-  
-  // Check if it's an image
-  const isImage = file.mimetype.startsWith('image/');
-  
-  // Check if it's a PDF
-  const isPDF = file.mimetype === 'application/pdf' || ext === '.pdf';
-  
-  console.log(`File validation - Name: ${file.originalname}, Type: ${file.mimetype}, Extension: ${ext}`);
-  
-  // Accept if it's an image or PDF
+  const isImage = file.mimetype.startsWith("image/");
+  const isPDF = file.mimetype === "application/pdf" || ext === ".pdf";
+
+  console.log(
+    `File validation - Name: ${file.originalname}, Type: ${file.mimetype}, Extension: ${ext}`
+  );
+
   if (isImage || isPDF) {
     console.log("✓ File accepted");
     cb(null, true);
@@ -64,17 +60,17 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: fileFilter
+  fileFilter: fileFilter,
 });
 
-// MODIFIED: Wrap multer middleware with error handler
+// wrap multer
 const uploadMiddleware = upload.fields([
   { name: "cvImage", maxCount: 1 },
   { name: "recommendationLetters", maxCount: 5 },
-  { name: "careerSummary", maxCount: 5 }
+  { name: "careerSummary", maxCount: 5 },
 ]);
 
-// Routes
+// Submit application
 router.post(
   "/apply",
   authMiddleware,
@@ -83,13 +79,13 @@ router.post(
     uploadMiddleware(req, res, (err) => {
       if (err instanceof multer.MulterError) {
         console.error("Multer error:", err);
-        return res.status(400).json({ 
-          error: `Upload error: ${err.message}` 
+        return res.status(400).json({
+          error: `Upload error: ${err.message}`,
         });
       } else if (err) {
         console.error("Unknown upload error:", err);
-        return res.status(400).json({ 
-          error: err.message 
+        return res.status(400).json({
+          error: err.message,
         });
       }
       console.log("Upload successful, proceeding to controller...");
@@ -99,9 +95,29 @@ router.post(
   applicationController.submitApplication
 );
 
+// user applications
 router.get("/user", authMiddleware, applicationController.getUserApplications);
 
-// Delete application
-router.delete("/:applicationId", authMiddleware, applicationController.deleteApplication);
+// delete application (user)
+router.delete(
+  "/:applicationId",
+  authMiddleware,
+  applicationController.deleteApplication
+);
+
+// NEW: company candidate list
+router.get(
+  "/company",
+  authMiddleware,
+  applicationController.getCompanyApplications
+);
+
+// NEW: update application status
+router.patch(
+  "/:applicationId/status",
+  authMiddleware,
+  applicationController.updateApplicationStatus
+);
 
 module.exports = router;
+

@@ -100,15 +100,25 @@ const CompanyDashboardPage = () => {
               Posted Jobs
             </button>
 
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            {/* go to candidate list page */}
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/company/candidates")}
+            >
               Candidate list
             </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/company/messages")}
+            >
               Messages
             </button>
+
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Query Forum
             </button>
+
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company-profile")}
@@ -147,6 +157,7 @@ const CompanyDashboardPage = () => {
 };
 
 export default CompanyDashboardPage;
+
 
 
 

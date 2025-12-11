@@ -13,12 +13,13 @@ import CompanyProfilePage from "./pages/CompanyProfilePage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import AboutPage from "./pages/AboutPage";
 
-// job‑related pages (all in src/pages)
+// job‑related pages
 import AddJobPage from "./pages/AddJobPage";
 import EditJobPage from "./pages/EditJobPage";
 import PostedJobsPage from "./pages/PostedJobsPage";
 import ApplyJobPage from "./pages/ApplyJobPage";
 import AppliedJobsPage from "./pages/AppliedJobsPage";
+import CompanyCandidatesPage from "./pages/CompanyCandidatesPage"; // NEW
 
 function App() {
   return (
@@ -45,6 +46,10 @@ function App() {
           />
           <Route path="/company-profile" element={<CompanyProfilePage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
+          <Route
+            path="/company/candidates"
+            element={<CompanyCandidatesPage />}
+          />
 
           {/* company job features */}
           <Route path="/company/jobs/new" element={<AddJobPage />} />
