@@ -5,7 +5,7 @@ import { API_BASE_URL } from "../config";
 
 const AppliedJobsPage = () => {
   const navigate = useNavigate();
- 
+
   // Get user profile
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
@@ -16,13 +16,13 @@ const AppliedJobsPage = () => {
   const [loading, setLoading] = useState(true);
   const [fullImageView, setFullImageView] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
-  
+
   // Delete confirmation modal state
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     applicationId: null,
     jobTitle: "",
-    loading: false
+    loading: false,
   });
 
   const handleLogout = () => {
@@ -55,63 +55,67 @@ const AppliedJobsPage = () => {
   const handleDeleteApplication = async () => {
     if (!deleteModal.applicationId) return;
 
-    setDeleteModal(prev => ({ ...prev, loading: true }));
+    setDeleteModal((prev) => ({ ...prev, loading: true }));
 
     try {
       const token = localStorage.getItem("token");
-      
-      await axios.delete(`${API_BASE_URL}/applications/${deleteModal.applicationId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
 
-      // Remove from local state
-      setApplications(prev => 
-        prev.filter(app => app._id !== deleteModal.applicationId)
+      await axios.delete(
+        `${API_BASE_URL}/applications/${deleteModal.applicationId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
-      // Close modal
+      setApplications((prev) =>
+        prev.filter((app) => app._id !== deleteModal.applicationId)
+      );
+
       setDeleteModal({
         isOpen: false,
         applicationId: null,
         jobTitle: "",
-        loading: false
+        loading: false,
       });
 
       alert("Application deleted successfully!");
-
     } catch (error) {
       console.error("Error deleting application:", error);
       alert(error.response?.data?.error || "Failed to delete application");
-      setDeleteModal(prev => ({ ...prev, loading: false }));
+      setDeleteModal((prev) => ({ ...prev, loading: false }));
     }
   };
 
-  // Function to open delete confirmation modal
   const openDeleteModal = (applicationId, jobTitle) => {
     setDeleteModal({
       isOpen: true,
       applicationId,
       jobTitle,
-      loading: false
+      loading: false,
     });
   };
 
-  // MODIFIED: Helper function to get full image URL
   const getImageUrl = (path) => {
     if (!path) return null;
-    // If path already starts with http, return as is
-    if (path.startsWith('http')) return path;
-    // Otherwise, prepend API_BASE_URL
+    if (path.startsWith("http")) return path;
     return `${API_BASE_URL}/${path}`;
+  };
+
+  // same colors as company side
+  const getStatusClasses = (status) => {
+    if (status === "shortlisted") return "bg-blue-600 text-white";
+    if (status === "hired") return "bg-green-600 text-white";
+    if (status === "rejected") return "bg-red-600 text-white";
+    return "bg-slate-200 text-slate-800";
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
-      {/* MODIFIED: Full Image View Modal - MUCH LARGER */}
+      {/* Full Image View Modal */}
       {fullImageView && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4"
           onClick={() => setFullImageView(null)}
         >
@@ -136,9 +140,12 @@ const AppliedJobsPage = () => {
       {deleteModal.isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold mb-4 text-red-600">Delete Application</h3>
+            <h3 className="text-xl font-bold mb-4 text-red-600">
+              Delete Application
+            </h3>
             <p className="text-gray-700 mb-4">
-              Are you sure you want to delete your application for <strong>{deleteModal.jobTitle}</strong>?
+              Are you sure you want to delete your application for{" "}
+              <strong>{deleteModal.jobTitle}</strong>?
             </p>
             <p className="text-sm text-gray-500 mb-6">
               This action cannot be undone.
@@ -152,7 +159,14 @@ const AppliedJobsPage = () => {
                 {deleteModal.loading ? "Deleting..." : "Delete"}
               </button>
               <button
-                onClick={() => setDeleteModal({ isOpen: false, applicationId: null, jobTitle: "", loading: false })}
+                onClick={() =>
+                  setDeleteModal({
+                    isOpen: false,
+                    applicationId: null,
+                    jobTitle: "",
+                    loading: false,
+                  })
+                }
                 disabled={deleteModal.loading}
                 className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition font-semibold disabled:opacity-50"
               >
@@ -258,10 +272,9 @@ const AppliedJobsPage = () => {
           </nav>
         </aside>
 
-        {/* Main content area */}
+        {/* Main content */}
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 py-8 px-4 md:px-8">
           <div className="max-w-5xl mx-auto">
-            {/* Success Message */}
             {applications.length > 0 && (
               <div className="bg-blue-100 border border-blue-400 text-blue-800 px-6 py-4 rounded-lg mb-6 text-center">
                 <h2 className="text-xl font-bold">
@@ -270,31 +283,35 @@ const AppliedJobsPage = () => {
               </div>
             )}
 
-            {/* Applied Jobs List */}
             <div className="bg-white rounded-2xl shadow-2xl p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
                 List of your applied jobs:
               </h2>
 
               {loading ? (
-                <p className="text-gray-600 text-center py-12">Loading your applications...</p>
+                <p className="text-gray-600 text-center py-12">
+                  Loading your applications...
+                </p>
               ) : applications.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-2xl font-semibold text-gray-600">
-                    You Haven't applied for any jobs
+                    You Haven&apos;t applied for any jobs
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {applications.map((app, index) => (
-                    <div key={app._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
+                    <div
+                      key={app._id}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition"
+                    >
                       <div className="flex items-center justify-between">
-                        {/* Left side - Number, Logo, Company Info */}
+                        {/* Left side */}
                         <div className="flex items-center flex-1">
                           <span className="text-2xl font-bold text-gray-800 mr-4">
                             {index + 1}.
                           </span>
-                         
+
                           <div className="bg-slate-800 text-white rounded-md shadow-md flex items-center h-16 px-5 mr-4">
                             <div className="w-12 h-12 bg-blue-400 rounded-md flex items-center justify-center overflow-hidden">
                               {app.companyId?.imageUrl ? (
@@ -316,7 +333,6 @@ const AppliedJobsPage = () => {
                             </div>
                           </div>
 
-                          {/* Job Title */}
                           <div className="flex-1">
                             <p className="text-sm text-gray-600">Job Title:</p>
                             <p className="text-base font-semibold text-gray-800">
@@ -325,16 +341,31 @@ const AppliedJobsPage = () => {
                           </div>
                         </div>
 
-                        {/* Right side - Apply Date & Delete Button */}
+                        {/* Right side - status + date + delete */}
                         <div className="text-right ml-4">
+                          <p className="text-xs mb-1">
+                            <span className="font-semibold text-pink-700">
+                              Status:{" "}
+                            </span>
+                            <span
+                              className={`uppercase text-xs px-2 py-1 rounded ${getStatusClasses(
+                                app.status
+                              )}`}
+                            >
+                              {app.status}
+                            </span>
+                          </p>
                           <p className="text-sm font-semibold text-pink-700">
-                            Apply Date: {new Date(app.createdAt).toLocaleDateString()}
+                            Apply Date:{" "}
+                            {new Date(app.createdAt).toLocaleDateString()}
                           </p>
                           <p className="text-xs text-gray-500 mb-2">
                             {new Date(app.createdAt).toLocaleTimeString()}
                           </p>
                           <button
-                            onClick={() => openDeleteModal(app._id, app.jobTitle)}
+                            onClick={() =>
+                              openDeleteModal(app._id, app.jobTitle)
+                            }
                             className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-md text-sm font-semibold transition"
                           >
                             Delete Application
@@ -342,26 +373,29 @@ const AppliedJobsPage = () => {
                         </div>
                       </div>
 
-                      {/* View Application Details Button */}
+                      {/* View details */}
                       <div className="mt-4 border-t pt-4">
                         <button
-                          onClick={() => setSelectedApplication(
-                            selectedApplication === app._id ? null : app._id
-                          )}
+                          onClick={() =>
+                            setSelectedApplication(
+                              selectedApplication === app._id ? null : app._id
+                            )
+                          }
                           className="text-indigo-600 hover:text-indigo-800 font-semibold text-sm"
                         >
-                          {selectedApplication === app._id ? "Hide Details ▲" : "View Uploaded Documents ▼"}
+                          {selectedApplication === app._id
+                            ? "Hide Details ▲"
+                            : "View Uploaded Documents ▼"}
                         </button>
 
-                        {/* Application Details */}
                         {selectedApplication === app._id && (
                           <div className="mt-4 space-y-4">
-                            {/* CV - MODIFIED: Fixed image URL */}
+                            {/* CV */}
                             <div>
                               <h4 className="font-semibold text-gray-700 mb-2">
                                 Curriculum Vitae (CV):
                               </h4>
-                              {app.cvImage?.endsWith('.pdf') ? (
+                              {app.cvImage?.endsWith(".pdf") ? (
                                 <a
                                   href={getImageUrl(app.cvImage)}
                                   target="_blank"
@@ -377,11 +411,11 @@ const AppliedJobsPage = () => {
                                     src={getImageUrl(app.cvImage)}
                                     alt="CV"
                                     className="w-48 h-48 object-contain border rounded cursor-pointer hover:opacity-80 transition"
-                                    onClick={() => setFullImageView(getImageUrl(app.cvImage))}
-                                    onError={(e) => {
-                                      console.error("Failed to load image:", getImageUrl(app.cvImage));
-                                      e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23ddd' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' fill='%23999' text-anchor='middle' dy='.3em'%3EImage not found%3C/text%3E%3C/svg%3E";
-                                    }}
+                                    onClick={() =>
+                                      setFullImageView(
+                                        getImageUrl(app.cvImage)
+                                      )
+                                    }
                                   />
                                   <p className="text-xs text-blue-600 mt-1 font-semibold">
                                     👆 Click to view full size
@@ -390,81 +424,104 @@ const AppliedJobsPage = () => {
                               )}
                             </div>
 
-                            {/* Recommendation Letters - MODIFIED: Fixed image URLs */}
-                            {app.recommendationLetters && app.recommendationLetters.length > 0 && (
-                              <div>
-                                <h4 className="font-semibold text-gray-700 mb-2">
-                                  Recommendation Letters ({app.recommendationLetters.length}):
-                                </h4>
-                                <div className="flex flex-wrap gap-4">
-                                  {app.recommendationLetters.map((letter, idx) => (
-                                    <div key={idx}>
-                                      {letter.endsWith('.pdf') ? (
-                                        <a
-                                          href={getImageUrl(letter)}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex flex-col items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-3 rounded-md border-2 border-blue-300 transition"
-                                        >
-                                          <span className="text-3xl">📄</span>
-                                          <span className="text-xs text-blue-700">PDF {idx + 1}</span>
-                                        </a>
-                                      ) : (
-                                        <>
-                                          <img
-                                            src={getImageUrl(letter)}
-                                            alt={`Recommendation ${idx + 1}`}
-                                            className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
-                                            onClick={() => setFullImageView(getImageUrl(letter))}
-                                          />
-                                        </>
-                                      )}
-                                    </div>
-                                  ))}
+                            {/* Recommendation Letters */}
+                            {app.recommendationLetters &&
+                              app.recommendationLetters.length > 0 && (
+                                <div>
+                                  <h4 className="font-semibold text-gray-700 mb-2">
+                                    Recommendation Letters (
+                                    {app.recommendationLetters.length}):
+                                  </h4>
+                                  <div className="flex flex-wrap gap-4">
+                                    {app.recommendationLetters.map(
+                                      (letter, idx) => (
+                                        <div key={idx}>
+                                          {letter.endsWith(".pdf") ? (
+                                            <a
+                                              href={getImageUrl(letter)}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="inline-flex flex-col items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-3 rounded-md border-2 border-blue-300 transition"
+                                            >
+                                              <span className="text-3xl">
+                                                📄
+                                              </span>
+                                              <span className="text-xs text-blue-700">
+                                                PDF {idx + 1}
+                                              </span>
+                                            </a>
+                                          ) : (
+                                            <img
+                                              src={getImageUrl(letter)}
+                                              alt={`Recommendation ${
+                                                idx + 1
+                                              }`}
+                                              className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
+                                              onClick={() =>
+                                                setFullImageView(
+                                                  getImageUrl(letter)
+                                                )
+                                              }
+                                            />
+                                          )}
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-blue-600 mt-1 font-semibold">
+                                    👆 Click to view full size or open PDF
+                                  </p>
                                 </div>
-                                <p className="text-xs text-blue-600 mt-1 font-semibold">
-                                  👆 Click on any image to view full size or click PDF to open
-                                </p>
-                              </div>
-                            )}
+                              )}
 
-                            {/* Career Summary - MODIFIED: Fixed image URLs */}
-                            {app.careerSummary && app.careerSummary.length > 0 && (
-                              <div>
-                                <h4 className="font-semibold text-gray-700 mb-2">
-                                  Career Summary ({app.careerSummary.length}):
-                                </h4>
-                                <div className="flex flex-wrap gap-4">
-                                  {app.careerSummary.map((summary, idx) => (
-                                    <div key={idx}>
-                                      {summary.endsWith('.pdf') ? (
-                                        <a
-                                          href={getImageUrl(summary)}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex flex-col items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-3 rounded-md border-2 border-blue-300 transition"
-                                        >
-                                          <span className="text-3xl">📄</span>
-                                          <span className="text-xs text-blue-700">PDF {idx + 1}</span>
-                                        </a>
-                                      ) : (
-                                        <>
-                                          <img
-                                            src={getImageUrl(summary)}
-                                            alt={`Career Summary ${idx + 1}`}
-                                            className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
-                                            onClick={() => setFullImageView(getImageUrl(summary))}
-                                          />
-                                        </>
-                                      )}
-                                    </div>
-                                  ))}
+                            {/* Career Summary */}
+                            {app.careerSummary &&
+                              app.careerSummary.length > 0 && (
+                                <div>
+                                  <h4 className="font-semibold text-gray-700 mb-2">
+                                    Career Summary ({app.careerSummary.length}):
+                                  </h4>
+                                  <div className="flex flex-wrap gap-4">
+                                    {app.careerSummary.map(
+                                      (summary, idx) => (
+                                        <div key={idx}>
+                                          {summary.endsWith(".pdf") ? (
+                                            <a
+                                              href={getImageUrl(summary)}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="inline-flex flex-col items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-3 rounded-md border-2 border-blue-300 transition"
+                                            >
+                                              <span className="text-3xl">
+                                                📄
+                                              </span>
+                                              <span className="text-xs text-blue-700">
+                                                PDF {idx + 1}
+                                              </span>
+                                            </a>
+                                          ) : (
+                                            <img
+                                              src={getImageUrl(summary)}
+                                              alt={`Career Summary ${
+                                                idx + 1
+                                              }`}
+                                              className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
+                                              onClick={() =>
+                                                setFullImageView(
+                                                  getImageUrl(summary)
+                                                )
+                                              }
+                                            />
+                                          )}
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-blue-600 mt-1 font-semibold">
+                                    👆 Click to view full size or open PDF
+                                  </p>
                                 </div>
-                                <p className="text-xs text-blue-600 mt-1 font-semibold">
-                                  👆 Click on any image to view full size or click PDF to open
-                                </p>
-                              </div>
-                            )}
+                              )}
                           </div>
                         )}
                       </div>

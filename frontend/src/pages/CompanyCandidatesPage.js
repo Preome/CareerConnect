@@ -73,6 +73,18 @@ const CompanyCandidatesPage = () => {
     }
   };
 
+  // helper to choose status color
+  const getStatusClasses = (status) => {
+    if (status === "shortlisted")
+      return "bg-blue-600 text-white";
+    if (status === "hired")
+      return "bg-green-600 text-white";
+    if (status === "rejected")
+      return "bg-red-600 text-white";
+    // pending/default
+    return "bg-slate-200 text-slate-800";
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
       {/* top bar */}
@@ -197,7 +209,6 @@ const CompanyCandidatesPage = () => {
                     >
                       {/* candidate info */}
                       <div className="flex items-start gap-3 text-sm text-slate-900">
-                        {/* candidate picture */}
                         {app.userId?.imageUrl ? (
                           <img
                             src={app.userId.imageUrl}
@@ -248,16 +259,19 @@ const CompanyCandidatesPage = () => {
                             </span>{" "}
                             {app.jobTitle}
                           </p>
-                          <p>
+                          <p className="mt-1">
                             <span className="font-semibold text-pink-700">
                               Status:
                             </span>{" "}
-                            <span className="uppercase text-xs px-2 py-1 rounded bg-slate-100">
+                            <span
+                              className={`uppercase text-xs px-2 py-1 rounded ${getStatusClasses(
+                                app.status
+                              )}`}
+                            >
                               {app.status}
                             </span>
                           </p>
 
-                          {/* Documents */}
                           {app.cvImage && (
                             <p className="mt-1">
                               <span className="font-semibold text-pink-700">
@@ -319,7 +333,7 @@ const CompanyCandidatesPage = () => {
                       {/* status buttons */}
                       <div className="flex flex-col gap-2">
                         <button
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1 rounded text-xs"
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded text-xs"
                           onClick={() => updateStatus(app._id, "shortlisted")}
                         >
                           Shortlist
@@ -350,6 +364,7 @@ const CompanyCandidatesPage = () => {
 };
 
 export default CompanyCandidatesPage;
+
 
 
 
