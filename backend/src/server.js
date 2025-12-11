@@ -16,8 +16,8 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-// Serve uploaded application files (CV, recommendations, summaries)
-app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+// ✅ FIXED: Changed from "/uploads" to "/api/uploads"
+app.use("/api/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 // routes
 app.use("/api/auth", require("./routes/authRoutes"));

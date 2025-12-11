@@ -24,7 +24,7 @@ const uploadToCloudinary = (buffer, folder) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder,
-        resource_type: "image",
+        resource_type: "auto", // MODIFIED: Changed from "image" to "auto" to support PDFs
       },
       (error, result) => {
         if (error) return reject(error);
@@ -376,7 +376,7 @@ const changePassword = async (req, res) => {
   }
 };
 
-// PUT /api/auth/update-profile (NOW HANDLES STUDENT TYPE AND DEPARTMENT)
+// PUT /api/auth/update-profile (NOW HANDLES NAME, EMAIL, MOBILE, GENDER, STUDENT TYPE AND DEPARTMENT)
 const updateUserProfile = async (req, res) => {
   try {
     // Extract token from Authorization header
@@ -404,6 +404,10 @@ const updateUserProfile = async (req, res) => {
 
     // Extract text fields from request body
     const {
+      name, // MODIFIED: Added name
+      email, // MODIFIED: Added email
+      mobile, // MODIFIED: Added mobile
+      gender, // MODIFIED: Added gender
       currentAddress,
       academicBackground,
       cgpa,
@@ -414,7 +418,21 @@ const updateUserProfile = async (req, res) => {
       department
     } = req.body;
 
-    // Update text fields (only if provided)
+    // MODIFIED: Check if email is being changed and if it's already taken by another user
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already in use by another account" });
+      }
+      user.email = email;
+    }
+
+    // MODIFIED: Update basic fields (only if provided)
+    if (name !== undefined) user.name = name;
+    if (mobile !== undefined) user.mobile = mobile;
+    if (gender !== undefined) user.gender = gender;
+
+    // Update other text fields (only if provided)
     if (currentAddress !== undefined) user.currentAddress = currentAddress;
     if (academicBackground !== undefined) user.academicBackground = academicBackground;
     if (cgpa !== undefined) user.cgpa = cgpa || null;
@@ -435,7 +453,7 @@ const updateUserProfile = async (req, res) => {
         user.imageUrl = photoUrl;
       }
 
-      // Update certificate if uploaded (IMAGE ONLY)
+      // Update certificate if uploaded (IMAGE OR PDF) - MODIFIED
       if (req.files.certificate) {
         const certUrl = await uploadToCloudinary(
           req.files.certificate[0].buffer,
@@ -444,7 +462,7 @@ const updateUserProfile = async (req, res) => {
         user.certificateUrl = certUrl;
       }
 
-      // Update CV if uploaded (IMAGE ONLY)
+      // Update CV if uploaded (IMAGE OR PDF) - MODIFIED
       if (req.files.cv) {
         const cvUrl = await uploadToCloudinary(
           req.files.cv[0].buffer,
@@ -546,5 +564,3 @@ module.exports = {
   updateUserProfile,
   deleteAccount
 };
-
-

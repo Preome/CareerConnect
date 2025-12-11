@@ -33,6 +33,10 @@ const UserProfilePage = () => {
 
   // State for form data (edit mode)
   const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    mobile: "",
+    gender: "",
     currentAddress: "",
     academicBackground: "",
     cgpa: "",
@@ -61,6 +65,10 @@ const UserProfilePage = () => {
   useEffect(() => {
     if (profile && isEditing) {
       setFormData({
+        name: profile.name || "",
+        email: profile.email || "",
+        mobile: profile.mobile || "",
+        gender: profile.gender || "",
         currentAddress: profile.currentAddress || "",
         academicBackground: profile.academicBackground || "",
         cgpa: profile.cgpa || "",
@@ -90,10 +98,21 @@ const UserProfilePage = () => {
   const handleFileChange = (e, fieldName) => {
     const file = e.target.files[0];
     if (file) {
-      // Check if it's an image
-      if (!file.type.startsWith("image/")) {
-        alert("Please select an image file only!");
-        return;
+      // Check if it's an image or PDF for certificate and CV
+      if (fieldName === 'certificate' || fieldName === 'cv') {
+        const isImage = file.type.startsWith("image/");
+        const isPDF = file.type === "application/pdf";
+        
+        if (!isImage && !isPDF) {
+          alert("Please select an image or PDF file only!");
+          return;
+        }
+      } else if (fieldName === 'profilePhoto') {
+        // Profile photo should only be image
+        if (!file.type.startsWith("image/")) {
+          alert("Please select an image file only for profile photo!");
+          return;
+        }
       }
 
       setFiles(prev => ({
@@ -101,20 +120,34 @@ const UserProfilePage = () => {
         [fieldName]: file
       }));
 
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
+      // Create preview (only for images)
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFilePreviews(prev => ({
+            ...prev,
+            [fieldName]: reader.result
+          }));
+        };
+        reader.readAsDataURL(file);
+      } else {
+        // For PDFs, don't create preview
         setFilePreviews(prev => ({
           ...prev,
-          [fieldName]: reader.result
+          [fieldName]: null
         }));
-      };
-      reader.readAsDataURL(file);
+      }
     }
   };
 
   const handleSaveProfile = async () => {
     try {
+      // Email validation
+      if (formData.email && !formData.email.includes('@')) {
+        alert("Please enter a valid email address");
+        return;
+      }
+
       const token = localStorage.getItem("token");
       if (!token) {
         alert("Please login again");
@@ -125,6 +158,12 @@ const UserProfilePage = () => {
       // Create FormData for file uploads
       const formDataToSend = new FormData();
 
+      // Append basic fields
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("mobile", formData.mobile);
+      formDataToSend.append("gender", formData.gender);
+      
       // Append text fields
       formDataToSend.append("currentAddress", formData.currentAddress);
       formDataToSend.append("academicBackground", formData.academicBackground);
@@ -302,7 +341,7 @@ const UserProfilePage = () => {
 
       {/* MAIN FLEX AREA */}
       <div className="flex flex-1">
-        {/* Sidebar */}
+        {/* Sidebar - MODIFIED: Fixed Applied Jobs button */}
         <aside className="w-52 bg-slate-900 text-white pt-6">
           <div className="flex flex-col items-center mb-6">
             {avatarUrl ? (
@@ -329,7 +368,11 @@ const UserProfilePage = () => {
             >
               Home
             </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            {/* MODIFIED: Added onClick handler */}
+            <button 
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/applied-jobs")}
+            >
               Applied Jobs
             </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
@@ -423,39 +466,83 @@ const UserProfilePage = () => {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block text-sm font-semibold mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    value={profile.name}
-                    disabled
-                    className="w-full px-3 py-2 border rounded-md bg-gray-100"
-                  />
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border rounded-md"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={profile.name}
+                      disabled
+                      className="w-full px-3 py-2 border rounded-md bg-gray-100"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Email</label>
-                  <input
-                    type="text"
-                    value={profile.email}
-                    disabled
-                    className="w-full px-3 py-2 border rounded-md bg-gray-100"
-                  />
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border rounded-md"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={profile.email}
+                      disabled
+                      className="w-full px-3 py-2 border rounded-md bg-gray-100"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Mobile Number</label>
-                  <input
-                    type="text"
-                    value={profile.mobile}
-                    disabled
-                    className="w-full px-3 py-2 border rounded-md bg-gray-100"
-                  />
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="mobile"
+                      value={formData.mobile}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border rounded-md"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={profile.mobile}
+                      disabled
+                      className="w-full px-3 py-2 border rounded-md bg-gray-100"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Gender</label>
-                  <input
-                    type="text"
-                    value={profile.gender}
-                    disabled
-                    className="w-full px-3 py-2 border rounded-md bg-gray-100"
-                  />
+                  {isEditing ? (
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border rounded-md"
+                    >
+                      <option value="">Select gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={profile.gender}
+                      disabled
+                      className="w-full px-3 py-2 border rounded-md bg-gray-100"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -610,7 +697,7 @@ const UserProfilePage = () => {
               <div className="grid grid-cols-2 gap-6 mb-6">
                 {/* Certificate Upload */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Certificate</label>
+                  <label className="block text-sm font-semibold mb-2">Certificate (Image or PDF)</label>
                   {isEditing ? (
                     <>
                       <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-purple-400 border-dashed rounded-lg cursor-pointer bg-purple-50 hover:bg-purple-100">
@@ -618,26 +705,45 @@ const UserProfilePage = () => {
                         <span className="text-sm text-purple-600 font-semibold">Upload file</span>
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/*,.pdf"
                           className="hidden"
                           onChange={(e) => handleFileChange(e, "certificate")}
                         />
                       </label>
-                      {(filePreviews.certificate || profile.certificateUrl) && (
+                      {files.certificate && (
+                        <p className="mt-2 text-sm text-gray-600">
+                          Selected: {files.certificate.name}
+                        </p>
+                      )}
+                      {(filePreviews.certificate || profile.certificateUrl) && filePreviews.certificate && (
                         <img
-                          src={filePreviews.certificate || profile.certificateUrl}
+                          src={filePreviews.certificate}
                           alt="Certificate"
                           className="mt-2 w-full h-32 object-cover rounded-lg border"
                         />
                       )}
                     </>
                   ) : profile.certificateUrl ? (
-                    <img
-                      src={profile.certificateUrl}
-                      alt="Certificate"
-                      className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition"
-                      onClick={() => openImageViewer(profile.certificateUrl, "Certificate")}
-                    />
+                    profile.certificateUrl.endsWith('.pdf') ? (
+                      <a
+                        href={profile.certificateUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center w-full h-32 border-2 border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition"
+                      >
+                        <div className="text-center">
+                          <span className="text-4xl">📄</span>
+                          <p className="text-sm text-gray-600 mt-2">View PDF Certificate</p>
+                        </div>
+                      </a>
+                    ) : (
+                      <img
+                        src={profile.certificateUrl}
+                        alt="Certificate"
+                        className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition"
+                        onClick={() => openImageViewer(profile.certificateUrl, "Certificate")}
+                      />
+                    )
                   ) : (
                     <div className="flex items-center justify-center w-full h-32 border-2 border-gray-300 rounded-lg bg-gray-50">
                       <span className="text-gray-400">No certificate uploaded</span>
@@ -647,7 +753,7 @@ const UserProfilePage = () => {
 
                 {/* CV Upload */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Curriculum Vitae</label>
+                  <label className="block text-sm font-semibold mb-2">Curriculum Vitae (Image or PDF)</label>
                   {isEditing ? (
                     <>
                       <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-yellow-400 border-dashed rounded-lg cursor-pointer bg-yellow-50 hover:bg-yellow-100">
@@ -655,26 +761,45 @@ const UserProfilePage = () => {
                         <span className="text-sm text-yellow-600 font-semibold">Upload file</span>
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/*,.pdf"
                           className="hidden"
                           onChange={(e) => handleFileChange(e, "cv")}
                         />
                       </label>
-                      {(filePreviews.cv || profile.cvUrl) && (
+                      {files.cv && (
+                        <p className="mt-2 text-sm text-gray-600">
+                          Selected: {files.cv.name}
+                        </p>
+                      )}
+                      {(filePreviews.cv || profile.cvUrl) && filePreviews.cv && (
                         <img
-                          src={filePreviews.cv || profile.cvUrl}
+                          src={filePreviews.cv}
                           alt="CV"
                           className="mt-2 w-full h-32 object-cover rounded-lg border"
                         />
                       )}
                     </>
                   ) : profile.cvUrl ? (
-                    <img
-                      src={profile.cvUrl}
-                      alt="CV"
-                      className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition"
-                      onClick={() => openImageViewer(profile.cvUrl, "Curriculum Vitae")}
-                    />
+                    profile.cvUrl.endsWith('.pdf') ? (
+                      <a
+                        href={profile.cvUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center w-full h-32 border-2 border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition"
+                      >
+                        <div className="text-center">
+                          <span className="text-4xl">📄</span>
+                          <p className="text-sm text-gray-600 mt-2">View PDF CV</p>
+                        </div>
+                      </a>
+                    ) : (
+                      <img
+                        src={profile.cvUrl}
+                        alt="CV"
+                        className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition"
+                        onClick={() => openImageViewer(profile.cvUrl, "Curriculum Vitae")}
+                      />
+                    )
                   ) : (
                     <div className="flex items-center justify-center w-full h-32 border-2 border-gray-300 rounded-lg bg-gray-50">
                       <span className="text-gray-400">No CV uploaded</span>

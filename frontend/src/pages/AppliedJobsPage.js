@@ -1,11 +1,11 @@
-// frontend/src/pages/AppliedJobsPage.js
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
 const AppliedJobsPage = () => {
   const navigate = useNavigate();
-  
+ 
   // Get user profile
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
@@ -16,6 +16,14 @@ const AppliedJobsPage = () => {
   const [loading, setLoading] = useState(true);
   const [fullImageView, setFullImageView] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
+  
+  // Delete confirmation modal state
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    applicationId: null,
+    jobTitle: "",
+    loading: false
+  });
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -23,43 +31,134 @@ const AppliedJobsPage = () => {
     navigate("/");
   };
 
-  useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/applications/user", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setApplications(res.data);
-      } catch (err) {
-        console.error("Error fetching applications:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchApplications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE_URL}/applications/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setApplications(res.data);
+    } catch (err) {
+      console.error("Error fetching applications:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchApplications();
   }, []);
 
+  // Handle delete application
+  const handleDeleteApplication = async () => {
+    if (!deleteModal.applicationId) return;
+
+    setDeleteModal(prev => ({ ...prev, loading: true }));
+
+    try {
+      const token = localStorage.getItem("token");
+      
+      await axios.delete(`${API_BASE_URL}/applications/${deleteModal.applicationId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Remove from local state
+      setApplications(prev => 
+        prev.filter(app => app._id !== deleteModal.applicationId)
+      );
+
+      // Close modal
+      setDeleteModal({
+        isOpen: false,
+        applicationId: null,
+        jobTitle: "",
+        loading: false
+      });
+
+      alert("Application deleted successfully!");
+
+    } catch (error) {
+      console.error("Error deleting application:", error);
+      alert(error.response?.data?.error || "Failed to delete application");
+      setDeleteModal(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  // Function to open delete confirmation modal
+  const openDeleteModal = (applicationId, jobTitle) => {
+    setDeleteModal({
+      isOpen: true,
+      applicationId,
+      jobTitle,
+      loading: false
+    });
+  };
+
+  // MODIFIED: Helper function to get full image URL
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    // If path already starts with http, return as is
+    if (path.startsWith('http')) return path;
+    // Otherwise, prepend API_BASE_URL
+    return `${API_BASE_URL}/${path}`;
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
-      {/* Full Image View Modal */}
+      {/* MODIFIED: Full Image View Modal - MUCH LARGER */}
       {fullImageView && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
-          <div className="relative max-w-4xl max-h-screen">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4"
+          onClick={() => setFullImageView(null)}
+        >
+          <div className="relative w-full h-full flex items-center justify-center">
             <button
               onClick={() => setFullImageView(null)}
-              className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md font-semibold z-10"
+              className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-md font-bold text-lg z-10 shadow-lg"
             >
-              Exit
+              ✕ Close
             </button>
             <img
               src={fullImageView}
               alt="Full View"
-              className="max-w-full max-h-screen object-contain"
+              className="max-w-[95vw] max-h-[95vh] object-contain"
+              onClick={(e) => e.stopPropagation()}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-4 text-red-600">Delete Application</h3>
+            <p className="text-gray-700 mb-4">
+              Are you sure you want to delete your application for <strong>{deleteModal.jobTitle}</strong>?
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDeleteApplication}
+                disabled={deleteModal.loading}
+                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition font-semibold disabled:opacity-50"
+              >
+                {deleteModal.loading ? "Deleting..." : "Delete"}
+              </button>
+              <button
+                onClick={() => setDeleteModal({ isOpen: false, applicationId: null, jobTitle: "", loading: false })}
+                disabled={deleteModal.loading}
+                className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition font-semibold disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -129,13 +228,13 @@ const AppliedJobsPage = () => {
           </div>
 
           <nav className="flex flex-col text-sm">
-            <button 
+            <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/user-dashboard")}
             >
               Home
             </button>
-            <button 
+            <button
               className="text-left px-4 py-2 bg-indigo-600"
               onClick={() => navigate("/applied-jobs")}
             >
@@ -195,7 +294,7 @@ const AppliedJobsPage = () => {
                           <span className="text-2xl font-bold text-gray-800 mr-4">
                             {index + 1}.
                           </span>
-                          
+                         
                           <div className="bg-slate-800 text-white rounded-md shadow-md flex items-center h-16 px-5 mr-4">
                             <div className="w-12 h-12 bg-blue-400 rounded-md flex items-center justify-center overflow-hidden">
                               {app.companyId?.imageUrl ? (
@@ -226,14 +325,20 @@ const AppliedJobsPage = () => {
                           </div>
                         </div>
 
-                        {/* Right side - Apply Date */}
+                        {/* Right side - Apply Date & Delete Button */}
                         <div className="text-right ml-4">
                           <p className="text-sm font-semibold text-pink-700">
                             Apply Date: {new Date(app.createdAt).toLocaleDateString()}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 mb-2">
                             {new Date(app.createdAt).toLocaleTimeString()}
                           </p>
+                          <button
+                            onClick={() => openDeleteModal(app._id, app.jobTitle)}
+                            className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-md text-sm font-semibold transition"
+                          >
+                            Delete Application
+                          </button>
                         </div>
                       </div>
 
@@ -251,23 +356,41 @@ const AppliedJobsPage = () => {
                         {/* Application Details */}
                         {selectedApplication === app._id && (
                           <div className="mt-4 space-y-4">
-                            {/* CV */}
+                            {/* CV - MODIFIED: Fixed image URL */}
                             <div>
                               <h4 className="font-semibold text-gray-700 mb-2">
                                 Curriculum Vitae (CV):
                               </h4>
-                              <img
-                                src={`http://localhost:5000/${app.cvImage}`}
-                                alt="CV"
-                                className="w-48 h-48 object-contain border rounded cursor-pointer hover:opacity-80 transition"
-                                onClick={() => setFullImageView(`http://localhost:5000/${app.cvImage}`)}
-                              />
-                              <p className="text-xs text-gray-500 mt-1">
-                                Click to view full image
-                              </p>
+                              {app.cvImage?.endsWith('.pdf') ? (
+                                <a
+                                  href={getImageUrl(app.cvImage)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition"
+                                >
+                                  <span className="text-2xl">📄</span>
+                                  View PDF CV
+                                </a>
+                              ) : (
+                                <>
+                                  <img
+                                    src={getImageUrl(app.cvImage)}
+                                    alt="CV"
+                                    className="w-48 h-48 object-contain border rounded cursor-pointer hover:opacity-80 transition"
+                                    onClick={() => setFullImageView(getImageUrl(app.cvImage))}
+                                    onError={(e) => {
+                                      console.error("Failed to load image:", getImageUrl(app.cvImage));
+                                      e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23ddd' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' fill='%23999' text-anchor='middle' dy='.3em'%3EImage not found%3C/text%3E%3C/svg%3E";
+                                    }}
+                                  />
+                                  <p className="text-xs text-blue-600 mt-1 font-semibold">
+                                    👆 Click to view full size
+                                  </p>
+                                </>
+                              )}
                             </div>
 
-                            {/* Recommendation Letters */}
+                            {/* Recommendation Letters - MODIFIED: Fixed image URLs */}
                             {app.recommendationLetters && app.recommendationLetters.length > 0 && (
                               <div>
                                 <h4 className="font-semibold text-gray-700 mb-2">
@@ -276,22 +399,36 @@ const AppliedJobsPage = () => {
                                 <div className="flex flex-wrap gap-4">
                                   {app.recommendationLetters.map((letter, idx) => (
                                     <div key={idx}>
-                                      <img
-                                        src={`http://localhost:5000/${letter}`}
-                                        alt={`Recommendation ${idx + 1}`}
-                                        className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
-                                        onClick={() => setFullImageView(`http://localhost:5000/${letter}`)}
-                                      />
+                                      {letter.endsWith('.pdf') ? (
+                                        <a
+                                          href={getImageUrl(letter)}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex flex-col items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-3 rounded-md border-2 border-blue-300 transition"
+                                        >
+                                          <span className="text-3xl">📄</span>
+                                          <span className="text-xs text-blue-700">PDF {idx + 1}</span>
+                                        </a>
+                                      ) : (
+                                        <>
+                                          <img
+                                            src={getImageUrl(letter)}
+                                            alt={`Recommendation ${idx + 1}`}
+                                            className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
+                                            onClick={() => setFullImageView(getImageUrl(letter))}
+                                          />
+                                        </>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Click on any image to view full size
+                                <p className="text-xs text-blue-600 mt-1 font-semibold">
+                                  👆 Click on any image to view full size or click PDF to open
                                 </p>
                               </div>
                             )}
 
-                            {/* Career Summary */}
+                            {/* Career Summary - MODIFIED: Fixed image URLs */}
                             {app.careerSummary && app.careerSummary.length > 0 && (
                               <div>
                                 <h4 className="font-semibold text-gray-700 mb-2">
@@ -300,17 +437,31 @@ const AppliedJobsPage = () => {
                                 <div className="flex flex-wrap gap-4">
                                   {app.careerSummary.map((summary, idx) => (
                                     <div key={idx}>
-                                      <img
-                                        src={`http://localhost:5000/${summary}`}
-                                        alt={`Career Summary ${idx + 1}`}
-                                        className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
-                                        onClick={() => setFullImageView(`http://localhost:5000/${summary}`)}
-                                      />
+                                      {summary.endsWith('.pdf') ? (
+                                        <a
+                                          href={getImageUrl(summary)}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex flex-col items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-3 rounded-md border-2 border-blue-300 transition"
+                                        >
+                                          <span className="text-3xl">📄</span>
+                                          <span className="text-xs text-blue-700">PDF {idx + 1}</span>
+                                        </a>
+                                      ) : (
+                                        <>
+                                          <img
+                                            src={getImageUrl(summary)}
+                                            alt={`Career Summary ${idx + 1}`}
+                                            className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
+                                            onClick={() => setFullImageView(getImageUrl(summary))}
+                                          />
+                                        </>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Click on any image to view full size
+                                <p className="text-xs text-blue-600 mt-1 font-semibold">
+                                  👆 Click on any image to view full size or click PDF to open
                                 </p>
                               </div>
                             )}
