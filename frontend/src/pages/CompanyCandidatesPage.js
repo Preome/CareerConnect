@@ -7,7 +7,6 @@ const CompanyCandidatesPage = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [docView, setDocView] = useState({ url: null, isPdf: false }); // modal
 
   const navigate = useNavigate();
 
@@ -48,117 +47,22 @@ const CompanyCandidatesPage = () => {
     fetchCandidates();
   }, []);
 
-  const updateStatus = async (applicationId, status) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.patch(
-        `http://localhost:5000/api/applications/${applicationId}/status`,
-        { status },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setApplications((prev) =>
-        prev.map((app) =>
-          app._id === applicationId ? { ...app, status } : app
-        )
-      );
-    } catch (err) {
-      console.error(err.response?.data || err.message);
-      alert(
-        err.response?.data?.error ||
-          err.response?.data?.message ||
-          "Failed to update status"
-      );
+  // group applications by job (jobId or jobTitle)
+  const groupedByJob = applications.reduce((acc, app) => {
+    const key = app.jobId?._id || app.jobId || app.jobTitle;
+    if (!acc[key]) {
+      acc[key] = {
+        jobTitle: app.jobTitle,
+        applications: [],
+        anyApp: app,
+      };
     }
-  };
-
-  const deleteApplication = async (applicationId) => {
-    if (!window.confirm("Delete this application?")) return;
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(
-        `http://localhost:5000/api/applications/company/${applicationId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setApplications((prev) => prev.filter((a) => a._id !== applicationId));
-    } catch (err) {
-      console.error(err.response?.data || err.message);
-      alert(
-        err.response?.data?.error ||
-          err.response?.data?.message ||
-          "Failed to delete application"
-      );
-    }
-  };
-
-  // status colors
-  const getStatusClasses = (status) => {
-    if (status === "shortlisted") return "bg-blue-600 text-white";
-    if (status === "hired") return "bg-green-600 text-white";
-    if (status === "rejected") return "bg-red-600 text-white";
-    return "bg-slate-200 text-slate-800";
-  };
-
-  // open doc (image or pdf) in modal
-  const openDoc = (relativePath) => {
-    const url = `http://localhost:5000/${relativePath}`;
-    const isPdf = url.toLowerCase().endsWith(".pdf");
-    setDocView({ url, isPdf });
-  };
-
-  const closeDoc = () => setDocView({ url: null, isPdf: false });
-
-  // format date/time in Asia/Dhaka
-  const formatAppliedDate = (isoString) => {
-    if (!isoString) return "";
-    const date = new Date(isoString);
-    const bdDate = date.toLocaleDateString("en-GB", {
-      timeZone: "Asia/Dhaka",
-    });
-    const bdTime = date.toLocaleTimeString("en-GB", {
-      timeZone: "Asia/Dhaka",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-    return { bdDate, bdTime };
-  };
+    acc[key].applications.push(app);
+    return acc;
+  }, {});
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
-      {/* full-screen doc modal */}
-      {docView.url && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
-          onClick={closeDoc}
-        >
-          <button
-            type="button"
-            onClick={closeDoc}
-            className="absolute top-4 right-4 text-white text-2xl font-bold px-3 py-1 bg-red-600 rounded-full hover:bg-red-700"
-          >
-            ×
-          </button>
-          {docView.isPdf ? (
-            <iframe
-              src={docView.url}
-              title="Document"
-              className="w-[95vw] h-[95vh] bg-white"
-              onClick={(e) => e.stopPropagation()}
-            />
-          ) : (
-            <img
-              src={docView.url}
-              alt="Document"
-              className="max-w-[95vw] max-h-[95vh] object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
-          )}
-        </div>
-      )}
-
       {/* top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
@@ -265,7 +169,7 @@ const CompanyCandidatesPage = () => {
           <div className="w-full max-w-5xl mx-4">
             <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8">
               <h2 className="text-xl font-semibold mb-4 text-slate-900">
-                Candidate List
+                Jobs and Applicants
               </h2>
 
               {loading ? (
@@ -274,179 +178,35 @@ const CompanyCandidatesPage = () => {
                 <p>No applications yet.</p>
               ) : (
                 <div className="space-y-4">
-                  {applications.map((app) => {
-                    const { bdDate, bdTime } = formatAppliedDate(
-                      app.createdAt
-                    );
+                  {Object.values(groupedByJob).map((group) => {
+                    const anyApp = group.anyApp;
+                    const jobId = anyApp?.jobId?._id || anyApp?.jobId;
                     return (
-                      <div
-                        key={app._id}
-                        className="border border-slate-200 rounded-lg p-4 flex justify-between gap-4"
+                      <button
+                        key={jobId || group.jobTitle}
+                        type="button"
+                        onClick={() =>
+                          navigate(`/company/jobs/${jobId}/applicants`, {
+                            state: { jobTitle: group.jobTitle },
+                          })
+                        }
+                        className="w-full text-left border border-slate-300 rounded-lg p-4 bg-white hover:bg-slate-100 shadow-sm flex justify-between items-center"
                       >
-                        {/* candidate info */}
-                        <div className="flex items-start gap-3 text-sm text-slate-900">
-                          {app.userId?.imageUrl ? (
-                            <img
-                              src={app.userId.imageUrl}
-                              alt="Candidate"
-                              className="w-12 h-12 rounded-full object-cover mt-1"
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                              }}
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-full bg-slate-300 mt-1" />
-                          )}
-
-                          <div>
-                            <p>
-                              <span className="font-semibold text-pink-700">
-                                Applicant:
-                              </span>{" "}
-                              {app.userId?.name || "User"}
-                            </p>
-                            <p>
-                              <span className="font-semibold text-pink-700">
-                                Email:
-                              </span>{" "}
-                              {app.userId?.email || "N/A"}
-                            </p>
-                            <p>
-                              <span className="font-semibold text-pink-700">
-                                Mobile number:
-                              </span>{" "}
-                              {app.userId?.mobile || "N/A"}
-                            </p>
-                            <p>
-                              <span className="font-semibold text-pink-700">
-                                Student type:
-                              </span>{" "}
-                              {app.userId?.studentType || "N/A"}
-                            </p>
-                            <p>
-                              <span className="font-semibold text-pink-700">
-                                Department:
-                              </span>{" "}
-                              {app.userId?.department || "N/A"}
-                            </p>
-                            <p>
-                              <span className="font-semibold text-pink-700">
-                                Job Title:
-                              </span>{" "}
-                              {app.jobTitle}
-                            </p>
-                            <p className="mt-1">
-                              <span className="font-semibold text-pink-700">
-                                Status:
-                              </span>{" "}
-                              <span
-                                className={`uppercase text-xs px-2 py-1 rounded ${getStatusClasses(
-                                  app.status
-                                )}`}
-                              >
-                                {app.status}
-                              </span>
-                            </p>
-                            <p className="mt-1">
-                              <span className="font-semibold text-pink-700">
-                                Applied on:
-                              </span>{" "}
-                              {bdDate}{" "}
-                              <span className="text-xs text-slate-600">
-                                {bdTime}
-                              </span>
-                            </p>
-
-                            {/* CV */}
-                            {app.cvImage && (
-                              <p className="mt-1">
-                                <span className="font-semibold text-pink-700">
-                                  CV:
-                                </span>{" "}
-                                <button
-                                  type="button"
-                                  onClick={() => openDoc(app.cvImage)}
-                                  className="text-indigo-600 underline text-xs"
-                                >
-                                  View CV
-                                </button>
-                              </p>
-                            )}
-
-                            {/* Recommendations */}
-                            {app.recommendationLetters &&
-                              app.recommendationLetters.length > 0 && (
-                                <p className="mt-1">
-                                  <span className="font-semibold text-pink-700">
-                                    Recommendations:
-                                  </span>{" "}
-                                  {app.recommendationLetters.map(
-                                    (file, idx) => (
-                                      <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={() => openDoc(file)}
-                                        className="text-indigo-600 underline text-xs mr-2"
-                                      >
-                                        View Recommendation {idx + 1}
-                                      </button>
-                                    )
-                                  )}
-                                </p>
-                              )}
-
-                            {/* Career Summary */}
-                            {app.careerSummary &&
-                              app.careerSummary.length > 0 && (
-                                <p className="mt-1">
-                                  <span className="font-semibold text-pink-700">
-                                    Career Summary:
-                                  </span>{" "}
-                                  {app.careerSummary.map((file, idx) => (
-                                    <button
-                                      key={idx}
-                                      type="button"
-                                      onClick={() => openDoc(file)}
-                                      className="text-indigo-600 underline text-xs mr-2"
-                                    >
-                                      View Career Summary {idx + 1}
-                                    </button>
-                                  ))}
-                                </p>
-                              )}
-                          </div>
+                        <div>
+                          <p className="text-sm text-slate-500">Job Title</p>
+                          <p className="text-lg font-semibold text-slate-900">
+                            {group.jobTitle}
+                          </p>
                         </div>
-
-                        {/* status + delete buttons */}
-                        <div className="flex flex-col gap-2">
-                          <button
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded text-xs"
-                            onClick={() =>
-                              updateStatus(app._id, "shortlisted")
-                            }
-                          >
-                            Shortlist
-                          </button>
-                          <button
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded text-xs"
-                            onClick={() => updateStatus(app._id, "hired")}
-                          >
-                            Hire
-                          </button>
-                          <button
-                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded text-xs"
-                            onClick={() => updateStatus(app._id, "rejected")}
-                          >
-                            Reject
-                          </button>
-                          <button
-                            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-1 rounded text-xs"
-                            onClick={() => deleteApplication(app._id)}
-                          >
-                            Delete
-                          </button>
+                        <div className="text-right">
+                          <p className="text-sm text-slate-500">
+                            Applicants
+                          </p>
+                          <p className="text-xl font-bold text-indigo-600">
+                            {group.applications.length}
+                          </p>
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -460,6 +220,8 @@ const CompanyCandidatesPage = () => {
 };
 
 export default CompanyCandidatesPage;
+
+
 
 
 

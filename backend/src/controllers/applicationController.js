@@ -169,8 +169,14 @@ exports.deleteApplication = async (req, res) => {
 exports.getCompanyApplications = async (req, res) => {
   try {
     const companyId = req.user.id; // company logged in
+    const { jobId } = req.query;   // OPTIONAL filter by job
 
-    const applications = await Application.find({ companyId })
+    const filter = { companyId };
+    if (jobId) {
+      filter.jobId = jobId;
+    }
+
+    const applications = await Application.find(filter)
       .populate(
         "userId",
         "name email department studentType imageUrl mobile"

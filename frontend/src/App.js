@@ -20,6 +20,11 @@ import PostedJobsPage from "./pages/PostedJobsPage";
 import ApplyJobPage from "./pages/ApplyJobPage";
 import AppliedJobsPage from "./pages/AppliedJobsPage";
 import CompanyCandidatesPage from "./pages/CompanyCandidatesPage"; // NEW
+import JobApplicantsPage from "./pages/JobApplicantsPage";
+
+// inside <Routes>:
+
+
 
 function App() {
   return (
@@ -50,7 +55,10 @@ function App() {
             path="/company/candidates"
             element={<CompanyCandidatesPage />}
           />
-
+          <Route
+            path="/company/jobs/:jobId/applicants"
+            element={<JobApplicantsPage />}
+          />
           {/* company job features */}
           <Route path="/company/jobs/new" element={<AddJobPage />} />
           <Route path="/company/jobs/:id/edit" element={<EditJobPage />} />
