@@ -110,6 +110,22 @@ const CompanyCandidatesPage = () => {
 
   const closeDoc = () => setDocView({ url: null, isPdf: false });
 
+  // format date/time in Asia/Dhaka
+  const formatAppliedDate = (isoString) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    const bdDate = date.toLocaleDateString("en-GB", {
+      timeZone: "Asia/Dhaka",
+    });
+    const bdTime = date.toLocaleTimeString("en-GB", {
+      timeZone: "Asia/Dhaka",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return { bdDate, bdTime };
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
       {/* full-screen doc modal */}
@@ -258,165 +274,181 @@ const CompanyCandidatesPage = () => {
                 <p>No applications yet.</p>
               ) : (
                 <div className="space-y-4">
-                  {applications.map((app) => (
-                    <div
-                      key={app._id}
-                      className="border border-slate-200 rounded-lg p-4 flex justify-between gap-4"
-                    >
-                      {/* candidate info */}
-                      <div className="flex items-start gap-3 text-sm text-slate-900">
-                        {app.userId?.imageUrl ? (
-                          <img
-                            src={app.userId.imageUrl}
-                            alt="Candidate"
-                            className="w-12 h-12 rounded-full object-cover mt-1"
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                            }}
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-slate-300 mt-1" />
-                        )}
-
-                        <div>
-                          <p>
-                            <span className="font-semibold text-pink-700">
-                              Applicant:
-                            </span>{" "}
-                            {app.userId?.name || "User"}
-                          </p>
-                          <p>
-                            <span className="font-semibold text-pink-700">
-                              Email:
-                            </span>{" "}
-                            {app.userId?.email || "N/A"}
-                          </p>
-                          <p>
-                            <span className="font-semibold text-pink-700">
-                              Mobile number:
-                            </span>{" "}
-                            {app.userId?.mobile || "N/A"}
-                          </p>
-                          <p>
-                            <span className="font-semibold text-pink-700">
-                              Student type:
-                            </span>{" "}
-                            {app.userId?.studentType || "N/A"}
-                          </p>
-                          <p>
-                            <span className="font-semibold text-pink-700">
-                              Department:
-                            </span>{" "}
-                            {app.userId?.department || "N/A"}
-                          </p>
-                          <p>
-                            <span className="font-semibold text-pink-700">
-                              Job Title:
-                            </span>{" "}
-                            {app.jobTitle}
-                          </p>
-                          <p className="mt-1">
-                            <span className="font-semibold text-pink-700">
-                              Status:
-                            </span>{" "}
-                            <span
-                              className={`uppercase text-xs px-2 py-1 rounded ${getStatusClasses(
-                                app.status
-                              )}`}
-                            >
-                              {app.status}
-                            </span>
-                          </p>
-
-                          {/* CV */}
-                          {app.cvImage && (
-                            <p className="mt-1">
-                              <span className="font-semibold text-pink-700">
-                                CV:
-                              </span>{" "}
-                              <button
-                                type="button"
-                                onClick={() => openDoc(app.cvImage)}
-                                className="text-indigo-600 underline text-xs"
-                              >
-                                View CV
-                              </button>
-                            </p>
+                  {applications.map((app) => {
+                    const { bdDate, bdTime } = formatAppliedDate(
+                      app.createdAt
+                    );
+                    return (
+                      <div
+                        key={app._id}
+                        className="border border-slate-200 rounded-lg p-4 flex justify-between gap-4"
+                      >
+                        {/* candidate info */}
+                        <div className="flex items-start gap-3 text-sm text-slate-900">
+                          {app.userId?.imageUrl ? (
+                            <img
+                              src={app.userId.imageUrl}
+                              alt="Candidate"
+                              className="w-12 h-12 rounded-full object-cover mt-1"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-slate-300 mt-1" />
                           )}
 
-                          {/* Recommendations */}
-                          {app.recommendationLetters &&
-                            app.recommendationLetters.length > 0 && (
+                          <div>
+                            <p>
+                              <span className="font-semibold text-pink-700">
+                                Applicant:
+                              </span>{" "}
+                              {app.userId?.name || "User"}
+                            </p>
+                            <p>
+                              <span className="font-semibold text-pink-700">
+                                Email:
+                              </span>{" "}
+                              {app.userId?.email || "N/A"}
+                            </p>
+                            <p>
+                              <span className="font-semibold text-pink-700">
+                                Mobile number:
+                              </span>{" "}
+                              {app.userId?.mobile || "N/A"}
+                            </p>
+                            <p>
+                              <span className="font-semibold text-pink-700">
+                                Student type:
+                              </span>{" "}
+                              {app.userId?.studentType || "N/A"}
+                            </p>
+                            <p>
+                              <span className="font-semibold text-pink-700">
+                                Department:
+                              </span>{" "}
+                              {app.userId?.department || "N/A"}
+                            </p>
+                            <p>
+                              <span className="font-semibold text-pink-700">
+                                Job Title:
+                              </span>{" "}
+                              {app.jobTitle}
+                            </p>
+                            <p className="mt-1">
+                              <span className="font-semibold text-pink-700">
+                                Status:
+                              </span>{" "}
+                              <span
+                                className={`uppercase text-xs px-2 py-1 rounded ${getStatusClasses(
+                                  app.status
+                                )}`}
+                              >
+                                {app.status}
+                              </span>
+                            </p>
+                            <p className="mt-1">
+                              <span className="font-semibold text-pink-700">
+                                Applied on:
+                              </span>{" "}
+                              {bdDate}{" "}
+                              <span className="text-xs text-slate-600">
+                                {bdTime}
+                              </span>
+                            </p>
+
+                            {/* CV */}
+                            {app.cvImage && (
                               <p className="mt-1">
                                 <span className="font-semibold text-pink-700">
-                                  Recommendations:
+                                  CV:
                                 </span>{" "}
-                                {app.recommendationLetters.map(
-                                  (file, idx) => (
+                                <button
+                                  type="button"
+                                  onClick={() => openDoc(app.cvImage)}
+                                  className="text-indigo-600 underline text-xs"
+                                >
+                                  View CV
+                                </button>
+                              </p>
+                            )}
+
+                            {/* Recommendations */}
+                            {app.recommendationLetters &&
+                              app.recommendationLetters.length > 0 && (
+                                <p className="mt-1">
+                                  <span className="font-semibold text-pink-700">
+                                    Recommendations:
+                                  </span>{" "}
+                                  {app.recommendationLetters.map(
+                                    (file, idx) => (
+                                      <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => openDoc(file)}
+                                        className="text-indigo-600 underline text-xs mr-2"
+                                      >
+                                        View Recommendation {idx + 1}
+                                      </button>
+                                    )
+                                  )}
+                                </p>
+                              )}
+
+                            {/* Career Summary */}
+                            {app.careerSummary &&
+                              app.careerSummary.length > 0 && (
+                                <p className="mt-1">
+                                  <span className="font-semibold text-pink-700">
+                                    Career Summary:
+                                  </span>{" "}
+                                  {app.careerSummary.map((file, idx) => (
                                     <button
                                       key={idx}
                                       type="button"
                                       onClick={() => openDoc(file)}
                                       className="text-indigo-600 underline text-xs mr-2"
                                     >
-                                      View Recommendations {idx + 1}
+                                      View Career Summary {idx + 1}
                                     </button>
-                                  )
-                                )}
-                              </p>
-                            )}
+                                  ))}
+                                </p>
+                              )}
+                          </div>
+                        </div>
 
-                          {/* Career Summary */}
-                          {app.careerSummary &&
-                            app.careerSummary.length > 0 && (
-                              <p className="mt-1">
-                                <span className="font-semibold text-pink-700">
-                                  Career Summary:
-                                </span>{" "}
-                                {app.careerSummary.map((file, idx) => (
-                                  <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => openDoc(file)}
-                                    className="text-indigo-600 underline text-xs mr-2"
-                                  >
-                                    View Career Summary {idx + 1}
-                                  </button>
-                                ))}
-                              </p>
-                            )}
+                        {/* status + delete buttons */}
+                        <div className="flex flex-col gap-2">
+                          <button
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded text-xs"
+                            onClick={() =>
+                              updateStatus(app._id, "shortlisted")
+                            }
+                          >
+                            Shortlist
+                          </button>
+                          <button
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded text-xs"
+                            onClick={() => updateStatus(app._id, "hired")}
+                          >
+                            Hire
+                          </button>
+                          <button
+                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded text-xs"
+                            onClick={() => updateStatus(app._id, "rejected")}
+                          >
+                            Reject
+                          </button>
+                          <button
+                            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-1 rounded text-xs"
+                            onClick={() => deleteApplication(app._id)}
+                          >
+                            Delete
+                          </button>
                         </div>
                       </div>
-
-                      {/* status + delete buttons */}
-                      <div className="flex flex-col gap-2">
-                        <button
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded text-xs"
-                          onClick={() => updateStatus(app._id, "shortlisted")}
-                        >
-                          Shortlist
-                        </button>
-                        <button
-                          className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded text-xs"
-                          onClick={() => updateStatus(app._id, "hired")}
-                        >
-                          Hire
-                        </button>
-                        <button
-                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded text-xs"
-                          onClick={() => updateStatus(app._id, "rejected")}
-                        >
-                          Reject
-                        </button>
-                        <button
-                          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-1 rounded text-xs"
-                          onClick={() => deleteApplication(app._id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -428,6 +460,8 @@ const CompanyCandidatesPage = () => {
 };
 
 export default CompanyCandidatesPage;
+
+
 
 
 
