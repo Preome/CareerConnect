@@ -209,7 +209,7 @@ const AddJobPage = () => {
                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
                   >
                     <option value="Undergraduate">Undergraduate</option>
-                    <option value="Postgraduate">Graduate</option>
+                    <option value="Graduate">Graduate</option>
                   </select>
                 </div>
 

@@ -1,4 +1,3 @@
-// backend/controllers/jobController.js
 const Job = require("../models/jobModel");
 
 // POST /api/jobs  (company creates job)
@@ -65,7 +64,7 @@ exports.createJob = async (req, res) => {
 // GET /api/jobs  (all jobs for user side, with filters + company info)
 exports.getAllJobsForUsers = async (req, res) => {
   try {
-    const { category, department } = req.query;
+    const { category, department, studentCategory } = req.query;
 
     const filter = {};
 
@@ -84,6 +83,13 @@ exports.getAllJobsForUsers = async (req, res) => {
       } else if (department !== "All") {
         filter.department = department;
       }
+    }
+
+    // Student category filter (All/Undergraduate/Graduate)
+    // - "All" or missing => no filter
+    // - others => filter by that value
+    if (studentCategory && studentCategory !== "All") {
+      filter.studentCategory = studentCategory;
     }
 
     const jobs = await Job.find(filter)
@@ -181,5 +187,6 @@ exports.deleteJob = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
 
 

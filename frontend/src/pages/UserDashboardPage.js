@@ -16,9 +16,11 @@ const UserDashboardPage = () => {
 
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [departmentFilter, setDepartmentFilter] = useState("All");
+  const [studentCategoryFilter, setStudentCategoryFilter] = useState("All");
 
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showDepartmentMenu, setShowDepartmentMenu] = useState(false);
+  const [showStudentCategoryMenu, setShowStudentCategoryMenu] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -40,6 +42,8 @@ const UserDashboardPage = () => {
     "General education",
   ];
 
+  const studentCategoryOptions = ["All", "Undergraduate", "Graduate"];
+
   const fetchJobs = async () => {
     try {
       setLoading(true);
@@ -48,6 +52,8 @@ const UserDashboardPage = () => {
       if (categoryFilter !== "All") params.append("category", categoryFilter);
       if (departmentFilter !== "All")
         params.append("department", departmentFilter);
+      if (studentCategoryFilter !== "All")
+        params.append("studentCategory", studentCategoryFilter);
 
       const url = `http://localhost:5000/api/jobs${
         params.toString() ? `?${params.toString()}` : ""
@@ -73,7 +79,7 @@ const UserDashboardPage = () => {
     };
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryFilter, departmentFilter]);
+  }, [categoryFilter, departmentFilter, studentCategoryFilter]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
@@ -143,7 +149,7 @@ const UserDashboardPage = () => {
 
           <nav className="flex flex-col text-sm">
             <button className="text-left px-4 py-2 bg-indigo-600">Home</button>
-            <button 
+            <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/applied-jobs")}
             >
@@ -180,6 +186,7 @@ const UserDashboardPage = () => {
                   onClick={() => {
                     setShowCategoryMenu((p) => !p);
                     setShowDepartmentMenu(false);
+                    setShowStudentCategoryMenu(false);
                   }}
                 >
                   Filter by Job Category
@@ -214,6 +221,7 @@ const UserDashboardPage = () => {
                   onClick={() => {
                     setShowDepartmentMenu((p) => !p);
                     setShowCategoryMenu(false);
+                    setShowStudentCategoryMenu(false);
                   }}
                 >
                   Filter by Department
@@ -234,6 +242,41 @@ const UserDashboardPage = () => {
                         }}
                       >
                         {dep}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Student Category filter */}
+              <div className="relative">
+                <button
+                  className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow flex items-center gap-2"
+                  type="button"
+                  onClick={() => {
+                    setShowStudentCategoryMenu((p) => !p);
+                    setShowCategoryMenu(false);
+                    setShowDepartmentMenu(false);
+                  }}
+                >
+                  Filter by Student Category
+                  <span className="text-xs bg:white/20 px-2 py-0.5 rounded">
+                    {studentCategoryFilter}
+                  </span>
+                </button>
+
+                {showStudentCategoryMenu && (
+                  <div className="absolute z-20 mt-1 w-56 bg-white rounded-md shadow border text-sm text-gray-700 max-h-64 overflow-y-auto">
+                    {studentCategoryOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        className="w-full text-left px-3 py-1.5 hover:bg-gray-100"
+                        onClick={() => {
+                          setStudentCategoryFilter(opt);
+                          setShowStudentCategoryMenu(false);
+                        }}
+                      >
+                        {opt}
                       </button>
                     ))}
                   </div>
@@ -290,14 +333,16 @@ const UserDashboardPage = () => {
                         </div>
 
                         <div className="flex flex-col gap-2">
-                          <button 
-                            onClick={() => navigate(`/apply-job/${job._id}`, {
-                              state: {
-                                companyName: companyName,
-                                companyId: job.company?._id,
-                                jobTitle: job.title
-                              }
-                            })}
+                          <button
+                            onClick={() =>
+                              navigate(`/apply-job/${job._id}`, {
+                                state: {
+                                  companyName: companyName,
+                                  companyId: job.company?._id,
+                                  jobTitle: job.title,
+                                },
+                              })
+                            }
                             className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-1.5 rounded-full text-sm font-semibold shadow"
                           >
                             Apply
