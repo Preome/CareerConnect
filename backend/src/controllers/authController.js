@@ -202,7 +202,7 @@ const login = async (req, res) => {
     if (!account) return res.status(400).json({ message: "Invalid credentials" });
 
     const match = await bcrypt.compare(password, account.password);
-    if (!match) return res.status(400).json({ message: "Invalid credentials" });
+    if (!match) return res.status(400).json({ message: "Wrong Password" });
 
     const effectiveRole = role === "company" ? "company" : "user";
 

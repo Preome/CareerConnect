@@ -1,3 +1,4 @@
+// src/pages/PostedJobsPage.js
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -111,8 +112,8 @@ const PostedJobsPage = () => {
 
       {/* main area with sidebar + content */}
       <div className="flex flex-1">
-        {/* left sidebar */}
-        <aside className="w-56 bg-slate-900 text-white pt-6 hidden md:flex flex-col items-center">
+        {/* left sidebar: sticky so it stays while scrolling */}
+        <aside className="w-56 bg-slate-900 text-white pt-6 hidden md:flex flex-col items-center sticky top-0 self-start h-screen">
           <div className="mb-6 flex flex-col items-center">
             {avatarUrl ? (
               <img
@@ -156,6 +157,13 @@ const PostedJobsPage = () => {
             >
               Messages
             </button>
+            {/* NEW: Query Forum */}
+            <button
+              className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
+              onClick={() => navigate("/company/query-forum")}
+            >
+              Query Forum
+            </button>
             <button
               className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
               onClick={() => navigate("/company-profile")}
@@ -173,7 +181,6 @@ const PostedJobsPage = () => {
                 <h2 className="text-xl font-semibold text-slate-900">
                   Posted Jobs
                 </h2>
-                {/* New Job button removed */}
               </div>
 
               {loading ? (
@@ -302,6 +309,7 @@ const PostedJobsPage = () => {
 };
 
 export default PostedJobsPage;
+
 
 
 
