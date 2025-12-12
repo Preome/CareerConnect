@@ -157,6 +157,12 @@ const CompanyCandidatesPage = () => {
             </button>
             <button
               className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
+              onClick={() => navigate("/company/query-forum")}
+            >
+              Query Forum
+            </button>
+            <button
+              className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
               onClick={() => navigate("/company-profile")}
             >
               Profile
@@ -167,11 +173,12 @@ const CompanyCandidatesPage = () => {
         {/* main content */}
         <main className="flex-1 bg-gradient-to-b from-slate-200 to-slate-400 py-8 flex justify-center">
           <div className="w-full max-w-5xl mx-4">
-            <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8">
-              <h2 className="text-xl font-semibold mb-4 text-slate-900">
-                Jobs and Applicants
-              </h2>
+            {/* green bar with title above white card */}
+            <div className="bg-green-500 text-white px-4 py-2 rounded-t-xl shadow-md mb-0">
+              <h2 className="text-lg font-semibold">Jobs and Applicants</h2>
+            </div>
 
+            <div className="bg-white rounded-b-xl shadow-2xl p-6 md:p-8">
               {loading ? (
                 <p>Loading candidates...</p>
               ) : applications.length === 0 ? (
@@ -193,15 +200,15 @@ const CompanyCandidatesPage = () => {
                         className="w-full text-left border border-slate-300 rounded-lg p-4 bg-white hover:bg-slate-100 shadow-sm flex justify-between items-center"
                       >
                         <div>
-                          <p className="text-sm text-slate-500">Job Title</p>
+                          <p className="text-sm text-pink-600 font-semibold">
+                            Job Title
+                          </p>
                           <p className="text-lg font-semibold text-slate-900">
                             {group.jobTitle}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-slate-500">
-                            Applicants
-                          </p>
+                          <p className="text-sm text-slate-500">Applicants</p>
                           <p className="text-xl font-bold text-indigo-600">
                             {group.applications.length}
                           </p>
