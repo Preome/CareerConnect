@@ -10,9 +10,23 @@ const companySchema = new mongoose.Schema(
     industryType: String,
     address: String,
     licenseNo: String,
-    imageUrl: { type: String },        // company logo / image
-    description: String,               // optional company description
-    jobs: [                             // job postings for Feature 2
+    imageUrl: String,
+    description: String,
+
+    // ⭐ ADD THESE FIELDS ⭐
+    website: String,
+    companySize: String,
+    companyType: String,
+    about: String,
+    facebook: String,
+    linkedin: String,
+    tagline: String,
+
+    hrName: String,
+    hrEmail: String,
+    hrPhone: String,
+
+    jobs: [
       {
         title: String,
         description: String,
@@ -25,5 +39,3 @@ const companySchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Company", companySchema);
-
-

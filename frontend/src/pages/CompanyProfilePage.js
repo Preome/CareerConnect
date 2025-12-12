@@ -91,16 +91,31 @@ const CompanyProfilePage = () => {
       // Build a lightweight profile object to store in localStorage
       const newProfile = {
         id: data._id || data.id || companyId,
-        name: data.companyName || tempProfile.companyName || stored.name,
         role: "company",
-        imageUrl: data.imageUrl || tempProfile.imageUrl || stored.imageUrl,
-        email: data.email || tempProfile.email || stored.email,
-        contactNo: data.contactNo || tempProfile.contactNo || stored.contactNo,
-        establishmentYear: data.establishmentYear || tempProfile.establishmentYear || stored.establishmentYear,
-        industryType: data.industryType || tempProfile.industryType || stored.industryType,
-        address: data.address || tempProfile.address || stored.address,
-        licenseNo: data.licenseNo || tempProfile.licenseNo || stored.licenseNo,
+
+        // BASIC FIELDS
+        companyName: data.companyName,
+        email: data.email,
+        contactNo: data.contactNo,
+        establishmentYear: data.establishmentYear,
+        industryType: data.industryType,
+        address: data.address,
+        licenseNo: data.licenseNo,
+        imageUrl: data.imageUrl,
+
+        // ADDITIONAL FIELDS (FULL SUPPORT)
+        website: data.website,
+        companySize: data.companySize,
+        companyType: data.companyType,
+        about: data.about,
+        facebook: data.facebook,
+        linkedin: data.linkedin,
+        tagline: data.tagline,
+        hrName: data.hrName,
+        hrEmail: data.hrEmail,
+        hrPhone: data.hrPhone,
       };
+
 
       setProfile({ ...profile, ...tempProfile });
       setTempProfile({ ...tempProfile });

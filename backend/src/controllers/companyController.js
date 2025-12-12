@@ -22,18 +22,22 @@ exports.getMyCompany = async (req, res) => {
 // Update company profile
 exports.updateCompany = async (req, res) => {
   try {
-    const { companyName, establishmentYear, contactNo, email, industryType, address, licenseNo, imageUrl, description } = req.body;
-    const company = await Company.findByIdAndUpdate(
+    const updatedCompany = await Company.findByIdAndUpdate(
       req.params.id,
-      { companyName, establishmentYear, contactNo, email, industryType, address, licenseNo, imageUrl, description },
-      { new: true }
+      { $set: req.body },
+      { new: true, runValidators: true }
     );
-    if (!company) return res.status(404).json({ message: "Company not found" });
-    res.json(company);
+
+    if (!updatedCompany) {
+      return res.status(404).json({ message: "Company not found" });
+    }
+
+    res.json(updatedCompany);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // Add a job posting
 exports.addJob = async (req, res) => {
