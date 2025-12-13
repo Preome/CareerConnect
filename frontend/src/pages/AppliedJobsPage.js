@@ -97,10 +97,27 @@ const AppliedJobsPage = () => {
     });
   };
 
+  // ✅ FIXED: Handle both Cloudinary URLs and local paths
   const getImageUrl = (path) => {
     if (!path) return null;
+    // If already a full URL (Cloudinary), return as-is
     if (path.startsWith("http")) return path;
-    return `${API_BASE_URL}/${path}`;
+    // Legacy support: If local path, construct URL
+    return `${API_BASE_URL.replace('/api', '')}/${path}`;
+  };
+
+  // ✅ NEW: Open PDF in new tab
+  const openPdfInNewTab = (pdfUrl) => {
+    const url = getImageUrl(pdfUrl);
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // ✅ NEW: Check if file is PDF
+  const isPdfFile = (url) => {
+    if (!url) return false;
+    return url.toLowerCase().endsWith('.pdf');
   };
 
   // same colors as company side
@@ -390,27 +407,25 @@ const AppliedJobsPage = () => {
 
                         {selectedApplication === app._id && (
                           <div className="mt-4 space-y-4">
-                            {/* CV */}
+                            {/* ✅ MODIFIED: CV Section with Better PDF Handling */}
                             <div>
                               <h4 className="font-semibold text-gray-700 mb-2">
                                 Curriculum Vitae (CV):
                               </h4>
-                              {app.cvImage?.endsWith(".pdf") ? (
-                                <a
-                                  href={getImageUrl(app.cvImage)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition"
+                              {isPdfFile(app.cvImage) ? (
+                                <button
+                                  onClick={() => openPdfInNewTab(app.cvImage)}
+                                  className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition shadow-md"
                                 >
                                   <span className="text-2xl">📄</span>
-                                  View PDF CV
-                                </a>
+                                  <span className="font-semibold">View PDF CV</span>
+                                </button>
                               ) : (
-                                <>
+                                <div>
                                   <img
                                     src={getImageUrl(app.cvImage)}
                                     alt="CV"
-                                    className="w-48 h-48 object-contain border rounded cursor-pointer hover:opacity-80 transition"
+                                    className="w-48 h-48 object-contain border rounded cursor-pointer hover:opacity-80 transition shadow-md"
                                     onClick={() =>
                                       setFullImageView(
                                         getImageUrl(app.cvImage)
@@ -420,11 +435,11 @@ const AppliedJobsPage = () => {
                                   <p className="text-xs text-blue-600 mt-1 font-semibold">
                                     👆 Click to view full size
                                   </p>
-                                </>
+                                </div>
                               )}
                             </div>
 
-                            {/* Recommendation Letters */}
+                            {/* ✅ MODIFIED: Recommendation Letters with Better PDF Handling */}
                             {app.recommendationLetters &&
                               app.recommendationLetters.length > 0 && (
                                 <div>
@@ -436,27 +451,25 @@ const AppliedJobsPage = () => {
                                     {app.recommendationLetters.map(
                                       (letter, idx) => (
                                         <div key={idx}>
-                                          {letter.endsWith(".pdf") ? (
-                                            <a
-                                              href={getImageUrl(letter)}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="inline-flex flex-col items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-3 rounded-md border-2 border-blue-300 transition"
+                                          {isPdfFile(letter) ? (
+                                            <button
+                                              onClick={() => openPdfInNewTab(letter)}
+                                              className="inline-flex flex-col items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-3 rounded-md border-2 border-blue-300 transition shadow-md"
                                             >
                                               <span className="text-3xl">
                                                 📄
                                               </span>
-                                              <span className="text-xs text-blue-700">
+                                              <span className="text-xs text-blue-700 font-semibold">
                                                 PDF {idx + 1}
                                               </span>
-                                            </a>
+                                            </button>
                                           ) : (
                                             <img
                                               src={getImageUrl(letter)}
                                               alt={`Recommendation ${
                                                 idx + 1
                                               }`}
-                                              className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
+                                              className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition shadow-md"
                                               onClick={() =>
                                                 setFullImageView(
                                                   getImageUrl(letter)
@@ -468,13 +481,13 @@ const AppliedJobsPage = () => {
                                       )
                                     )}
                                   </div>
-                                  <p className="text-xs text-blue-600 mt-1 font-semibold">
-                                    👆 Click to view full size or open PDF
+                                  <p className="text-xs text-blue-600 mt-2 font-semibold">
+                                    👆 Click images to view full size or click PDF buttons to open
                                   </p>
                                 </div>
                               )}
 
-                            {/* Career Summary */}
+                            {/* ✅ MODIFIED: Career Summary with Better PDF Handling */}
                             {app.careerSummary &&
                               app.careerSummary.length > 0 && (
                                 <div>
@@ -485,27 +498,25 @@ const AppliedJobsPage = () => {
                                     {app.careerSummary.map(
                                       (summary, idx) => (
                                         <div key={idx}>
-                                          {summary.endsWith(".pdf") ? (
-                                            <a
-                                              href={getImageUrl(summary)}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="inline-flex flex-col items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-3 rounded-md border-2 border-blue-300 transition"
+                                          {isPdfFile(summary) ? (
+                                            <button
+                                              onClick={() => openPdfInNewTab(summary)}
+                                              className="inline-flex flex-col items-center gap-2 bg-green-100 hover:bg-green-200 px-4 py-3 rounded-md border-2 border-green-300 transition shadow-md"
                                             >
                                               <span className="text-3xl">
                                                 📄
                                               </span>
-                                              <span className="text-xs text-blue-700">
+                                              <span className="text-xs text-green-700 font-semibold">
                                                 PDF {idx + 1}
                                               </span>
-                                            </a>
+                                            </button>
                                           ) : (
                                             <img
                                               src={getImageUrl(summary)}
                                               alt={`Career Summary ${
                                                 idx + 1
                                               }`}
-                                              className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition"
+                                              className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition shadow-md"
                                               onClick={() =>
                                                 setFullImageView(
                                                   getImageUrl(summary)
@@ -517,8 +528,8 @@ const AppliedJobsPage = () => {
                                       )
                                     )}
                                   </div>
-                                  <p className="text-xs text-blue-600 mt-1 font-semibold">
-                                    👆 Click to view full size or open PDF
+                                  <p className="text-xs text-blue-600 mt-2 font-semibold">
+                                    👆 Click images to view full size or click PDF buttons to open
                                   </p>
                                 </div>
                               )}

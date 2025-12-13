@@ -1,5 +1,24 @@
 const Application = require("../models/Application");
 const JobModel = require("../models/JobModel");
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
+
+// Helper function to upload buffer to Cloudinary
+const uploadToCloudinary = (buffer, folder) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "auto", // Supports images AND PDFs
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(uploadStream);
+  });
+};
 
 // Submit job application
 exports.submitApplication = async (req, res) => {
@@ -45,23 +64,47 @@ exports.submitApplication = async (req, res) => {
       });
     }
 
-    // Get uploaded file paths
-    const cvImage = req.files.cvImage[0].path;
-    console.log("CV file path:", cvImage);
+    // Upload CV to Cloudinary
+    console.log("Uploading CV to Cloudinary...");
+    const cvImageUrl = await uploadToCloudinary(
+      req.files.cvImage[0].buffer,
+      "careerconnect/applications/cvs"
+    );
+    console.log("CV uploaded to Cloudinary:", cvImageUrl);
 
-    const recommendationLetters = req.files.recommendationLetters
-      ? req.files.recommendationLetters.map((file) => {
-          console.log("Recommendation letter:", file.originalname);
-          return file.path;
+    // Upload recommendation letters to Cloudinary (if any)
+    let recommendationLettersUrls = [];
+    if (req.files.recommendationLetters && req.files.recommendationLetters.length > 0) {
+      console.log(`Uploading ${req.files.recommendationLetters.length} recommendation letter(s)...`);
+      recommendationLettersUrls = await Promise.all(
+        req.files.recommendationLetters.map(async (file) => {
+          console.log("Uploading recommendation letter:", file.originalname);
+          const url = await uploadToCloudinary(
+            file.buffer,
+            "careerconnect/applications/recommendations"
+          );
+          console.log("Recommendation letter uploaded:", url);
+          return url;
         })
-      : [];
+      );
+    }
 
-    const careerSummary = req.files.careerSummary
-      ? req.files.careerSummary.map((file) => {
-          console.log("Career summary:", file.originalname);
-          return file.path;
+    // Upload career summary to Cloudinary (if any)
+    let careerSummaryUrls = [];
+    if (req.files.careerSummary && req.files.careerSummary.length > 0) {
+      console.log(`Uploading ${req.files.careerSummary.length} career summary file(s)...`);
+      careerSummaryUrls = await Promise.all(
+        req.files.careerSummary.map(async (file) => {
+          console.log("Uploading career summary:", file.originalname);
+          const url = await uploadToCloudinary(
+            file.buffer,
+            "careerconnect/applications/summaries"
+          );
+          console.log("Career summary uploaded:", url);
+          return url;
         })
-      : [];
+      );
+    }
 
     console.log("Creating application in database...");
 
@@ -71,9 +114,9 @@ exports.submitApplication = async (req, res) => {
       companyId,
       companyName,
       jobTitle,
-      cvImage,
-      recommendationLetters,
-      careerSummary,
+      cvImage: cvImageUrl,
+      recommendationLetters: recommendationLettersUrls,
+      careerSummary: careerSummaryUrls,
     });
 
     await application.save();
@@ -169,7 +212,7 @@ exports.deleteApplication = async (req, res) => {
 exports.getCompanyApplications = async (req, res) => {
   try {
     const companyId = req.user.id; // company logged in
-    const { jobId } = req.query;   // OPTIONAL filter by job
+    const { jobId } = req.query; // OPTIONAL filter by job
 
     const filter = { companyId };
     if (jobId) {

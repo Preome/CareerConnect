@@ -17,6 +17,13 @@ const UserProfilePage = () => {
   // State for menu dropdown
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // State for PDF viewer modal
+  const [pdfViewer, setPdfViewer] = useState({
+    isOpen: false,
+    pdfUrl: null,
+    title: ""
+  });
+
   // State for image viewer modal
   const [imageViewer, setImageViewer] = useState({
     isOpen: false,
@@ -131,10 +138,10 @@ const UserProfilePage = () => {
         };
         reader.readAsDataURL(file);
       } else {
-        // For PDFs, don't create preview
+        // For PDFs, store filename info
         setFilePreviews(prev => ({
           ...prev,
-          [fieldName]: null
+          [fieldName]: "PDF_SELECTED"
         }));
       }
     }
@@ -276,6 +283,12 @@ const UserProfilePage = () => {
     }
   };
 
+  // ✅ NEW: Open PDF in new tab
+  const openPdfInNewTab = (pdfUrl) => {
+    window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  // ✅ UPDATED: Open image viewer
   const openImageViewer = (imageUrl, title) => {
     setImageViewer({
       isOpen: true,
@@ -290,6 +303,12 @@ const UserProfilePage = () => {
       imageUrl: null,
       title: ""
     });
+  };
+
+  // ✅ NEW: Check if file is PDF
+  const isPdfFile = (url) => {
+    if (!url) return false;
+    return url.toLowerCase().endsWith('.pdf');
   };
 
   const avatarUrl = profile?.imageUrl || null;
@@ -341,7 +360,7 @@ const UserProfilePage = () => {
 
       {/* MAIN FLEX AREA */}
       <div className="flex flex-1">
-        {/* Sidebar - MODIFIED: Fixed Applied Jobs button */}
+        {/* Sidebar */}
         <aside className="w-52 bg-slate-900 text-white pt-6">
           <div className="flex flex-col items-center mb-6">
             {avatarUrl ? (
@@ -368,7 +387,6 @@ const UserProfilePage = () => {
             >
               Home
             </button>
-            {/* MODIFIED: Added onClick handler */}
             <button 
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/applied-jobs")}
@@ -546,7 +564,7 @@ const UserProfilePage = () => {
                 </div>
               </div>
 
-              {/* Student Type - EDITABLE */}
+              {/* Student Type */}
               <div className="mb-6">
                 <label className="block text-sm font-semibold mb-1">Student Type</label>
                 {isEditing ? (
@@ -693,16 +711,43 @@ const UserProfilePage = () => {
                 )}
               </div>
 
-              {/* File Uploads Section */}
+              {/* ✅ MODIFIED: File Uploads Section - SHOWS EXISTING FILES IN EDIT MODE */}
               <div className="grid grid-cols-2 gap-6 mb-6">
                 {/* Certificate Upload */}
                 <div>
                   <label className="block text-sm font-semibold mb-2">Certificate (Image or PDF)</label>
                   {isEditing ? (
                     <>
+                      {/* Show existing file if no new file selected */}
+                      {!files.certificate && profile.certificateUrl && (
+                        <div className="mb-3 p-3 bg-blue-50 border border-blue-300 rounded-lg">
+                          <p className="text-sm font-semibold text-blue-800 mb-2">Current Certificate:</p>
+                          {isPdfFile(profile.certificateUrl) ? (
+                            <button
+                              onClick={() => openPdfInNewTab(profile.certificateUrl)}
+                              className="flex items-center gap-2 bg-blue-500 text-white px-3 py-2 rounded-md hover:bg-blue-600 transition text-sm"
+                            >
+                              <span className="text-xl">📄</span>
+                              View Current PDF
+                            </button>
+                          ) : (
+                            <img
+                              src={profile.certificateUrl}
+                              alt="Current Certificate"
+                              className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-80"
+                              onClick={() => openImageViewer(profile.certificateUrl, "Current Certificate")}
+                            />
+                          )}
+                          <p className="text-xs text-gray-600 mt-2">Upload a new file to replace this</p>
+                        </div>
+                      )}
+
+                      {/* Upload new file */}
                       <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-purple-400 border-dashed rounded-lg cursor-pointer bg-purple-50 hover:bg-purple-100">
                         <span className="text-4xl mb-2">📄</span>
-                        <span className="text-sm text-purple-600 font-semibold">Upload file</span>
+                        <span className="text-sm text-purple-600 font-semibold">
+                          {files.certificate ? "Change file" : "Upload file"}
+                        </span>
                         <input
                           type="file"
                           accept="image/*,.pdf"
@@ -710,32 +755,33 @@ const UserProfilePage = () => {
                           onChange={(e) => handleFileChange(e, "certificate")}
                         />
                       </label>
+                      
                       {files.certificate && (
-                        <p className="mt-2 text-sm text-gray-600">
-                          Selected: {files.certificate.name}
-                        </p>
-                      )}
-                      {(filePreviews.certificate || profile.certificateUrl) && filePreviews.certificate && (
-                        <img
-                          src={filePreviews.certificate}
-                          alt="Certificate"
-                          className="mt-2 w-full h-32 object-cover rounded-lg border"
-                        />
+                        <div className="mt-2">
+                          <p className="text-sm text-green-600 font-semibold">
+                            ✓ New file selected: {files.certificate.name}
+                          </p>
+                          {filePreviews.certificate && filePreviews.certificate !== "PDF_SELECTED" && (
+                            <img
+                              src={filePreviews.certificate}
+                              alt="Certificate Preview"
+                              className="mt-2 w-full h-32 object-cover rounded-lg border"
+                            />
+                          )}
+                        </div>
                       )}
                     </>
                   ) : profile.certificateUrl ? (
-                    profile.certificateUrl.endsWith('.pdf') ? (
-                      <a
-                        href={profile.certificateUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    isPdfFile(profile.certificateUrl) ? (
+                      <button
+                        onClick={() => openPdfInNewTab(profile.certificateUrl)}
                         className="flex items-center justify-center w-full h-32 border-2 border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition"
                       >
                         <div className="text-center">
                           <span className="text-4xl">📄</span>
-                          <p className="text-sm text-gray-600 mt-2">View PDF Certificate</p>
+                          <p className="text-sm text-gray-600 mt-2 font-semibold">View PDF Certificate</p>
                         </div>
-                      </a>
+                      </button>
                     ) : (
                       <img
                         src={profile.certificateUrl}
@@ -756,9 +802,36 @@ const UserProfilePage = () => {
                   <label className="block text-sm font-semibold mb-2">Curriculum Vitae (Image or PDF)</label>
                   {isEditing ? (
                     <>
+                      {/* Show existing file if no new file selected */}
+                      {!files.cv && profile.cvUrl && (
+                        <div className="mb-3 p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
+                          <p className="text-sm font-semibold text-yellow-800 mb-2">Current CV:</p>
+                          {isPdfFile(profile.cvUrl) ? (
+                            <button
+                              onClick={() => openPdfInNewTab(profile.cvUrl)}
+                              className="flex items-center gap-2 bg-yellow-500 text-white px-3 py-2 rounded-md hover:bg-yellow-600 transition text-sm"
+                            >
+                              <span className="text-xl">📄</span>
+                              View Current PDF
+                            </button>
+                          ) : (
+                            <img
+                              src={profile.cvUrl}
+                              alt="Current CV"
+                              className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-80"
+                              onClick={() => openImageViewer(profile.cvUrl, "Current CV")}
+                            />
+                          )}
+                          <p className="text-xs text-gray-600 mt-2">Upload a new file to replace this</p>
+                        </div>
+                      )}
+
+                      {/* Upload new file */}
                       <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-yellow-400 border-dashed rounded-lg cursor-pointer bg-yellow-50 hover:bg-yellow-100">
                         <span className="text-4xl mb-2">📄</span>
-                        <span className="text-sm text-yellow-600 font-semibold">Upload file</span>
+                        <span className="text-sm text-yellow-600 font-semibold">
+                          {files.cv ? "Change file" : "Upload file"}
+                        </span>
                         <input
                           type="file"
                           accept="image/*,.pdf"
@@ -766,32 +839,33 @@ const UserProfilePage = () => {
                           onChange={(e) => handleFileChange(e, "cv")}
                         />
                       </label>
+                      
                       {files.cv && (
-                        <p className="mt-2 text-sm text-gray-600">
-                          Selected: {files.cv.name}
-                        </p>
-                      )}
-                      {(filePreviews.cv || profile.cvUrl) && filePreviews.cv && (
-                        <img
-                          src={filePreviews.cv}
-                          alt="CV"
-                          className="mt-2 w-full h-32 object-cover rounded-lg border"
-                        />
+                        <div className="mt-2">
+                          <p className="text-sm text-green-600 font-semibold">
+                            ✓ New file selected: {files.cv.name}
+                          </p>
+                          {filePreviews.cv && filePreviews.cv !== "PDF_SELECTED" && (
+                            <img
+                              src={filePreviews.cv}
+                              alt="CV Preview"
+                              className="mt-2 w-full h-32 object-cover rounded-lg border"
+                            />
+                          )}
+                        </div>
                       )}
                     </>
                   ) : profile.cvUrl ? (
-                    profile.cvUrl.endsWith('.pdf') ? (
-                      <a
-                        href={profile.cvUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    isPdfFile(profile.cvUrl) ? (
+                      <button
+                        onClick={() => openPdfInNewTab(profile.cvUrl)}
                         className="flex items-center justify-center w-full h-32 border-2 border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition"
                       >
                         <div className="text-center">
                           <span className="text-4xl">📄</span>
-                          <p className="text-sm text-gray-600 mt-2">View PDF CV</p>
+                          <p className="text-sm text-gray-600 mt-2 font-semibold">View PDF CV</p>
                         </div>
-                      </a>
+                      </button>
                     ) : (
                       <img
                         src={profile.cvUrl}
@@ -875,15 +949,15 @@ const UserProfilePage = () => {
 
       {/* Image Viewer Modal */}
       {imageViewer.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={closeImageViewer}>
-          <div className="relative bg-white rounded-lg p-4 max-w-3xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4" onClick={closeImageViewer}>
+          <div className="relative bg-white rounded-lg p-4 max-w-4xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={closeImageViewer}
-              className="absolute top-2 right-2 bg-red-600 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-700 transition font-bold text-xl"
+              className="absolute top-2 right-2 bg-red-600 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-700 transition font-bold text-xl z-10"
             >
               ✕
             </button>
-            <h3 className="text-xl font-bold mb-4">{imageViewer.title}</h3>
+            <h3 className="text-xl font-bold mb-4 pr-12">{imageViewer.title}</h3>
             <img
               src={imageViewer.imageUrl}
               alt={imageViewer.title}
