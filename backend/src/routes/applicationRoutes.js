@@ -1,65 +1,63 @@
 const express = require("express");
 const router = express.Router();
-const applicationController = require("../controllers/applicationController");
-const authMiddleware = require("../middleware/authMiddleware");
+const {
+  submitApplication,
+  getUserApplications,
+  deleteApplication,
+  getCompanyApplications,
+  updateApplicationStatus,
+  companyDeleteApplication,
+} = require("../controllers/applicationController");
+
+const { auth, isRole } = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
 
-// Upload middleware configuration
+// Upload middleware
 const uploadMiddleware = upload.fields([
   { name: "cvImage", maxCount: 1 },
   { name: "recommendationLetters", maxCount: 5 },
   { name: "careerSummary", maxCount: 5 },
 ]);
 
+// ==============================
+// USER ROUTES
+// ==============================
+
 // Submit application
 router.post(
   "/apply",
-  authMiddleware,
+  auth,
+  isRole("user"),
   (req, res, next) => {
-    console.log("=== MULTER UPLOAD MIDDLEWARE ===");
     uploadMiddleware(req, res, (err) => {
       if (err) {
         console.error("Upload error:", err);
-        return res.status(400).json({
-          error: err.message || "File upload failed",
-        });
+        return res.status(400).json({ error: err.message || "File upload failed" });
       }
-      console.log("Upload successful, proceeding to controller...");
       next();
     });
   },
-  applicationController.submitApplication
+  submitApplication
 );
 
-// Get user applications
-router.get("/user", authMiddleware, applicationController.getUserApplications);
+// Get user's own applications
+router.get("/user", auth, isRole("user"), getUserApplications);
 
 // Delete application (user)
-router.delete(
-  "/:applicationId",
-  authMiddleware,
-  applicationController.deleteApplication
-);
+router.delete("/:applicationId", auth, isRole("user"), deleteApplication);
 
-// Get company candidate list
-router.get(
-  "/company",
-  authMiddleware,
-  applicationController.getCompanyApplications
-);
+// ==============================
+// COMPANY ROUTES
+// ==============================
+
+// Get applications for company
+router.get("/company", auth, isRole("company"), getCompanyApplications);
 
 // Update application status
-router.patch(
-  "/:applicationId/status",
-  authMiddleware,
-  applicationController.updateApplicationStatus
-);
+router.patch("/:applicationId/status", auth, isRole("company"), updateApplicationStatus);
 
 // Delete application (company)
-router.delete(
-  "/company/:applicationId",
-  authMiddleware,
-  applicationController.companyDeleteApplication
-);
+router.delete("/company/:applicationId", auth, isRole("company"), companyDeleteApplication);
 
 module.exports = router;
+

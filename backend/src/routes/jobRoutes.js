@@ -1,7 +1,7 @@
 // backend/routes/jobRoutes.js
 const express = require("express");
 const router = express.Router();
-const auth = require("../middleware/authMiddleware");
+const { auth, isRole } = require("../middleware/authMiddleware");
 const {
   createJob,
   getCompanyJobs,
@@ -11,23 +11,31 @@ const {
   getAllJobsForUsers,
 } = require("../controllers/jobController");
 
-// company creates job
-router.post("/", auth, createJob);
+// ==============================
+// COMPANY ROUTES (requires auth + role)
+// ==============================
 
-// PUBLIC / USER: get all jobs (with optional filters ?category=&department=)
+// Create a new job (company only)
+router.post("/", auth, isRole("company"), createJob);
+
+// Update a job by ID (company only)
+router.put("/:id", auth, isRole("company"), updateJob);
+
+// Delete a job by ID (company only)
+router.delete("/:id", auth, isRole("company"), deleteJob);
+
+// Get jobs of logged-in company
+router.get("/company", auth, isRole("company"), getCompanyJobs);
+
+// ==============================
+// PUBLIC / USER ROUTES
+// ==============================
+
+// Get all jobs for users (optional filters: ?category=&department=)
 router.get("/", getAllJobsForUsers);
 
-// company sees own jobs
-router.get("/company", auth, getCompanyJobs);
-
-// get single job by id (only if it belongs to this company)
+// Get single job by ID (requires auth, any user or company)
 router.get("/:id", auth, getJobById);
-
-// update job by id
-router.put("/:id", auth, updateJob);
-
-// delete job by id
-router.delete("/:id", auth, deleteJob);
 
 module.exports = router;
 
