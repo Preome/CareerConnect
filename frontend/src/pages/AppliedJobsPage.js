@@ -6,7 +6,6 @@ import { API_BASE_URL } from "../config";
 const AppliedJobsPage = () => {
   const navigate = useNavigate();
 
-  // Get user profile
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
   const avatarUrl = profile?.imageUrl || null;
@@ -14,10 +13,13 @@ const AppliedJobsPage = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [fullImageView, setFullImageView] = useState(null);
+
+  // One fullscreen modal for both images and PDFs
+  // { type: "image" | "pdf", url: string } or null
+  const [fullDoc, setFullDoc] = useState(null);
+
   const [selectedApplication, setSelectedApplication] = useState(null);
 
-  // Delete confirmation modal state
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     applicationId: null,
@@ -51,7 +53,6 @@ const AppliedJobsPage = () => {
     fetchApplications();
   }, []);
 
-  // Handle delete application
   const handleDeleteApplication = async () => {
     if (!deleteModal.applicationId) return;
 
@@ -97,30 +98,17 @@ const AppliedJobsPage = () => {
     });
   };
 
-  // ✅ FIXED: Handle both Cloudinary URLs and local paths
   const getImageUrl = (path) => {
     if (!path) return null;
-    // If already a full URL (Cloudinary), return as-is
     if (path.startsWith("http")) return path;
-    // Legacy support: If local path, construct URL
-    return `${API_BASE_URL.replace('/api', '')}/${path}`;
+    return `${API_BASE_URL.replace("/api", "")}/${path}`;
   };
 
-  // ✅ NEW: Open PDF in new tab
-  const openPdfInNewTab = (pdfUrl) => {
-    const url = getImageUrl(pdfUrl);
-    if (url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
-  };
-
-  // ✅ NEW: Check if file is PDF
   const isPdfFile = (url) => {
     if (!url) return false;
-    return url.toLowerCase().endsWith('.pdf');
+    return url.toLowerCase().endsWith(".pdf");
   };
 
-  // same colors as company side
   const getStatusClasses = (status) => {
     if (status === "shortlisted") return "bg-blue-600 text-white";
     if (status === "hired") return "bg-green-600 text-white";
@@ -128,34 +116,57 @@ const AppliedJobsPage = () => {
     return "bg-slate-200 text-slate-800";
   };
 
+  const toggleDetails = (id) => {
+    setSelectedApplication((prev) => (prev === id ? null : id));
+  };
+
+  // open fullscreen modal for image or pdf
+  const openFullDoc = (type, path) => {
+    const url = getImageUrl(path);
+    if (!url) return;
+    setFullDoc({ type, url });
+  };
+
+  const closeFullDoc = () => setFullDoc(null);
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
-      {/* Full Image View Modal */}
-      {fullImageView && (
+      {/* Fullscreen modal for image or PDF */}
+      {fullDoc && (
         <div
           className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4"
-          onClick={() => setFullImageView(null)}
+          onClick={closeFullDoc}
         >
           <div className="relative w-full h-full flex items-center justify-center">
             <button
-              onClick={() => setFullImageView(null)}
+              onClick={closeFullDoc}
               className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-md font-bold text-lg z-10 shadow-lg"
             >
               ✕ Close
             </button>
-            <img
-              src={fullImageView}
-              alt="Full View"
-              className="max-w-[95vw] max-h-[95vh] object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
+
+            {fullDoc.type === "image" ? (
+              <img
+                src={fullDoc.url}
+                alt="Document"
+                className="max-w-[95vw] max-h-[95vh] object-contain bg-white"
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <iframe
+                src={fullDoc.url}
+                title="PDF document"
+                className="w-[90vw] h-[90vh] bg-white"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
           </div>
         </div>
       )}
 
       {/* Delete Confirmation Modal */}
       {deleteModal.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-40 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-xl font-bold mb-4 text-red-600">
               Delete Application
@@ -358,7 +369,7 @@ const AppliedJobsPage = () => {
                           </div>
                         </div>
 
-                        {/* Right side - status + date + delete */}
+                        {/* Right side */}
                         <div className="text-right ml-4">
                           <p className="text-xs mb-1">
                             <span className="font-semibold text-pink-700">
@@ -393,11 +404,7 @@ const AppliedJobsPage = () => {
                       {/* View details */}
                       <div className="mt-4 border-t pt-4">
                         <button
-                          onClick={() =>
-                            setSelectedApplication(
-                              selectedApplication === app._id ? null : app._id
-                            )
-                          }
+                          onClick={() => toggleDetails(app._id)}
                           className="text-indigo-600 hover:text-indigo-800 font-semibold text-sm"
                         >
                           {selectedApplication === app._id
@@ -407,18 +414,22 @@ const AppliedJobsPage = () => {
 
                         {selectedApplication === app._id && (
                           <div className="mt-4 space-y-4">
-                            {/* ✅ MODIFIED: CV Section with Better PDF Handling */}
+                            {/* CV */}
                             <div>
                               <h4 className="font-semibold text-gray-700 mb-2">
                                 Curriculum Vitae (CV):
                               </h4>
                               {isPdfFile(app.cvImage) ? (
                                 <button
-                                  onClick={() => openPdfInNewTab(app.cvImage)}
+                                  onClick={() =>
+                                    openFullDoc("pdf", app.cvImage)
+                                  }
                                   className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition shadow-md"
                                 >
                                   <span className="text-2xl">📄</span>
-                                  <span className="font-semibold">View PDF CV</span>
+                                  <span className="font-semibold">
+                                    View PDF CV
+                                  </span>
                                 </button>
                               ) : (
                                 <div>
@@ -427,9 +438,7 @@ const AppliedJobsPage = () => {
                                     alt="CV"
                                     className="w-48 h-48 object-contain border rounded cursor-pointer hover:opacity-80 transition shadow-md"
                                     onClick={() =>
-                                      setFullImageView(
-                                        getImageUrl(app.cvImage)
-                                      )
+                                      openFullDoc("image", app.cvImage)
                                     }
                                   />
                                   <p className="text-xs text-blue-600 mt-1 font-semibold">
@@ -439,7 +448,7 @@ const AppliedJobsPage = () => {
                               )}
                             </div>
 
-                            {/* ✅ MODIFIED: Recommendation Letters with Better PDF Handling */}
+                            {/* Recommendation Letters */}
                             {app.recommendationLetters &&
                               app.recommendationLetters.length > 0 && (
                                 <div>
@@ -453,7 +462,9 @@ const AppliedJobsPage = () => {
                                         <div key={idx}>
                                           {isPdfFile(letter) ? (
                                             <button
-                                              onClick={() => openPdfInNewTab(letter)}
+                                              onClick={() =>
+                                                openFullDoc("pdf", letter)
+                                              }
                                               className="inline-flex flex-col items-center gap-2 bg-blue-100 hover:bg-blue-200 px-4 py-3 rounded-md border-2 border-blue-300 transition shadow-md"
                                             >
                                               <span className="text-3xl">
@@ -466,14 +477,10 @@ const AppliedJobsPage = () => {
                                           ) : (
                                             <img
                                               src={getImageUrl(letter)}
-                                              alt={`Recommendation ${
-                                                idx + 1
-                                              }`}
+                                              alt={`Recommendation ${idx + 1}`}
                                               className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition shadow-md"
                                               onClick={() =>
-                                                setFullImageView(
-                                                  getImageUrl(letter)
-                                                )
+                                                openFullDoc("image", letter)
                                               }
                                             />
                                           )}
@@ -481,18 +488,16 @@ const AppliedJobsPage = () => {
                                       )
                                     )}
                                   </div>
-                                  <p className="text-xs text-blue-600 mt-2 font-semibold">
-                                    👆 Click images to view full size or click PDF buttons to open
-                                  </p>
                                 </div>
                               )}
 
-                            {/* ✅ MODIFIED: Career Summary with Better PDF Handling */}
+                            {/* Career Summary */}
                             {app.careerSummary &&
                               app.careerSummary.length > 0 && (
                                 <div>
                                   <h4 className="font-semibold text-gray-700 mb-2">
-                                    Career Summary ({app.careerSummary.length}):
+                                    Career Summary (
+                                    {app.careerSummary.length}):
                                   </h4>
                                   <div className="flex flex-wrap gap-4">
                                     {app.careerSummary.map(
@@ -500,7 +505,9 @@ const AppliedJobsPage = () => {
                                         <div key={idx}>
                                           {isPdfFile(summary) ? (
                                             <button
-                                              onClick={() => openPdfInNewTab(summary)}
+                                              onClick={() =>
+                                                openFullDoc("pdf", summary)
+                                              }
                                               className="inline-flex flex-col items-center gap-2 bg-green-100 hover:bg-green-200 px-4 py-3 rounded-md border-2 border-green-300 transition shadow-md"
                                             >
                                               <span className="text-3xl">
@@ -513,14 +520,10 @@ const AppliedJobsPage = () => {
                                           ) : (
                                             <img
                                               src={getImageUrl(summary)}
-                                              alt={`Career Summary ${
-                                                idx + 1
-                                              }`}
+                                              alt={`Career Summary ${idx + 1}`}
                                               className="w-32 h-32 object-contain border rounded cursor-pointer hover:opacity-80 transition shadow-md"
                                               onClick={() =>
-                                                setFullImageView(
-                                                  getImageUrl(summary)
-                                                )
+                                                openFullDoc("image", summary)
                                               }
                                             />
                                           )}
@@ -528,9 +531,6 @@ const AppliedJobsPage = () => {
                                       )
                                     )}
                                   </div>
-                                  <p className="text-xs text-blue-600 mt-2 font-semibold">
-                                    👆 Click images to view full size or click PDF buttons to open
-                                  </p>
                                 </div>
                               )}
                           </div>
@@ -549,3 +549,6 @@ const AppliedJobsPage = () => {
 };
 
 export default AppliedJobsPage;
+
+
+

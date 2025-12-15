@@ -9,6 +9,7 @@ const JobApplicantsPage = () => {
 
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  // one fullscreen viewer for image or pdf
   const [docView, setDocView] = useState({ url: null, isPdf: false });
 
   const jobTitle = location.state?.jobTitle || "Job Applicants";
@@ -19,9 +20,7 @@ const JobApplicantsPage = () => {
       const token = localStorage.getItem("token");
       const res = await axios.get(
         `http://localhost:5000/api/applications/company?jobId=${jobId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setApplications(res.data || []);
     } catch (err) {
@@ -40,11 +39,20 @@ const JobApplicantsPage = () => {
     fetchApplicants();
   }, [jobId]);
 
-  const openDoc = (relativePath) => {
-    const url = `http://localhost:5000/${relativePath}`;
+  // build absolute url for stored file path or cloud url
+  const getFileUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+    return `http://localhost:5000/${path}`;
+  };
+
+  const openDoc = (path) => {
+    const url = getFileUrl(path);
+    if (!url) return;
     const isPdf = url.toLowerCase().endsWith(".pdf");
     setDocView({ url, isPdf });
   };
+
   const closeDoc = () => setDocView({ url: null, isPdf: false });
 
   const getStatusClasses = (status) => {
@@ -75,9 +83,7 @@ const JobApplicantsPage = () => {
       await axios.patch(
         `http://localhost:5000/api/applications/${applicationId}/status`,
         { status },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setApplications((prev) =>
         prev.map((app) =>
@@ -115,6 +121,7 @@ const JobApplicantsPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+      {/* full-screen document viewer */}
       {docView.url && (
         <div
           className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
@@ -145,7 +152,7 @@ const JobApplicantsPage = () => {
         </div>
       )}
 
-      {/* top bar: Back button left, CareerConnect center */}
+      {/* top bar */}
       <header className="w-full flex items-center justify-between px-6 py-3 bg-slate-900">
         <button
           onClick={() => navigate("/company/candidates")}
@@ -309,7 +316,7 @@ const JobApplicantsPage = () => {
                         </div>
                       </div>
 
-                      {/* equal-size action buttons */}
+                      {/* actions */}
                       <div className="flex flex-col items-stretch justify-start gap-2 w-24">
                         <button
                           className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs w-full"
@@ -349,6 +356,7 @@ const JobApplicantsPage = () => {
 };
 
 export default JobApplicantsPage;
+
 
 
 
