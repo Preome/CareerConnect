@@ -8,6 +8,7 @@ const LoginPage = () => {
   const [form, setForm] = useState({ email: "", password: "", role: "user" });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,11 +23,11 @@ const LoginPage = () => {
     try {
       let url = "";
 
-      // Admin login → backend: /admin/login
+      // Admin login
       if (form.role === "admin") {
         url = `${API_BASE_URL}/admin/login`;
-      } 
-      // User/company login → backend: /auth/login
+      }
+      // User / Company login
       else {
         url = `${API_BASE_URL}/auth/login`;
       }
@@ -49,10 +50,10 @@ const LoginPage = () => {
         return;
       }
 
-      // Store token
+      // Save token
       localStorage.setItem("token", data.token);
 
-      // Store profile depending on role
+      // Save profile
       if (form.role === "admin" && data.admin) {
         localStorage.setItem("profile", JSON.stringify(data.admin));
       } else if (data.profile) {
@@ -61,7 +62,7 @@ const LoginPage = () => {
 
       setLoading(false);
 
-      // Redirect based on role
+      // Redirect
       if (form.role === "admin") {
         navigate("/admin-dashboard");
       } else if (data.profile?.role === "company") {
@@ -146,6 +147,7 @@ const LoginPage = () => {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Role selector */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Login as
@@ -180,17 +182,28 @@ const LoginPage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password
               </label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter your password"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-xs text-gray-500"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
 
-            {message && <p className="text-sm text-red-600 mt-1">{message}</p>}
+            {message && (
+              <p className="text-sm text-red-600 mt-1">{message}</p>
+            )}
 
             <button
               type="submit"
@@ -201,6 +214,7 @@ const LoginPage = () => {
             </button>
           </form>
 
+          {/* Google login */}
           <div className="mt-6 flex flex-col items-center">
             <span className="text-sm text-gray-500 mb-2">Or</span>
             <button

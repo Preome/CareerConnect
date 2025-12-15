@@ -76,7 +76,7 @@ const ChangePasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100">
+    <div className="min-h-screen flex flex-col bg-sky-100">
       <header className="w-full bg-slate-900 text-white flex items-center justify-between px-10 py-4 shadow-md">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
       </header>

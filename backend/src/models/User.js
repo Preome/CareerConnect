@@ -8,10 +8,28 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     mobile: { type: String },
     password: { type: String, required: true },
-    studentType: { type: String }, // e.g. Undergrad, Postgrad
+
+    studentType: { type: String },
     department: { type: String },
     imageUrl: { type: String },
-    role: { type: String, enum: ["user", "company", "admin"], default: "user" } // added role
+
+    // Role management
+    role: {
+      type: String,
+      enum: ["user", "company", "admin"],
+      default: "user",
+    },
+
+    // Profile fields
+    currentAddress: { type: String, default: "" },
+    academicBackground: { type: String, default: "" },
+    cgpa: { type: Number, default: null },
+    skills: { type: String, default: "" },
+    university: { type: String, default: "" },
+    certificateUrl: { type: String, default: "" },
+    cvUrl: { type: String, default: "" },
+    projectLink: { type: String, default: "" },
+    linkedinLink: { type: String, default: "" },
   },
   { timestamps: true }
 );
@@ -25,4 +43,3 @@ userSchema.pre("save", async function (next) {
 });
 
 module.exports = mongoose.model("User", userSchema);
-

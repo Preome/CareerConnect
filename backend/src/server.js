@@ -1,3 +1,4 @@
+// backend/server.js
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -18,8 +19,10 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
 app.use("/api/company", require("./routes/companyRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
+app.use("/api/jobs", require("./routes/jobRoutes"));
+app.use("/api/applications", require("./routes/applicationRoutes"));
 
-// Global error handler (catch unhandled errors)
+// Global error handler
 app.use((err, req, res, next) => {
   console.error("Global error:", err);
   res.status(500).json({ message: err.message });

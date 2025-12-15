@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+// src/pages/UserDashboardPage.js
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const UserDashboardPage = () => {
   const navigate = useNavigate();
@@ -9,12 +11,75 @@ const UserDashboardPage = () => {
   const avatarUrl = profile?.imageUrl || null;
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [departmentFilter, setDepartmentFilter] = useState("All");
+  const [studentCategoryFilter, setStudentCategoryFilter] = useState("All");
+
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+  const [showDepartmentMenu, setShowDepartmentMenu] = useState(false);
+  const [showStudentCategoryMenu, setShowStudentCategoryMenu] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
-    navigate("/"); // redirect to homepage
+    navigate("/");
   };
+
+  const departmentOptions = [
+    "All",
+    "Any",
+    "CSE",
+    "EEE",
+    "Architecture",
+    "Pharmacy",
+    "Economics",
+    "Law",
+    "BBA",
+    "English and Humanities",
+    "General education",
+  ];
+
+  const studentCategoryOptions = ["All", "Undergraduate", "Graduate"];
+
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+
+      const params = new URLSearchParams();
+      if (categoryFilter !== "All") params.append("category", categoryFilter);
+      if (departmentFilter !== "All")
+        params.append("department", departmentFilter);
+      if (studentCategoryFilter !== "All")
+        params.append("studentCategory", studentCategoryFilter);
+
+      const url = `http://localhost:5000/api/jobs${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
+
+      const res = await axios.get(url);
+      setJobs(res.data || []);
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Failed to load jobs"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const run = async () => {
+      await fetchJobs();
+    };
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryFilter, departmentFilter, studentCategoryFilter]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
@@ -32,7 +97,6 @@ const UserDashboardPage = () => {
             />
           </div>
 
-          {/* menu button */}
           <button
             className="text-2xl font-bold relative"
             onClick={() => setMenuOpen((prev) => !prev)}
@@ -40,7 +104,6 @@ const UserDashboardPage = () => {
             ☰
           </button>
 
-          {/* dropdown */}
           {menuOpen && (
             <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
               <button
@@ -64,8 +127,8 @@ const UserDashboardPage = () => {
       </header>
 
       <div className="flex flex-1">
-        {/* Left sidebar */}
-        <aside className="w-52 bg-slate-900 text-white pt-6">
+        {/* Left sidebar – sticky */}
+        <aside className="w-52 bg-slate-900 text-white pt-6 sticky top-0 self-start h-screen">
           <div className="flex flex-col items-center mb-6">
             {avatarUrl ? (
               <img
@@ -85,10 +148,11 @@ const UserDashboardPage = () => {
           </div>
 
           <nav className="flex flex-col text-sm">
-            <button className="text-left px-4 py-2 bg-indigo-600">
-              Home
-            </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            <button className="text-left px-4 py-2 bg-indigo-600">Home</button>
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/applied-jobs")}
+            >
               Applied Jobs
             </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
@@ -109,9 +173,280 @@ const UserDashboardPage = () => {
           </nav>
         </aside>
 
-        {/* Main area (simple placeholder) */}
-        <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 flex items-center justify-center text-gray-600">
-          
+        {/* Main area: job feed */}
+        <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 py-8 px-4 md:px-8">
+          <div className="max-w-5xl mx-auto">
+            {/* Filter buttons + menus */}
+            <div className="flex flex-wrap gap-4 mb-4 relative">
+              {/* Category filter */}
+              <div className="relative">
+                <button
+                  className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow flex items-center gap-2"
+                  type="button"
+                  onClick={() => {
+                    setShowCategoryMenu((p) => !p);
+                    setShowDepartmentMenu(false);
+                    setShowStudentCategoryMenu(false);
+                  }}
+                >
+                  Filter by Job Category
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                    {categoryFilter}
+                  </span>
+                </button>
+
+                {showCategoryMenu && (
+                  <div className="absolute z-20 mt-1 w-40 bg-white rounded-md shadow border text-sm text-gray-700">
+                    {["All", "Part-time", "Full-time"].map((cat) => (
+                      <button
+                        key={cat}
+                        className="w-full text-left px-3 py-1.5 hover:bg-gray-100"
+                        onClick={() => {
+                          setCategoryFilter(cat);
+                          setShowCategoryMenu(false);
+                        }}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Department filter */}
+              <div className="relative">
+                <button
+                  className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow flex items-center gap-2"
+                  type="button"
+                  onClick={() => {
+                    setShowDepartmentMenu((p) => !p);
+                    setShowCategoryMenu(false);
+                    setShowStudentCategoryMenu(false);
+                  }}
+                >
+                  Filter by Department
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                    {departmentFilter}
+                  </span>
+                </button>
+
+                {showDepartmentMenu && (
+                  <div className="absolute z-20 mt-1 w-56 bg-white rounded-md shadow border text-sm text-gray-700 max-h-64 overflow-y-auto">
+                    {departmentOptions.map((dep) => (
+                      <button
+                        key={dep}
+                        className="w-full text-left px-3 py-1.5 hover:bg-gray-100"
+                        onClick={() => {
+                          setDepartmentFilter(dep);
+                          setShowDepartmentMenu(false);
+                        }}
+                      >
+                        {dep}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Student Category filter */}
+              <div className="relative">
+                <button
+                  className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow flex items-center gap-2"
+                  type="button"
+                  onClick={() => {
+                    setShowStudentCategoryMenu((p) => !p);
+                    setShowCategoryMenu(false);
+                    setShowDepartmentMenu(false);
+                  }}
+                >
+                  Filter by Student Category
+                  <span className="text-xs bg:white/20 px-2 py-0.5 rounded">
+                    {studentCategoryFilter}
+                  </span>
+                </button>
+
+                {showStudentCategoryMenu && (
+                  <div className="absolute z-20 mt-1 w-56 bg-white rounded-md shadow border text-sm text-gray-700 max-h-64 overflow-y-auto">
+                    {studentCategoryOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        className="w-full text-left px-3 py-1.5 hover:bg-gray-100"
+                        onClick={() => {
+                          setStudentCategoryFilter(opt);
+                          setShowStudentCategoryMenu(false);
+                        }}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {loading ? (
+              <p className="text-sm text-gray-600">Loading jobs...</p>
+            ) : jobs.length === 0 ? (
+              <p className="text-sm text-gray-600">No jobs available.</p>
+            ) : (
+              <div className="space-y-6">
+                {jobs.map((job) => {
+                  const companyName =
+                    job.company?.companyName ||
+                    job.company?.name ||
+                    "Company";
+                  const companyLogo = job.company?.imageUrl || null;
+                  const logoFallback =
+                    companyName && typeof companyName === "string"
+                      ? companyName[0].toUpperCase()
+                      : "C";
+
+                  return (
+                    <div
+                      key={job._id}
+                      className="bg-white rounded-xl shadow-md p-4 md:p-5"
+                    >
+                      {/* company header */}
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center">
+                          <div className="bg-[#10215a] text-white rounded-md shadow-md flex items-center h-14 md:h-16 px-5">
+                            <div className="w-10 h-10 mr-3 rounded-md overflow-hidden bg-[#00a9e7] flex items-center justify-center">
+                              {companyLogo ? (
+                                <img
+                                  src={companyLogo}
+                                  alt={companyName}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <span className="text-xl font-bold">
+                                  {logoFallback}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-base md:text-lg font-semibold tracking-wide whitespace-nowrap">
+                              {companyName}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() =>
+                              navigate(`/apply-job/${job._id}`, {
+                                state: {
+                                  companyName: companyName,
+                                  companyId: job.company?._id,
+                                  jobTitle: job.title,
+                                },
+                              })
+                            }
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-1.5 rounded-full text-sm font-semibold shadow"
+                          >
+                            Apply
+                          </button>
+                          <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-1.5 rounded-full text-sm font-semibold shadow">
+                            Follow
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* job meta + details */}
+                      <div className="text-xs md:text-sm text-slate-900 leading-relaxed">
+                        <div className="space-x-4">
+                          <span>
+                            <span className="font-semibold text-pink-700">
+                              Job Title:
+                            </span>{" "}
+                            {job.title}
+                          </span>
+                          <span>
+                            <span className="font-semibold text-pink-700">
+                              Job Category:
+                            </span>{" "}
+                            {job.category}
+                          </span>
+                          <span>
+                            <span className="font-semibold text-pink-700">
+                              Department:
+                            </span>{" "}
+                            {job.department}
+                          </span>
+                        </div>
+
+                        <div className="space-x-4 mt-1">
+                          <span>
+                            <span className="font-semibold text-pink-700">
+                              Student Category:
+                            </span>{" "}
+                            {job.studentCategory}
+                          </span>
+                          <span>
+                            <span className="font-semibold text-pink-700">
+                              Gender:
+                            </span>{" "}
+                            {job.gender}
+                          </span>
+                          <span>
+                            <span className="font-semibold text-pink-700">
+                              Deadline:
+                            </span>{" "}
+                            {job.deadline
+                              ? new Date(job.deadline).toLocaleDateString()
+                              : ""}
+                          </span>
+                        </div>
+
+                        <p className="mt-1">
+                          <span className="font-semibold text-pink-700">
+                            Address:
+                          </span>{" "}
+                          {job.address}
+                        </p>
+
+                        <p className="mt-3 font-semibold text-pink-700">
+                          Job Description
+                        </p>
+                        <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
+                          {job.description}
+                        </div>
+
+                        <p className="mt-3 font-semibold text-pink-700">
+                          Job Requirements
+                        </p>
+                        <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
+                          {job.requirements}
+                        </div>
+
+                        <p className="mt-3 font-semibold text-pink-700">
+                          Job Benefits
+                        </p>
+                        <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
+                          {job.benefits}
+                        </div>
+
+                        <p className="mt-3 font-semibold text-pink-700">
+                          Job Experience
+                        </p>
+                        <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
+                          {job.experience}
+                        </div>
+
+                        <p className="mt-3 font-semibold text-pink-700">
+                          Salary Range
+                        </p>
+                        <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
+                          {job.salaryRange}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </main>
       </div>
     </div>
@@ -119,6 +454,3 @@ const UserDashboardPage = () => {
 };
 
 export default UserDashboardPage;
-
-
-
