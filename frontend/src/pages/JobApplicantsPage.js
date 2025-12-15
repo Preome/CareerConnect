@@ -9,7 +9,6 @@ const JobApplicantsPage = () => {
 
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  // one fullscreen viewer for image or pdf
   const [docView, setDocView] = useState({ url: null, isPdf: false });
 
   const jobTitle = location.state?.jobTitle || "Job Applicants";
@@ -39,7 +38,6 @@ const JobApplicantsPage = () => {
     fetchApplicants();
   }, [jobId]);
 
-  // build absolute url for stored file path or cloud url
   const getFileUrl = (path) => {
     if (!path) return null;
     if (path.startsWith("http")) return path;
@@ -52,7 +50,6 @@ const JobApplicantsPage = () => {
     const isPdf = url.toLowerCase().endsWith(".pdf");
     setDocView({ url, isPdf });
   };
-
   const closeDoc = () => setDocView({ url: null, isPdf: false });
 
   const getStatusClasses = (status) => {
@@ -119,9 +116,19 @@ const JobApplicantsPage = () => {
     }
   };
 
+  const pendingCount = applications.filter(
+    (a) => !a.status || a.status === "pending"
+  ).length;
+  const shortlistedCount = applications.filter(
+    (a) => a.status === "shortlisted"
+  ).length;
+  const hiredCount = applications.filter((a) => a.status === "hired").length;
+  const rejectedCount = applications.filter(
+    (a) => a.status === "rejected"
+  ).length;
+
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
-      {/* full-screen document viewer */}
       {docView.url && (
         <div
           className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
@@ -152,7 +159,6 @@ const JobApplicantsPage = () => {
         </div>
       )}
 
-      {/* top bar */}
       <header className="w-full flex items-center justify-between px-6 py-3 bg-slate-900">
         <button
           onClick={() => navigate("/company/candidates")}
@@ -171,6 +177,44 @@ const JobApplicantsPage = () => {
               Applicants for: {jobTitle}
             </h2>
 
+            {/* BIG STATUS BAR */}
+            <div className="mb-6">
+              <div className="w-full bg-slate-800 text-white rounded-lg shadow flex flex-col md:flex-row">
+                <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2">
+                  <span className="text-sm md:text-base font-medium">
+                    Pending
+                  </span>
+                  <span className="text-lg md:text-2xl font-bold">
+                    {pendingCount}
+                  </span>
+                </div>
+                <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2 bg-blue-700/40">
+                  <span className="text-sm md:text-base font-medium">
+                    Shortlisted
+                  </span>
+                  <span className="text-lg md:text-2xl font-bold text-blue-300">
+                    {shortlistedCount}
+                  </span>
+                </div>
+                <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2 bg-green-700/40">
+                  <span className="text-sm md:text-base font-medium">
+                    Hired
+                  </span>
+                  <span className="text-lg md:text-2xl font-bold text-green-300">
+                    {hiredCount}
+                  </span>
+                </div>
+                <div className="flex-1 px-4 py-3 flex items-center justify-between md:justify-center gap-2 bg-red-700/40">
+                  <span className="text-sm md:text-base font-medium">
+                    Rejected
+                  </span>
+                  <span className="text-lg md:text-2xl font-bold text-red-200">
+                    {rejectedCount}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {loading ? (
               <p>Loading applicants...</p>
             ) : applications.length === 0 ? (
@@ -184,7 +228,6 @@ const JobApplicantsPage = () => {
                       key={app._id}
                       className="border border-slate-200 rounded-lg p-4 flex justify-between gap-4"
                     >
-                      {/* candidate info */}
                       <div className="flex items-start gap-3 text-sm text-slate-900">
                         {app.userId?.imageUrl ? (
                           <img
@@ -245,7 +288,7 @@ const JobApplicantsPage = () => {
                                 app.status
                               )}`}
                             >
-                              {app.status}
+                              {app.status || "pending"}
                             </span>
                           </p>
                           <p className="mt-1">
@@ -258,7 +301,6 @@ const JobApplicantsPage = () => {
                             </span>
                           </p>
 
-                          {/* CV */}
                           {app.cvImage && (
                             <p className="mt-1">
                               <span className="font-semibold text-pink-700">
@@ -274,7 +316,6 @@ const JobApplicantsPage = () => {
                             </p>
                           )}
 
-                          {/* Recommendations */}
                           {app.recommendationLetters &&
                             app.recommendationLetters.length > 0 && (
                               <p className="mt-1">
@@ -294,7 +335,6 @@ const JobApplicantsPage = () => {
                               </p>
                             )}
 
-                          {/* Career Summary */}
                           {app.careerSummary &&
                             app.careerSummary.length > 0 && (
                               <p className="mt-1">
@@ -316,7 +356,6 @@ const JobApplicantsPage = () => {
                         </div>
                       </div>
 
-                      {/* actions */}
                       <div className="flex flex-col items-stretch justify-start gap-2 w-24">
                         <button
                           className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs w-full"
@@ -356,6 +395,8 @@ const JobApplicantsPage = () => {
 };
 
 export default JobApplicantsPage;
+
+
 
 
 

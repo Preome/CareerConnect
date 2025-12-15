@@ -47,7 +47,6 @@ const CompanyCandidatesPage = () => {
     fetchCandidates();
   }, []);
 
-  // group applications by job (jobId or jobTitle)
   const groupedByJob = applications.reduce((acc, app) => {
     const key = app.jobId?._id || app.jobId || app.jobTitle;
     if (!acc[key]) {
@@ -185,9 +184,19 @@ const CompanyCandidatesPage = () => {
                 <p>No applications yet.</p>
               ) : (
                 <div className="space-y-4">
-                  {Object.values(groupedByJob).map((group) => {
+                  {Object.values(groupedByJob).map((group, index) => {
                     const anyApp = group.anyApp;
                     const jobId = anyApp?.jobId?._id || anyApp?.jobId;
+
+                    const colorClasses = [
+                      "from-indigo-50 to-indigo-100 border-indigo-200",
+                      "from-pink-50 to-pink-100 border-pink-200",
+                      "from-emerald-50 to-emerald-100 border-emerald-200",
+                      "from-sky-50 to-sky-100 border-sky-200",
+                    ];
+                    const chosen =
+                      colorClasses[index % colorClasses.length];
+
                     return (
                       <button
                         key={jobId || group.jobTitle}
@@ -197,19 +206,24 @@ const CompanyCandidatesPage = () => {
                             state: { jobTitle: group.jobTitle },
                           })
                         }
-                        className="w-full text-left border border-slate-300 rounded-lg p-4 bg-white hover:bg-slate-100 shadow-sm flex justify-between items-center"
+                        className={`w-full text-left rounded-lg p-4 bg-gradient-to-r ${chosen} hover:brightness-105 shadow-sm flex justify-between items-center transition transform hover:-translate-y-0.5`}
                       >
-                        <div>
-                          <p className="text-sm text-pink-600 font-semibold">
-                            Job Title
-                          </p>
-                          <p className="text-lg font-semibold text-slate-900">
-                            {group.jobTitle}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-1 h-10 rounded-full bg-indigo-500" />
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                              Job Title
+                            </p>
+                            <p className="text-lg font-semibold text-slate-900">
+                              {group.jobTitle}
+                            </p>
+                          </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-slate-500">Applicants</p>
-                          <p className="text-xl font-bold text-indigo-600">
+                          <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                            Applicants
+                          </p>
+                          <p className="text-2xl font-bold text-indigo-700">
                             {group.applications.length}
                           </p>
                         </div>
@@ -227,6 +241,7 @@ const CompanyCandidatesPage = () => {
 };
 
 export default CompanyCandidatesPage;
+
 
 
 
