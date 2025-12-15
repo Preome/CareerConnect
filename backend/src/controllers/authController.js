@@ -14,7 +14,7 @@ const createToken = (id, role) => {
 // password must have at least ONE letter, ONE number and ONE special character
 // (no minimum length enforced)
 const isStrongPassword = (password) => {
-  const pattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&]).+$/;
+  const pattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/;
   return pattern.test(password);
 };
 
@@ -347,7 +347,7 @@ const changePassword = async (req, res) => {
     if (!isStrongPassword(newPassword)) {
       return res.status(400).json({
         message:
-          "New password must include at least one letter, one number and one special character.",
+          "New password must include 6 characters including  letter,number and special character.",
       });
     }
 

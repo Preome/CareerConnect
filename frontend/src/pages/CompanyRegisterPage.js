@@ -4,7 +4,7 @@ import { API_BASE_URL } from "../config";
 
 // password must have at least 1 letter, 1 number, 1 special char
 const isStrongPassword = (pwd) => {
-  return /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/.test(pwd);
+  return /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/.test(pwd);
 };
 
 const CompanyRegisterPage = () => {
@@ -62,7 +62,7 @@ const CompanyRegisterPage = () => {
 
     if (!isStrongPassword(form.password)) {
       setMessage(
-        "Password must contain at least one letter, one number, and one special character"
+        "Password must contain at least 6 characters including  letter,number, special character"
       );
       return;
     }
@@ -244,7 +244,7 @@ const CompanyRegisterPage = () => {
                     Password
                   </label>
                   <span className="text-[11px] text-gray-500 ml-2">
-                    At least 1 letter, 1 number, 1 special character.
+                    At least 6 characters including letter,number and special character.
                   </span>
                 </div>
                 <input
