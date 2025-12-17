@@ -148,20 +148,34 @@ const UserDashboardPage = () => {
           </div>
 
           <nav className="flex flex-col text-sm">
-            <button className="text-left px-4 py-2 bg-indigo-600">Home</button>
+            <button
+              className="text-left px-4 py-2 bg-indigo-600"
+              onClick={() => navigate("/user-dashboard")}
+            >
+              Home
+            </button>
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/applied-jobs")}
             >
               Applied Jobs
             </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/followed-jobs")}
+            >
               Followed Jobs
             </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/messages")}
+            >
               Messages
             </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/query-forum")}
+            >
               Query Forum
             </button>
             <button
@@ -260,7 +274,7 @@ const UserDashboardPage = () => {
                   }}
                 >
                   Filter by Student Category
-                  <span className="text-xs bg:white/20 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
                     {studentCategoryFilter}
                   </span>
                 </button>

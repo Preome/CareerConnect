@@ -1,32 +1,50 @@
-// backend/server.js
+// src/server.js
 const express = require("express");
+const mongoose = require("mongoose");
 const cors = require("cors");
-const dotenv = require("dotenv");
-const connectDB = require("./config/db");
+require("dotenv").config();
 
-dotenv.config();
+// existing route files used by other pages
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
+const jobRoutes = require("./routes/jobRoutes");
+const applicationRoutes = require("./routes/applicationRoutes");
+
+
+// new query forum routes
+const queryForumRoutes = require("./routes/queryForumRoutes");
+
 const app = express();
 
-// Connect to MongoDB
-connectDB();
-
-// Middleware
+// middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/user", require("./routes/userRoutes"));
-app.use("/api/company", require("./routes/companyRoutes"));
-app.use("/api/admin", require("./routes/adminRoutes"));
-app.use("/api/jobs", require("./routes/jobRoutes"));
-app.use("/api/applications", require("./routes/applicationRoutes"));
+// MongoDB connection
+const MONGO_URI =
+  process.env.MONGO_URI || "mongodb://localhost:27017/careerconnect";
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error("Global error:", err);
-  res.status(500).json({ message: err.message });
+mongoose
+  .connect(MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB error", err));
+
+// health check
+app.get("/", (req, res) => {
+  res.send("CareerConnect API running");
 });
+
+// existing APIs (keep paths same as before so pages still work)
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/jobs", jobRoutes);
+app.use("/api/applications", applicationRoutes);
+
+
+// new Query Forum API
+app.use("/api/query-forum", queryForumRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+

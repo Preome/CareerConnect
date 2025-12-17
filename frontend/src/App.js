@@ -27,6 +27,11 @@ import JobApplicantsPage from "./pages/JobApplicantsPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminPanelPage from "./pages/AdminPanelPage";
 
+// Query Forum page
+// Query Forum page
+import QueryForumPage from "./pages/QueryForumPage";
+
+
 function App() {
   return (
     <Router>
@@ -46,12 +51,18 @@ function App() {
 
           {/* Company application/job routes */}
           <Route path="/company/candidates" element={<CompanyCandidatesPage />} />
-          <Route path="/company/jobs/:jobId/applicants" element={<JobApplicantsPage />} />
+          <Route
+            path="/company/jobs/:jobId/applicants"
+            element={<JobApplicantsPage />}
+          />
           <Route path="/company/jobs/new" element={<AddJobPage />} />
           <Route path="/apply-job/:jobId" element={<ApplyJobPage />} />
           <Route path="/applied-jobs" element={<AppliedJobsPage />} />
           <Route path="/company/jobs/:id/edit" element={<EditJobPage />} />
           <Route path="/company/posted-jobs" element={<PostedJobsPage />} />
+
+          {/* Query forum */}
+          <Route path="/query-forum" element={<QueryForumPage />} />
 
           {/* Admin routes */}
           <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
