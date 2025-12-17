@@ -15,10 +15,12 @@ const QueryForumPage = () => {
   const [body, setBody] = useState("");
   const [replyText, setReplyText] = useState({});
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
 
   const avatarUrl = profile?.imageUrl || null;
-  const authorId = profile._id || "guest-user";
-  const authorName = profile.name || "User";
+  const authorId = profile?._id || "guest-user";
+  const authorName = profile?.name || "User";
+  const authorImageUrl = profile?.imageUrl || "";
 
   useEffect(() => {
     const load = async () => {
@@ -50,6 +52,7 @@ const QueryForumPage = () => {
           body: body.trim(),
           authorId,
           authorName,
+          authorImageUrl,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -73,6 +76,7 @@ const QueryForumPage = () => {
           text,
           authorId,
           authorName,
+          authorImageUrl,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -85,6 +89,31 @@ const QueryForumPage = () => {
       alert(err.response?.data?.error || "Failed to send reply");
     }
   };
+
+  const handleUpvote = async (qId) => {
+    try {
+      const res = await axios.post(
+        `${API}/${qId}/upvote`,
+        { authorId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setQuestions((prev) =>
+        prev.map((q) => (q._id === qId ? res.data : q))
+      );
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to upvote");
+    }
+  };
+
+  const filteredQuestions = questions.filter((q) => {
+    const s = search.trim().toLowerCase();
+    if (!s) return true;
+    return (
+      q.title.toLowerCase().includes(s) ||
+      q.body.toLowerCase().includes(s) ||
+      (q.authorName || "").toLowerCase().includes(s)
+    );
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
@@ -162,10 +191,17 @@ const QueryForumPage = () => {
 
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 py-8 px-4 md:px-8">
           <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6 md:p-8">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
               <h2 className="text-2xl font-semibold text-[#4b2bb3]">
                 Query Forum
               </h2>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search queries..."
+                className="border rounded px-3 py-2 text-sm w-full md:w-64"
+              />
             </div>
 
             <form
@@ -198,13 +234,13 @@ const QueryForumPage = () => {
 
             {loading ? (
               <p className="text-sm text-gray-600">Loading queries...</p>
-            ) : questions.length === 0 ? (
+            ) : filteredQuestions.length === 0 ? (
               <p className="text-sm text-gray-600">
-                No queries yet. Be the first to ask something.
+                No matching queries. Try a different search.
               </p>
             ) : (
               <div className="space-y-4">
-                {questions.map((q) => (
+                {filteredQuestions.map((q) => (
                   <div
                     key={q._id}
                     className="border rounded-lg p-4 bg-slate-50 space-y-3"
@@ -216,10 +252,31 @@ const QueryForumPage = () => {
                       <p className="text-sm mt-1 whitespace-pre-line">
                         {q.body}
                       </p>
-                      <p className="text-[11px] text-slate-500 mt-1">
-                        by {q.authorName || "User"} •{" "}
-                        {new Date(q.createdAt).toLocaleString()}
-                      </p>
+                      <div className="flex items-center justify-between mt-1">
+                        <div className="flex items-center gap-2">
+                          {q.authorImageUrl && (
+                            <img
+                              src={q.authorImageUrl}
+                              alt={q.authorName || "User"}
+                              className="w-6 h-6 rounded-full object-cover"
+                              onError={(e) =>
+                                (e.currentTarget.style.display = "none")
+                              }
+                            />
+                          )}
+                          <p className="text-[11px] text-slate-500">
+                            by {q.authorName || "User"} •{" "}
+                            {new Date(q.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleUpvote(q._id)}
+                          className="text-xs px-2 py-1 rounded border border-[#6c3cf0] text-[#6c3cf0] hover:bg-[#6c3cf0] hover:text-white"
+                        >
+                          ▲ {q.upvotes || 0}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="space-y-1">
@@ -227,13 +284,25 @@ const QueryForumPage = () => {
                         q.replies.map((r) => (
                           <div
                             key={r._id}
-                            className="bg-white rounded px-3 py-2 text-sm border"
+                            className="bg-white rounded px-3 py-2 text-sm border flex gap-2 items-start"
                           >
-                            <p>{r.text}</p>
-                            <p className="text-[10px] text-slate-500 mt-1">
-                              {r.authorName || "User"} •{" "}
-                              {new Date(r.createdAt).toLocaleString()}
-                            </p>
+                            {r.authorImageUrl && (
+                              <img
+                                src={r.authorImageUrl}
+                                alt={r.authorName || "User"}
+                                className="w-6 h-6 rounded-full object-cover mt-0.5"
+                                onError={(e) =>
+                                  (e.currentTarget.style.display = "none")
+                                }
+                              />
+                            )}
+                            <div>
+                              <p>{r.text}</p>
+                              <p className="text-[10px] text-slate-500 mt-1">
+                                {r.authorName || "User"} •{" "}
+                                {new Date(r.createdAt).toLocaleString()}
+                              </p>
+                            </div>
                           </div>
                         ))
                       ) : (
@@ -275,3 +344,5 @@ const QueryForumPage = () => {
 };
 
 export default QueryForumPage;
+
+
