@@ -14,6 +14,8 @@ const QueryForumPage = () => {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [replyText, setReplyText] = useState({});
+  const [editingReplyId, setEditingReplyId] = useState(null);
+  const [editingReplyText, setEditingReplyText] = useState("");
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -101,7 +103,70 @@ const QueryForumPage = () => {
         prev.map((q) => (q._id === qId ? res.data : q))
       );
     } catch (err) {
+      console.error("POST /query-forum/:id/upvote error", err);
       alert(err.response?.data?.error || "Failed to upvote");
+    }
+  };
+
+  const handleDeleteQuestion = async (qId) => {
+    if (!window.confirm("Delete this query?")) return;
+    try {
+      await axios.delete(`${API}/${qId}`, {
+        data: { authorId },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setQuestions((prev) => prev.filter((q) => q._id !== qId));
+    } catch (err) {
+      console.error("DELETE /query-forum/:id error", err);
+      alert(err.response?.data?.error || "Failed to delete query");
+    }
+  };
+
+  const startEditReply = (reply) => {
+    setEditingReplyId(reply._id);
+    setEditingReplyText(reply.text);
+  };
+
+  const cancelEditReply = () => {
+    setEditingReplyId(null);
+    setEditingReplyText("");
+  };
+
+  const handleUpdateReply = async (qId, replyId) => {
+    if (!editingReplyText.trim()) return;
+    try {
+      const res = await axios.patch(
+        `${API}/${qId}/replies/${replyId}`,
+        { text: editingReplyText.trim(), authorId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setQuestions((prev) =>
+        prev.map((q) => (q._id === qId ? res.data : q))
+      );
+      setEditingReplyId(null);
+      setEditingReplyText("");
+    } catch (err) {
+      console.error("PATCH /query-forum/:id/replies/:replyId error", err);
+      alert(err.response?.data?.error || "Failed to update reply");
+    }
+  };
+
+  const handleDeleteReply = async (qId, replyId) => {
+    if (!window.confirm("Delete this comment?")) return;
+    try {
+      const res = await axios.delete(
+        `${API}/${qId}/replies/${replyId}`,
+        {
+          data: { authorId },
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setQuestions((prev) =>
+        prev.map((q) => (q._id === qId ? res.data : q))
+      );
+    } catch (err) {
+      console.error("DELETE /query-forum/:id/replies/:replyId error", err);
+      alert(err.response?.data?.error || "Failed to delete reply");
     }
   };
 
@@ -246,29 +311,45 @@ const QueryForumPage = () => {
                     className="border rounded-lg p-4 bg-slate-50 space-y-3"
                   >
                     <div>
-                      <h4 className="font-semibold text-slate-900">
-                        {q.title}
-                      </h4>
-                      <p className="text-sm mt-1 whitespace-pre-line">
-                        {q.body}
-                      </p>
-                      <div className="flex items-center justify-between mt-1">
-                        <div className="flex items-center gap-2">
-                          {q.authorImageUrl && (
-                            <img
-                              src={q.authorImageUrl}
-                              alt={q.authorName || "User"}
-                              className="w-6 h-6 rounded-full object-cover"
-                              onError={(e) =>
-                                (e.currentTarget.style.display = "none")
-                              }
-                            />
-                          )}
-                          <p className="text-[11px] text-slate-500">
-                            by {q.authorName || "User"} •{" "}
-                            {new Date(q.createdAt).toLocaleString()}
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            {q.authorImageUrl && (
+                              <img
+                                src={q.authorImageUrl}
+                                alt={q.authorName || "User"}
+                                className="w-7 h-7 rounded-full object-cover"
+                                onError={(e) =>
+                                  (e.currentTarget.style.display = "none")
+                                }
+                              />
+                            )}
+                            <div>
+                              <h4 className="font-semibold text-slate-900">
+                                {q.title}
+                              </h4>
+                              <p className="text-[11px] text-slate-500">
+                                by {q.authorName || "User"} •{" "}
+                                {new Date(q.createdAt).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-sm mt-1 whitespace-pre-line">
+                            {q.body}
                           </p>
                         </div>
+                        {q.authorId === authorId && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteQuestion(q._id)}
+                            className="text-xs text-red-500 hover:underline"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-end mt-2">
                         <button
                           type="button"
                           onClick={() => handleUpvote(q._id)}
@@ -296,13 +377,68 @@ const QueryForumPage = () => {
                                 }
                               />
                             )}
-                            <div>
-                              <p>{r.text}</p>
-                              <p className="text-[10px] text-slate-500 mt-1">
-                                {r.authorName || "User"} •{" "}
-                                {new Date(r.createdAt).toLocaleString()}
-                              </p>
-                            </div>
+                            {editingReplyId === r._id ? (
+                              <div className="flex-1 space-y-2">
+                                <textarea
+                                  className="w-full border rounded px-2 py-1 text-sm"
+                                  rows={2}
+                                  value={editingReplyText}
+                                  onChange={(e) =>
+                                    setEditingReplyText(e.target.value)
+                                  }
+                                />
+                                <div className="flex gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleUpdateReply(q._id, r._id)
+                                    }
+                                    className="text-xs px-2 py-1 rounded bg-green-600 text-white"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={cancelEditReply}
+                                    className="text-xs px-2 py-1 rounded bg-gray-300"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex-1">
+                                <p>{r.text}</p>
+                                <div className="flex justify-between items-center mt-1">
+                                  <p className="text-[10px] text-slate-500">
+                                    {r.authorName || "User"} •{" "}
+                                    {new Date(
+                                      r.createdAt
+                                    ).toLocaleString()}
+                                  </p>
+                                  {r.authorId === authorId && (
+                                    <div className="flex gap-2 text-[11px]">
+                                      <button
+                                        type="button"
+                                        onClick={() => startEditReply(r)}
+                                        className="text-blue-600 hover:underline"
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleDeleteReply(q._id, r._id)
+                                        }
+                                        className="text-red-500 hover:underline"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))
                       ) : (
@@ -344,5 +480,6 @@ const QueryForumPage = () => {
 };
 
 export default QueryForumPage;
+
 
 
