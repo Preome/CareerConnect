@@ -19,6 +19,7 @@ const QueryForumPage = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [showMenu, setShowMenu] = useState(false);
+  const [view, setView] = useState("latest"); // "latest" | "famous"
 
   const avatarUrl = profile?.imageUrl || null;
   const authorId = profile?.id;
@@ -168,7 +169,16 @@ const QueryForumPage = () => {
     }
   };
 
-  const filteredQuestions = questions.filter((q) => {
+  // Sorting: latest vs famous
+  const latestQuestions = [...questions].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
+  const famousQuestions = [...questions].sort(
+    (a, b) => (b.upvotes || 0) - (a.upvotes || 0)
+  );
+  const baseList = view === "latest" ? latestQuestions : famousQuestions;
+
+  const filteredQuestions = baseList.filter((q) => {
     const s = search.trim().toLowerCase();
     if (!s) return true;
     return (
@@ -199,7 +209,7 @@ const QueryForumPage = () => {
             />
           </div>
 
-          {/* Hamburger menu (all screens) */}
+          {/* Hamburger menu */}
           <button
             className="flex flex-col justify-between w-6 h-5"
             onClick={() => setShowMenu((prev) => !prev)}
@@ -293,17 +303,45 @@ const QueryForumPage = () => {
 
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 py-8 px-4 md:px-8">
           <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
-              <h2 className="text-2xl font-semibold text-[#4b2bb3]">
-                Query Forum
-              </h2>
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search queries..."
-                className="border rounded px-3 py-2 text-sm w-full md:w-64"
-              />
+            {/* Tabs + search */}
+            <div className="flex flex-col gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setView("latest")}
+                  className={`px-3 py-1 text-sm rounded ${
+                    view === "latest"
+                      ? "bg-[#6c3cf0] text-white"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  Latest queries
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView("famous")}
+                  className={`px-3 py-1 text-sm rounded ${
+                    view === "famous"
+                      ? "bg-[#6c3cf0] text-white"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  Famous queries
+                </button>
+              </div>
+
+              <div className="flex md:items-center md:justify-between gap-3">
+                <h2 className="text-2xl font-semibold text-[#4b2bb3]">
+                  Query Forum
+                </h2>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search queries..."
+                  className="border rounded px-3 py-2 text-sm w-full md:w-64"
+                />
+              </div>
             </div>
 
             <form
@@ -520,6 +558,7 @@ const QueryForumPage = () => {
 };
 
 export default QueryForumPage;
+
 
 
 
