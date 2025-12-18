@@ -18,6 +18,7 @@ const QueryForumPage = () => {
   const [editingReplyText, setEditingReplyText] = useState("");
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [showMenu, setShowMenu] = useState(false);
 
   const avatarUrl = profile?.imageUrl || null;
   const authorId = profile?.id;
@@ -177,13 +178,19 @@ const QueryForumPage = () => {
     );
   });
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("profile");
+    navigate("/login");
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center bg-white rounded-full px-3 py-1">
+          <div className="hidden md:flex items-center bg-white rounded-full px-3 py-1">
             <span className="text-gray-500 mr-2">🔍</span>
             <input
               type="text"
@@ -191,6 +198,39 @@ const QueryForumPage = () => {
               className="bg-transparent outline-none text-sm text-gray-700"
             />
           </div>
+
+          {/* Hamburger menu (all screens) */}
+          <button
+            className="flex flex-col justify-between w-6 h-5"
+            onClick={() => setShowMenu((prev) => !prev)}
+          >
+            <span className="h-[2px] bg-white rounded" />
+            <span className="h-[2px] bg-white rounded" />
+            <span className="h-[2px] bg-white rounded" />
+          </button>
+
+          {showMenu && (
+            <div className="absolute right-4 top-12 bg-white text-slate-900 rounded shadow-md text-sm w-44 z-20">
+              <button
+                className="w-full text-left px-4 py-2 hover:bg-slate-100"
+                onClick={() => {
+                  setShowMenu(false);
+                  navigate("/change-password");
+                }}
+              >
+                Change password
+              </button>
+              <button
+                className="w-full text-left px-4 py-2 hover:bg-slate-100 text-black"
+                onClick={() => {
+                  setShowMenu(false);
+                  handleLogout();
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -480,6 +520,11 @@ const QueryForumPage = () => {
 };
 
 export default QueryForumPage;
+
+
+
+
+
 
 
 
