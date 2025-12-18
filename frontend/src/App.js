@@ -30,6 +30,8 @@ import AdminPanelPage from "./pages/AdminPanelPage";
 // Query Forum page
 // Query Forum page
 import QueryForumPage from "./pages/QueryForumPage";
+import CompanyQueryForumPage from "./pages/CompanyQueryForumPage";
+
 
 
 function App() {
@@ -63,6 +65,8 @@ function App() {
 
           {/* Query forum */}
           <Route path="/query-forum" element={<QueryForumPage />} />
+          <Route path="/company-query-forum" element={<CompanyQueryForumPage />} />
+
 
           {/* Admin routes */}
           <Route path="/admin-dashboard" element={<AdminDashboardPage />} />

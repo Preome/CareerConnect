@@ -17,7 +17,7 @@ const CompanyDashboardPage = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
-    navigate("/"); // redirect to homepage
+    navigate("/company-dashboard"); // after logout, show company home
   };
 
   return (
@@ -50,14 +50,17 @@ const CompanyDashboardPage = () => {
               <button
                 onClick={() => {
                   setMenuOpen(false);
-                  navigate("/change-password");
+                  navigate("/company-change-password");
                 }}
                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
               >
                 Change password
               </button>
               <button
-                onClick={handleLogout}
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleLogout();
+                }}
                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
               >
                 Logout
@@ -89,7 +92,6 @@ const CompanyDashboardPage = () => {
           </div>
 
           <nav className="flex flex-col text-sm">
-            {/* stay on dashboard */}
             <button
               className="text-left px-4 py-2 bg-indigo-600"
               onClick={() => navigate("/company-dashboard")}
@@ -97,7 +99,6 @@ const CompanyDashboardPage = () => {
               Dashboard
             </button>
 
-            {/* go to posted jobs page */}
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company/posted-jobs")}
@@ -105,7 +106,6 @@ const CompanyDashboardPage = () => {
               Posted Jobs
             </button>
 
-            {/* go to candidate list page */}
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company/candidates")}
@@ -120,7 +120,11 @@ const CompanyDashboardPage = () => {
               Messages
             </button>
 
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            {/* NEW: open company query forum */}
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/company-query-forum")}
+            >
               Query Forum
             </button>
 
@@ -133,7 +137,7 @@ const CompanyDashboardPage = () => {
           </nav>
         </aside>
 
-        {/* Main area (dashboard content) */}
+        {/* Main area */}
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 flex">
           <div className="w-full mt-6 px-6">
             <div className="bg-white shadow-lg rounded-md p-6 flex justify-between items-center">
@@ -146,7 +150,6 @@ const CompanyDashboardPage = () => {
                 </p>
               </div>
 
-              {/* navigate to Add Job page */}
               <button
                 className="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow"
                 onClick={() => navigate("/company/jobs/new")}
@@ -162,6 +165,7 @@ const CompanyDashboardPage = () => {
 };
 
 export default CompanyDashboardPage;
+
 
 
 

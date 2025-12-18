@@ -1,18 +1,16 @@
-// src/pages/QueryForumPage.js
+// src/pages/CompanyQueryForumPage.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const API = "http://localhost:5000/api/query-forum";
 
-const QueryForumPage = () => {
+const CompanyQueryForumPage = () => {
   const navigate = useNavigate();
   const profile = JSON.parse(localStorage.getItem("profile") || "{}");
   const token = localStorage.getItem("token");
 
   const [questions, setQuestions] = useState([]);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
   const [replyText, setReplyText] = useState({});
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [editingReplyText, setEditingReplyText] = useState("");
@@ -23,7 +21,7 @@ const QueryForumPage = () => {
 
   const avatarUrl = profile?.imageUrl || null;
   const authorId = profile?.id;
-  const authorName = profile?.name || "User";
+  const authorName = profile?.name || "Company";
   const authorImageUrl = profile?.imageUrl || "";
 
   useEffect(() => {
@@ -43,31 +41,6 @@ const QueryForumPage = () => {
     };
     load();
   }, [token]);
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    if (!title.trim() || !body.trim()) return;
-
-    try {
-      const res = await axios.post(
-        API,
-        {
-          title: title.trim(),
-          body: body.trim(),
-          authorId,
-          authorName,
-          authorImageUrl,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setQuestions((prev) => [res.data, ...prev]);
-      setTitle("");
-      setBody("");
-    } catch (err) {
-      console.error("POST /query-forum error", err);
-      alert(err.response?.data?.error || "Failed to post query");
-    }
-  };
 
   const handleReply = async (qId) => {
     const text = replyText[qId]?.trim();
@@ -107,20 +80,6 @@ const QueryForumPage = () => {
     } catch (err) {
       console.error("POST /query-forum/:id/upvote error", err);
       alert(err.response?.data?.error || "Failed to upvote");
-    }
-  };
-
-  const handleDeleteQuestion = async (qId) => {
-    if (!window.confirm("Delete this query?")) return;
-    try {
-      await axios.delete(`${API}/${qId}`, {
-        data: { authorId },
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setQuestions((prev) => prev.filter((q) => q._id !== qId));
-    } catch (err) {
-      console.error("DELETE /query-forum/:id error", err);
-      alert(err.response?.data?.error || "Failed to delete query");
     }
   };
 
@@ -169,7 +128,7 @@ const QueryForumPage = () => {
     }
   };
 
-  // Sort lists for tabs
+  // sorting
   const latestQuestions = [...questions].sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
@@ -191,7 +150,7 @@ const QueryForumPage = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
-    navigate("/"); // go to login/home after logout
+    navigate("/company-dashboard"); // company home
   };
 
   return (
@@ -209,7 +168,6 @@ const QueryForumPage = () => {
             />
           </div>
 
-          {/* Hamburger menu */}
           <button
             className="flex flex-col justify-between w-6 h-5"
             onClick={() => setShowMenu((prev) => !prev)}
@@ -225,7 +183,7 @@ const QueryForumPage = () => {
                 className="w-full text-left px-4 py-2 hover:bg-slate-100"
                 onClick={() => {
                   setShowMenu(false);
-                  navigate("/change-password");
+                  navigate("/company-change-password");
                 }}
               >
                 Change password
@@ -260,32 +218,32 @@ const QueryForumPage = () => {
               <div className="w-14 h-14 rounded bg-slate-700 mb-2" />
             )}
             <span className="text-xs text-gray-300">
-              {profile?.name || "User"}
+              {profile?.name || "Company"}
             </span>
           </div>
 
           <nav className="flex flex-col text-sm">
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/user-dashboard")}
+              onClick={() => navigate("/company-dashboard")}
             >
-              Home
+              Dashboard
             </button>
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/applied-jobs")}
+              onClick={() => navigate("/posted-jobs")}
             >
-              Applied Jobs
+              Posted Jobs
             </button>
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/followed-jobs")}
+              onClick={() => navigate("/candidate-list")}
             >
-              Followed Jobs
+              Candidate list
             </button>
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/messages")}
+              onClick={() => navigate("/company-messages")}
             >
               Messages
             </button>
@@ -294,7 +252,7 @@ const QueryForumPage = () => {
             </button>
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/user-profile")}
+              onClick={() => navigate("/company-profile")}
             >
               Profile
             </button>
@@ -303,7 +261,6 @@ const QueryForumPage = () => {
 
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 py-8 px-4 md:px-8">
           <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6 md:p-8">
-            {/* Tabs + search */}
             <div className="flex flex-col gap-3 mb-4">
               <div className="flex items-center gap-2">
                 <button
@@ -332,7 +289,7 @@ const QueryForumPage = () => {
 
               <div className="flex md:items-center md:justify-between gap-3">
                 <h2 className="text-2xl font-semibold text-[#4b2bb3]">
-                  Query Forum
+                  Query Forum (All user queries)
                 </h2>
                 <input
                   type="text"
@@ -343,34 +300,6 @@ const QueryForumPage = () => {
                 />
               </div>
             </div>
-
-            <form
-              onSubmit={handleCreate}
-              className="border rounded-lg p-4 mb-6 bg-slate-50 space-y-3"
-            >
-              <h3 className="font-semibold text-sm text-slate-800">
-                Post a new query
-              </h3>
-              <input
-                className="w-full border rounded px-3 py-2 text-sm"
-                placeholder="Title of your query"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-              <textarea
-                className="w-full border rounded px-3 py-2 text-sm"
-                rows={3}
-                placeholder="Describe your question..."
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="bg-[#6c3cf0] hover:bg-[#5a32c7] text-white px-4 py-2 rounded text-sm"
-              >
-                Post query
-              </button>
-            </form>
 
             {loading ? (
               <p className="text-sm text-gray-600">Loading queries...</p>
@@ -413,15 +342,6 @@ const QueryForumPage = () => {
                             {q.body}
                           </p>
                         </div>
-                        {q.authorId === authorId && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteQuestion(q._id)}
-                            className="text-xs text-red-500 hover:underline"
-                          >
-                            Delete
-                          </button>
-                        )}
                       </div>
 
                       <div className="flex items-center justify-end mt-2">
@@ -557,15 +477,4 @@ const QueryForumPage = () => {
   );
 };
 
-export default QueryForumPage;
-
-
-
-
-
-
-
-
-
-
-
+export default CompanyQueryForumPage;
