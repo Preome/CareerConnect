@@ -1,5 +1,5 @@
 // src/pages/UserDashboardPage.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -17,10 +17,12 @@ const UserDashboardPage = () => {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [studentCategoryFilter, setStudentCategoryFilter] = useState("All");
+  const [dateFilter, setDateFilter] = useState("Latest");
 
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showDepartmentMenu, setShowDepartmentMenu] = useState(false);
   const [showStudentCategoryMenu, setShowStudentCategoryMenu] = useState(false);
+  const [showDateMenu, setShowDateMenu] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -80,6 +82,27 @@ const UserDashboardPage = () => {
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryFilter, departmentFilter, studentCategoryFilter]);
+
+  // Sort jobs by date (deadline or createdAt) according to dateFilter
+  const sortedJobs = useMemo(() => {
+    const copy = [...jobs];
+    copy.sort((a, b) => {
+      const dateA = a.deadline || a.createdAt;
+      const dateB = b.deadline || b.createdAt;
+      const timeA = dateA ? new Date(dateA).getTime() : 0;
+      const timeB = dateB ? new Date(dateB).getTime() : 0;
+
+      if (dateFilter === "Latest") {
+        // Newest first
+        return timeB - timeA;
+      } else if (dateFilter === "Oldest") {
+        // Oldest first
+        return timeA - timeB;
+      }
+      return 0;
+    });
+    return copy;
+  }, [jobs, dateFilter]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
@@ -201,6 +224,7 @@ const UserDashboardPage = () => {
                     setShowCategoryMenu((p) => !p);
                     setShowDepartmentMenu(false);
                     setShowStudentCategoryMenu(false);
+                    setShowDateMenu(false);
                   }}
                 >
                   Filter by Job Category
@@ -236,6 +260,7 @@ const UserDashboardPage = () => {
                     setShowDepartmentMenu((p) => !p);
                     setShowCategoryMenu(false);
                     setShowStudentCategoryMenu(false);
+                    setShowDateMenu(false);
                   }}
                 >
                   Filter by Department
@@ -271,6 +296,7 @@ const UserDashboardPage = () => {
                     setShowStudentCategoryMenu((p) => !p);
                     setShowCategoryMenu(false);
                     setShowDepartmentMenu(false);
+                    setShowDateMenu(false);
                   }}
                 >
                   Filter by Student Category
@@ -296,15 +322,51 @@ const UserDashboardPage = () => {
                   </div>
                 )}
               </div>
+
+              {/* Date filter */}
+              <div className="relative">
+                <button
+                  className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow flex items-center gap-2"
+                  type="button"
+                  onClick={() => {
+                    setShowDateMenu((p) => !p);
+                    setShowCategoryMenu(false);
+                    setShowDepartmentMenu(false);
+                    setShowStudentCategoryMenu(false);
+                  }}
+                >
+                  Filter by Date
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                    {dateFilter}
+                  </span>
+                </button>
+
+                {showDateMenu && (
+                  <div className="absolute z-20 mt-1 w-40 bg-white rounded-md shadow border text-sm text-gray-700">
+                    {["Latest", "Oldest"].map((opt) => (
+                      <button
+                        key={opt}
+                        className="w-full text-left px-3 py-1.5 hover:bg-gray-100"
+                        onClick={() => {
+                          setDateFilter(opt);
+                          setShowDateMenu(false);
+                        }}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {loading ? (
               <p className="text-sm text-gray-600">Loading jobs...</p>
-            ) : jobs.length === 0 ? (
+            ) : sortedJobs.length === 0 ? (
               <p className="text-sm text-gray-600">No jobs available.</p>
             ) : (
               <div className="space-y-6">
-                {jobs.map((job) => {
+                {sortedJobs.map((job) => {
                   const companyName =
                     job.company?.companyName ||
                     job.company?.name ||
@@ -468,3 +530,4 @@ const UserDashboardPage = () => {
 };
 
 export default UserDashboardPage;
+
