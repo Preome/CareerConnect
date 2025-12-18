@@ -20,7 +20,7 @@ const QueryForumPage = () => {
   const [search, setSearch] = useState("");
 
   const avatarUrl = profile?.imageUrl || null;
-  const authorId = profile?._id || "guest-user";
+  const authorId = profile?.id;
   const authorName = profile?.name || "User";
   const authorImageUrl = profile?.imageUrl || "";
 
@@ -154,13 +154,10 @@ const QueryForumPage = () => {
   const handleDeleteReply = async (qId, replyId) => {
     if (!window.confirm("Delete this comment?")) return;
     try {
-      const res = await axios.delete(
-        `${API}/${qId}/replies/${replyId}`,
-        {
-          data: { authorId },
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await axios.delete(`${API}/${qId}/replies/${replyId}`, {
+        data: { authorId },
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setQuestions((prev) =>
         prev.map((q) => (q._id === qId ? res.data : q))
       );
@@ -377,68 +374,71 @@ const QueryForumPage = () => {
                                 }
                               />
                             )}
-                            {editingReplyId === r._id ? (
-                              <div className="flex-1 space-y-2">
-                                <textarea
-                                  className="w-full border rounded px-2 py-1 text-sm"
-                                  rows={2}
-                                  value={editingReplyText}
-                                  onChange={(e) =>
-                                    setEditingReplyText(e.target.value)
-                                  }
-                                />
-                                <div className="flex gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleUpdateReply(q._id, r._id)
+
+                            <div className="flex-1">
+                              {editingReplyId === r._id ? (
+                                <div className="space-y-2">
+                                  <textarea
+                                    className="w-full border rounded px-2 py-1 text-sm"
+                                    rows={2}
+                                    value={editingReplyText}
+                                    onChange={(e) =>
+                                      setEditingReplyText(e.target.value)
                                     }
-                                    className="text-xs px-2 py-1 rounded bg-green-600 text-white"
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={cancelEditReply}
-                                    className="text-xs px-2 py-1 rounded bg-gray-300"
-                                  >
-                                    Cancel
-                                  </button>
+                                  />
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleUpdateReply(q._id, r._id)
+                                      }
+                                      className="text-xs px-2 py-1 rounded bg-green-600 text-white"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={cancelEditReply}
+                                      className="text-xs px-2 py-1 rounded bg-gray-300"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            ) : (
-                              <div className="flex-1">
-                                <p>{r.text}</p>
-                                <div className="flex justify-between items-center mt-1">
-                                  <p className="text-[10px] text-slate-500">
-                                    {r.authorName || "User"} •{" "}
-                                    {new Date(
-                                      r.createdAt
-                                    ).toLocaleString()}
-                                  </p>
-                                  {r.authorId === authorId && (
-                                    <div className="flex gap-2 text-[11px]">
-                                      <button
-                                        type="button"
-                                        onClick={() => startEditReply(r)}
-                                        className="text-blue-600 hover:underline"
-                                      >
-                                        Edit
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          handleDeleteReply(q._id, r._id)
-                                        }
-                                        className="text-red-500 hover:underline"
-                                      >
-                                        Delete
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                              ) : (
+                                <>
+                                  <p>{r.text}</p>
+                                  <div className="flex justify-between items-center mt-1">
+                                    <p className="text-[10px] text-slate-500">
+                                      {r.authorName || "User"} •{" "}
+                                      {new Date(
+                                        r.createdAt
+                                      ).toLocaleString()}
+                                    </p>
+                                    {r.authorId === authorId && (
+                                      <div className="flex gap-2 text-[11px]">
+                                        <button
+                                          type="button"
+                                          onClick={() => startEditReply(r)}
+                                          className="text-blue-600 hover:underline"
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleDeleteReply(q._id, r._id)
+                                          }
+                                          className="text-red-500 hover:underline"
+                                        >
+                                          Delete
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                            </div>
                           </div>
                         ))
                       ) : (
@@ -480,6 +480,8 @@ const QueryForumPage = () => {
 };
 
 export default QueryForumPage;
+
+
 
 
 
