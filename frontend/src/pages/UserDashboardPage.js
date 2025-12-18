@@ -17,7 +17,7 @@ const UserDashboardPage = () => {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [studentCategoryFilter, setStudentCategoryFilter] = useState("All");
-  const [dateFilter, setDateFilter] = useState("Latest");
+  const [dateFilter, setDateFilter] = useState("Latest"); // Latest | Oldest | Approaching
 
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showDepartmentMenu, setShowDepartmentMenu] = useState(false);
@@ -83,21 +83,24 @@ const UserDashboardPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryFilter, departmentFilter, studentCategoryFilter]);
 
-  // Sort jobs by date (deadline or createdAt) according to dateFilter
+  // Sort jobs by date (use deadline or createdAt)
   const sortedJobs = useMemo(() => {
     const copy = [...jobs];
     copy.sort((a, b) => {
-      const dateA = a.deadline || a.createdAt;
-      const dateB = b.deadline || b.createdAt;
-      const timeA = dateA ? new Date(dateA).getTime() : 0;
-      const timeB = dateB ? new Date(dateB).getTime() : 0;
+      const rawA = a.deadline || a.createdAt;
+      const rawB = b.deadline || b.createdAt;
+      const timeA = rawA ? new Date(rawA).getTime() : 0;
+      const timeB = rawB ? new Date(rawB).getTime() : 0;
 
       if (dateFilter === "Latest") {
-        // Newest first
-        return timeB - timeA;
+        return timeB - timeA; // newest first
       } else if (dateFilter === "Oldest") {
-        // Oldest first
-        return timeA - timeB;
+        return timeA - timeB; // oldest first
+      } else if (dateFilter === "Approaching deadline") {
+        // earlier deadlines first; jobs without deadline go last
+        const dA = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+        const dB = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+        return dA - dB;
       }
       return 0;
     });
@@ -323,7 +326,7 @@ const UserDashboardPage = () => {
                 )}
               </div>
 
-              {/* Date filter */}
+              {/* Date filter (with approaching deadline) */}
               <div className="relative">
                 <button
                   className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow flex items-center gap-2"
@@ -342,8 +345,8 @@ const UserDashboardPage = () => {
                 </button>
 
                 {showDateMenu && (
-                  <div className="absolute z-20 mt-1 w-40 bg-white rounded-md shadow border text-sm text-gray-700">
-                    {["Latest", "Oldest"].map((opt) => (
+                  <div className="absolute z-20 mt-1 w-52 bg-white rounded-md shadow border text-sm text-gray-700">
+                    {["Latest", "Oldest", "Approaching deadline"].map((opt) => (
                       <button
                         key={opt}
                         className="w-full text-left px-3 py-1.5 hover:bg-gray-100"
@@ -530,4 +533,6 @@ const UserDashboardPage = () => {
 };
 
 export default UserDashboardPage;
+
+
 
