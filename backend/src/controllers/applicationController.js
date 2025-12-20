@@ -2,6 +2,7 @@ const Application = require("../models/Application");
 const JobModel = require("../models/JobModel");
 const cloudinary = require("../config/cloudinary");
 const streamifier = require("streamifier");
+const { addEvent } = require("../../services/googleCalendar"); // Added Google Calendar service
 
 // Helper function to upload buffer to Cloudinary
 const uploadToCloudinary = (buffer, folder) => {
@@ -28,7 +29,7 @@ exports.submitApplication = async (req, res) => {
     console.log("Request body:", req.body);
     console.log("Request files:", req.files);
 
-    const { jobId, companyId, companyName, jobTitle } = req.body;
+    const { jobId, companyId, companyName, jobTitle, interviewDateTime } = req.body; // Added interviewDateTime
     const userId = req.user.id;
 
     // CV validation
@@ -122,7 +123,75 @@ exports.submitApplication = async (req, res) => {
     await application.save();
 
     console.log("Application saved successfully! ID:", application._id);
+
+    // --- GOOGLE CALENDAR EVENT INTEGRATION ---
+    try {
+      if (interviewDateTime) {
+        const interviewDate = new Date(interviewDateTime);
+        const interviewEndDate = new Date(interviewDate.getTime() + 30 * 60 * 1000); // 30 mins duration
+
+        const event = {
+          summary: `CareerConnect: ${jobTitle} at ${companyName}`,
+          description: `User ${req.user.name} submitted an application for ${jobTitle} at ${companyName}`,
+          start: {
+            dateTime: interviewDate,
+            timeZone: "Asia/Dhaka",
+          },
+          end: {
+            dateTime: interviewEndDate,
+            timeZone: "Asia/Dhaka",
+          },
+          reminders: {
+            useDefault: false,
+            overrides: [
+              { method: "email", minutes: 1440 }, // 1 day before
+              { method: "popup", minutes: 60 },   // 1 hour before
+            ],
+          },
+        };
+
+        await addEvent(event);
+        console.log("Google Calendar event created successfully");
+      }
+    } catch (calendarError) {
+      console.error("Error creating Google Calendar event:", calendarError);
+    }
+
     console.log("=== APPLICATION SUBMISSION COMPLETED ===");
+
+    // 🔔 CREATE NOTIFICATION FOR COMPANY
+    try {
+      const Notification = require("../models/Notification");
+      const Company = require("../models/Company");
+      const User = require("../models/User");
+
+      const company = await Company.findById(companyId);
+      const user = await User.findById(userId);
+
+      if (company && user) {
+        const notification = new Notification({
+          user: companyId, // Send to company
+          title: `New Application Received`,
+          message: `${user.name} applied for ${jobTitle}`,
+          type: "JOB",
+          link: "/company-applicants",
+        });
+        await notification.save();
+
+        // 🔔 Real-time socket notification for company
+        const io = req.app.get("io");
+        if (io) {
+          io.to(companyId.toString()).emit("notification", {
+            type: "JOB",
+            title: `New Application Received`,
+            message: `${user.name} applied for ${jobTitle}`,
+            link: "/company-applicants",
+          });
+        }
+      }
+    } catch (notifError) {
+      console.error("Error creating company notification:", notifError);
+    }
 
     res.status(201).json({
       message: "Application submitted successfully",
@@ -208,24 +277,40 @@ exports.deleteApplication = async (req, res) => {
   }
 };
 
-// Get applications for a company (candidate list)
+// Get applications for a company (candidate list) - with optional search
 exports.getCompanyApplications = async (req, res) => {
   try {
     const companyId = req.user.id; // company logged in
-    const { jobId } = req.query; // OPTIONAL filter by job
+    const { jobId, search, status } = req.query; // OPTIONAL filters
 
     const filter = { companyId };
     if (jobId) {
       filter.jobId = jobId;
     }
+    if (status) {
+      filter.status = status;
+    }
 
-    const applications = await Application.find(filter)
+    let applications = await Application.find(filter)
       .populate(
         "userId",
-        "name email department studentType imageUrl mobile"
+        "name email department studentType imageUrl mobile skills"
       )
       .populate("jobId", "title category department")
       .sort({ createdAt: -1 });
+
+    // 🔍 Search applicants by name, email, or skills
+    if (search) {
+      applications = applications.filter((app) => {
+        const user = app.userId;
+        const searchLower = search.toLowerCase();
+        return (
+          user.name.toLowerCase().includes(searchLower) ||
+          user.email.toLowerCase().includes(searchLower) ||
+          (user.skills && user.skills.toLowerCase().includes(searchLower))
+        );
+      });
+    }
 
     res.status(200).json(applications);
   } catch (error) {
@@ -252,7 +337,10 @@ exports.updateApplicationStatus = async (req, res) => {
     const application = await Application.findOne({
       _id: applicationId,
       companyId,
-    });
+    })
+      .populate("userId", "name email")
+      .populate("companyId", "companyName")
+      .populate("jobId", "title");
 
     if (!application) {
       return res.status(404).json({ error: "Application not found" });
@@ -260,6 +348,49 @@ exports.updateApplicationStatus = async (req, res) => {
 
     application.status = status;
     await application.save();
+
+    // 🔔 Send notification to applicant
+    const Notification = require("../models/Notification");
+    const notificationMessages = {
+      shortlisted: {
+        title: "Great News! You've been Shortlisted",
+        message: `You have been shortlisted for ${application.jobId.title} at ${application.companyId.companyName}`,
+        type: "JOB",
+      },
+      hired: {
+        title: "Congratulations! You're Hired",
+        message: `You have been selected for ${application.jobId.title} at ${application.companyId.companyName}. Check your email for further instructions.`,
+        type: "INTERVIEW",
+      },
+      rejected: {
+        title: "Application Update",
+        message: `Your application for ${application.jobId.title} at ${application.companyId.companyName} has been reviewed.`,
+        type: "JOB",
+      },
+    };
+
+    const notifData = notificationMessages[status];
+    if (notifData) {
+      const notification = new Notification({
+        user: application.userId._id,
+        title: notifData.title,
+        message: notifData.message,
+        type: notifData.type,
+        link: "/applied-jobs",
+      });
+      await notification.save();
+
+      // 🔔 Real-time socket notification
+      const io = req.app.get("io");
+      if (io) {
+        io.to(application.userId._id.toString()).emit("notification", {
+          type: notifData.type,
+          title: notifData.title,
+          message: notifData.message,
+          link: "/applied-jobs",
+        });
+      }
+    }
 
     res.json({ message: "Status updated", application });
   } catch (error) {

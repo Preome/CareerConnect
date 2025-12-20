@@ -1,6 +1,8 @@
-const Job = require("../models/jobModel");
+const Job = require("../models/JobModel");
 
+// ===============================
 // POST /api/jobs  (company creates job)
+// ===============================
 exports.createJob = async (req, res) => {
   try {
     if (req.user.role !== "company") {
@@ -39,7 +41,7 @@ exports.createJob = async (req, res) => {
     }
 
     const job = await Job.create({
-      company: req.user.id, // company id from token
+      company: req.user.id,
       title,
       category,
       department,
@@ -54,6 +56,16 @@ exports.createJob = async (req, res) => {
       salaryRange,
     });
 
+    // 🔔 REAL-TIME NOTIFICATION (EXTENSION)
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("notification", {
+        type: "JOB_CREATED",
+        title: "New Job Posted",
+        message: `${job.title} has been posted`,
+      });
+    }
+
     res.status(201).json(job);
   } catch (err) {
     console.error("Create job error:", err);
@@ -61,22 +73,19 @@ exports.createJob = async (req, res) => {
   }
 };
 
-// GET /api/jobs  (all jobs for user side, with filters + company info)
+// ===============================
+// GET /api/jobs  (all jobs for users, filters + search)
+// ===============================
 exports.getAllJobsForUsers = async (req, res) => {
   try {
-    const { category, department, studentCategory } = req.query;
+    const { category, department, studentCategory, search } = req.query;
 
     const filter = {};
 
-    // Job category filter (Part-time, Full-time)
     if (category && category !== "Any") {
       filter.category = category;
     }
 
-    // Department filter logic:
-    // - "All"  => no department filter
-    // - "Any"  => only jobs where department === "Any"
-    // - others => filter by that department
     if (department) {
       if (department === "Any") {
         filter.department = "Any";
@@ -85,11 +94,16 @@ exports.getAllJobsForUsers = async (req, res) => {
       }
     }
 
-    // Student category filter (All/Undergraduate/Graduate)
-    // - "All" or missing => no filter
-    // - others => filter by that value
     if (studentCategory && studentCategory !== "All") {
       filter.studentCategory = studentCategory;
+    }
+
+    // 🔍 SEARCH EXTENSION (job title / department)
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { department: { $regex: search, $options: "i" } },
+      ];
     }
 
     const jobs = await Job.find(filter)
@@ -103,7 +117,9 @@ exports.getAllJobsForUsers = async (req, res) => {
   }
 };
 
-// GET /api/jobs/company  (jobs for logged-in company)
+// ===============================
+// GET /api/jobs/company (company's own jobs)
+// ===============================
 exports.getCompanyJobs = async (req, res) => {
   try {
     if (req.user.role !== "company") {
@@ -118,7 +134,9 @@ exports.getCompanyJobs = async (req, res) => {
   }
 };
 
-// GET /api/jobs/:id  (single job, only if it belongs to this company)
+// ===============================
+// GET /api/jobs/:id (single job for company)
+// ===============================
 exports.getJobById = async (req, res) => {
   try {
     if (req.user.role !== "company") {
@@ -141,7 +159,9 @@ exports.getJobById = async (req, res) => {
   }
 };
 
-// PUT /api/jobs/:id  (update job)
+// ===============================
+// PUT /api/jobs/:id (update job)
+// ===============================
 exports.updateJob = async (req, res) => {
   try {
     if (req.user.role !== "company") {
@@ -158,6 +178,16 @@ exports.updateJob = async (req, res) => {
       return res.status(404).json({ error: "Job not found" });
     }
 
+    // 🔔 REAL-TIME NOTIFICATION
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("notification", {
+        type: "JOB_UPDATED",
+        title: "Job Updated",
+        message: `${job.title} has been updated`,
+      });
+    }
+
     res.json(job);
   } catch (err) {
     console.error("Update job error:", err);
@@ -165,7 +195,9 @@ exports.updateJob = async (req, res) => {
   }
 };
 
-// DELETE /api/jobs/:id  (delete job)
+// ===============================
+// DELETE /api/jobs/:id (delete job)
+// ===============================
 exports.deleteJob = async (req, res) => {
   try {
     if (req.user.role !== "company") {
@@ -181,12 +213,19 @@ exports.deleteJob = async (req, res) => {
       return res.status(404).json({ error: "Job not found" });
     }
 
+    // 🔔 REAL-TIME NOTIFICATION
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("notification", {
+        type: "JOB_DELETED",
+        title: "Job Removed",
+        message: `${job.title} has been removed`,
+      });
+    }
+
     res.json({ message: "Job deleted" });
   } catch (err) {
     console.error("Delete job error:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
-
-
-

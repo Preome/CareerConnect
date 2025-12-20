@@ -38,6 +38,16 @@ exports.updateCompany = async (req, res) => {
   }
 };
 
+//search companies
+exports.searchCompanies = async (req, res) => {
+  const { search } = req.query;
+
+  const companies = await Company.find({
+    companyName: { $regex: search, $options: "i" },
+  });
+
+  res.json(companies);
+};
 
 // Add a job posting
 exports.addJob = async (req, res) => {

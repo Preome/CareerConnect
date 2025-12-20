@@ -4,7 +4,7 @@ const { auth, isRole } = require("../middleware/authMiddleware");
 const AdminController = require("../controllers/adminController");
 const User = require("../models/User");
 const Company = require("../models/Company");
-const Job = require("../models/Job"); // Add your Job model
+const Job = require("../models/JobModel");
 
 // Admin login
 router.post("/login", AdminController.login);
@@ -14,10 +14,36 @@ router.get("/dashboard", auth, isRole("admin"), (req, res) => {
   res.json({ message: `Welcome Admin ${req.user.email}` });
 });
 
+// Admin summary (stats and counts)
+router.get("/summary", auth, isRole("admin"), AdminController.getAdminSummary);
+
+// Get all job posts
+router.get("/jobs", auth, isRole("admin"), AdminController.getAllJobPosts);
+
+// Get pending applications
+router.get("/pending-applications", auth, isRole("admin"), AdminController.getPendingApplications);
+
+// Get pending jobs (recently created, open status)
+router.get("/pending-jobs", auth, isRole("admin"), async (req, res) => {
+  try {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const pendingJobs = await Job.find({
+      status: "open",
+      createdAt: { $gte: sevenDaysAgo }
+    })
+      .populate("company", "companyName")
+      .sort({ createdAt: -1 });
+
+    res.json(pendingJobs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get all users
 router.get("/users", auth, isRole("admin"), async (req, res) => {
   try {
-    const users = await User.find({}); // fetch all users
+    const users = await User.find({}).select("-password");
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -27,19 +53,22 @@ router.get("/users", auth, isRole("admin"), async (req, res) => {
 // Get all companies
 router.get("/companies", auth, isRole("admin"), async (req, res) => {
   try {
-    const companies = await Company.find({}); // fetch all companies
+    const companies = await Company.find({}).select("-password");
     res.json(companies);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Get pending requests (example: companies waiting approval)
+// Get pending requests (companies waiting approval)
 router.get("/pending", auth, isRole("admin"), async (req, res) => {
   try {
-    const pendingCompanies = await Company.find({ status: "pending" });
-    const pendingUsers = await User.find({ requestPending: true });
-    res.json({ pendingCompanies, pendingUsers });
+    const pendingCompanies = await Company.find({ status: "pending" }).select("-password");
+    const pendingUsers = await User.find({ requestPending: true }).select("-password");
+    res.json({ 
+      pendingCompanies,
+      pendingUsers
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -48,8 +77,9 @@ router.get("/pending", auth, isRole("admin"), async (req, res) => {
 // Delete user
 router.delete("/user/:id", auth, isRole("admin"), async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.params.id);
-    res.json({ message: "User deleted" });
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+    if (!deletedUser) return res.status(404).json({ message: "User not found" });
+    res.json({ message: "User deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -58,43 +88,66 @@ router.delete("/user/:id", auth, isRole("admin"), async (req, res) => {
 // Delete company
 router.delete("/company/:id", auth, isRole("admin"), async (req, res) => {
   try {
-    await Company.findByIdAndDelete(req.params.id);
-    res.json({ message: "Company deleted" });
+    const deletedCompany = await Company.findByIdAndDelete(req.params.id);
+    if (!deletedCompany) return res.status(404).json({ message: "Company not found" });
+    res.json({ message: "Company deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Delete job post (new)
-router.delete("/job/:id", auth, isRole("admin"), async (req, res) => {
+// Delete job post
+router.delete("/jobs/:id", auth, isRole("admin"), async (req, res) => {
   try {
-    await Job.findByIdAndDelete(req.params.id);
-    res.json({ message: "Job deleted" });
+    const deletedJob = await Job.findByIdAndDelete(req.params.id);
+    if (!deletedJob) return res.status(404).json({ message: "Job not found" });
+    res.json({ message: "Job post deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Approve or reject pending request (new)
-router.patch("/pending/:id", auth, isRole("admin"), async (req, res) => {
-  const { action } = req.body; // expect 'approve' or 'reject'
+// Approve or reject pending company
+router.patch("/company/:id/status", auth, isRole("admin"), async (req, res) => {
+  const { status } = req.body; // expect 'approved' or 'rejected'
   try {
-    const pendingCompany = await Company.findById(req.params.id);
-    const pendingUser = await User.findById(req.params.id);
-
-    if (pendingCompany) {
-      pendingCompany.status = action === "approve" ? "approved" : "rejected";
-      await pendingCompany.save();
-      return res.json({ message: `Company ${action}d successfully` });
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status. Use 'approved' or 'rejected'" });
     }
 
-    if (pendingUser) {
-      pendingUser.requestPending = action === "approve" ? false : true;
-      await pendingUser.save();
-      return res.json({ message: `User request ${action}d successfully` });
+    const company = await Company.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!company) {
+      return res.status(404).json({ message: "Company not found" });
     }
 
-    res.status(404).json({ message: "Pending item not found" });
+    res.json({ message: `Company ${status} successfully`, company });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Delete pending company request
+router.delete("/pending-company/:id", auth, isRole("admin"), async (req, res) => {
+  try {
+    const deletedCompany = await Company.findByIdAndDelete(req.params.id);
+    if (!deletedCompany) return res.status(404).json({ message: "Company not found" });
+    res.json({ message: "Pending company request deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Delete pending user request
+router.delete("/pending-user/:id", auth, isRole("admin"), async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+    if (!deletedUser) return res.status(404).json({ message: "User not found" });
+    res.json({ message: "Pending user request deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

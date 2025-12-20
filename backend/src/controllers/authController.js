@@ -37,7 +37,7 @@ const uploadToCloudinary = (buffer, folder) => {
 };
 
 // POST /api/auth/register-user
-const registerUser = async (req, res) => {
+exports.registerUser = async (req, res) => {
   try {
     const { name, gender, email, mobile, password, studentType, department } =
       req.body;
@@ -107,7 +107,7 @@ const registerUser = async (req, res) => {
 };
 
 // POST /api/auth/register-company
-const registerCompany = async (req, res) => {
+exports.registerCompany = async (req, res) => {
   try {
     const {
       companyName,
@@ -188,7 +188,7 @@ const registerCompany = async (req, res) => {
 };
 
 // POST /api/auth/login (email+password)
-const login = async (req, res) => {
+exports.login = async (req, res) => {
   try {
     const { email, password, role } = req.body; // role: "user" or "company"
 
@@ -254,7 +254,7 @@ const login = async (req, res) => {
 };
 
 // POST /api/auth/google-login  (works for BOTH user and company)
-const googleLogin = async (req, res) => {
+exports.googleLogin = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -322,7 +322,7 @@ const googleLogin = async (req, res) => {
 };
 
 // POST /api/auth/change-password
-const changePassword = async (req, res) => {
+exports.changePassword = async (req, res) => {
   try {
     const authHeader = req.headers.authorization || "";
     const token = authHeader.startsWith("Bearer ")
@@ -377,7 +377,7 @@ const changePassword = async (req, res) => {
 };
 
 // PUT /api/auth/update-profile (NOW HANDLES NAME, EMAIL, MOBILE, GENDER, STUDENT TYPE AND DEPARTMENT)
-const updateUserProfile = async (req, res) => {
+exports.updateUserProfile = async (req, res) => {
   try {
     // Extract token from Authorization header
     const authHeader = req.headers.authorization || "";
@@ -509,7 +509,7 @@ const updateUserProfile = async (req, res) => {
 };
 
 // DELETE /api/auth/delete-account
-const deleteAccount = async (req, res) => {
+exports.deleteAccount = async (req, res) => {
   try {
     // Extract token from Authorization header
     const authHeader = req.headers.authorization || "";
@@ -553,14 +553,4 @@ const deleteAccount = async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
-};
-
-module.exports = {
-  registerUser,
-  registerCompany,
-  login,
-  googleLogin,
-  changePassword,
-  updateUserProfile,
-  deleteAccount
 };

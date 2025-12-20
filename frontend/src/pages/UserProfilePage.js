@@ -2,11 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
+// 🔔 SOCKET.IO
+import { io } from "socket.io-client";
+const socket = io("http://localhost:5000", { transports: ["websocket"] });
 
 const UserProfilePage = () => {
   const navigate = useNavigate();
   const storedProfile = localStorage.getItem("profile");
   const initialProfile = storedProfile ? JSON.parse(storedProfile) : null;
+  const token = localStorage.getItem("token");
 
   // State for profile data
   const [profile, setProfile] = useState(initialProfile);
@@ -16,6 +20,11 @@ const UserProfilePage = () => {
   
   // State for menu dropdown
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // 🔔 NOTIFICATION STATE
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // State for PDF viewer modal
   const [pdfViewer, setPdfViewer] = useState({
@@ -88,10 +97,67 @@ const UserProfilePage = () => {
     }
   }, [isEditing, profile]);
 
+  // 🔔 FETCH NOTIFICATIONS ON MOUNT
+  useEffect(() => {
+    fetchNotifications();
+    fetchUnreadCount();
+  }, []);
+
+  // 🔔 SOCKET NOTIFICATIONS
+  useEffect(() => {
+    socket.on("notification", async (data) => {
+      // Fetch fresh notifications and unread count
+      await fetchNotifications();
+      await fetchUnreadCount();
+      // Show browser alert
+      alert(`🔔 ${data.title}\n${data.message}`);
+    });
+
+    return () => socket.off("notification");
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
     navigate("/");
+  };
+
+  // 🔔 NOTIFICATION FUNCTIONS
+  const fetchNotifications = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/notifications", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/notifications/unread-count",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUnreadCount(res.data.unreadCount || 0);
+    } catch (err) {
+      console.error("Failed to fetch unread count:", err);
+    }
+  };
+
+  const markAsRead = async (notifId) => {
+    try {
+      await axios.patch(
+        `http://localhost:5000/api/notifications/${notifId}/read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await fetchNotifications();
+      await fetchUnreadCount();
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -328,6 +394,82 @@ const UserProfilePage = () => {
               className="bg-transparent outline-none text-sm text-gray-700"
             />
           </div>
+
+          {/* 🔔 NOTIFICATION BUTTON */}
+          <div className="relative">
+            <button
+              className="text-2xl font-bold relative hover:opacity-80"
+              onClick={() => setNotificationOpen((prev) => !prev)}
+            >
+              🔔
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notification Popup */}
+            {notificationOpen && (
+              <div className="absolute right-0 top-12 w-80 bg-white text-gray-800 rounded-md shadow-xl border border-gray-200 z-20 max-h-96 overflow-y-auto">
+                <div className="sticky top-0 bg-indigo-500 text-white px-4 py-3 flex justify-between items-center">
+                  <h3 className="font-semibold">Notifications</h3>
+                  <span
+                    className="cursor-pointer text-lg"
+                    onClick={() => setNotificationOpen(false)}
+                  >
+                    ✕
+                  </span>
+                </div>
+
+                {notifications.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-gray-500">
+                    No notifications yet
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {notifications.map((notif) => (
+                      <div
+                        key={notif._id}
+                        className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition ${
+                          !notif.isRead ? "bg-indigo-50" : ""
+                        }`}
+                        onClick={() => markAsRead(notif._id)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="font-semibold text-sm">
+                              {notif.title}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {notif.message}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-2">
+                              {new Date(notif.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          {!notif.isRead && (
+                            <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1 ml-2" />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 📅 GOOGLE CALENDAR BUTTON */}
+          <a
+            href="https://calendar.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xl hover:opacity-80 transition"
+            title="Open Google Calendar"
+          >
+            📅
+          </a>
 
           <button
             className="text-2xl font-bold relative"
