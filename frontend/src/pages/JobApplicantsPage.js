@@ -10,6 +10,7 @@ const JobApplicantsPage = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [docView, setDocView] = useState({ url: null, isPdf: false });
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const jobTitle = location.state?.jobTitle || "Job Applicants";
 
@@ -127,6 +128,13 @@ const JobApplicantsPage = () => {
     (a) => a.status === "rejected"
   ).length;
 
+  const filteredApplications = applications.filter((a) => {
+    if (statusFilter === "all") return true;
+    if (statusFilter === "pending")
+      return !a.status || a.status === "pending";
+    return a.status === statusFilter;
+  });
+
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
       {docView.url && (
@@ -177,10 +185,29 @@ const JobApplicantsPage = () => {
               Applicants for: {jobTitle}
             </h2>
 
-            {/* BIG STATUS BAR */}
+            {/* STATUS BAR WITH "ALL" */}
             <div className="mb-6">
               <div className="w-full bg-slate-800 text-white rounded-lg shadow flex flex-col md:flex-row">
-                <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2">
+                <div
+                  className={`flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2 cursor-pointer ${
+                    statusFilter === "all" ? "bg-slate-500" : ""
+                  }`}
+                  onClick={() => setStatusFilter("all")}
+                >
+                  <span className="text-sm md:text-base font-medium">
+                    All
+                  </span>
+                  <span className="text-lg md:text-2xl font-bold">
+                    {applications.length}
+                  </span>
+                </div>
+
+                <div
+                  className={`flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2 cursor-pointer ${
+                    statusFilter === "pending" ? "bg-slate-600/60" : ""
+                  }`}
+                  onClick={() => setStatusFilter("pending")}
+                >
                   <span className="text-sm md:text-base font-medium">
                     Pending
                   </span>
@@ -188,7 +215,13 @@ const JobApplicantsPage = () => {
                     {pendingCount}
                   </span>
                 </div>
-                <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2 bg-blue-700/40">
+
+                <div
+                  className={`flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2 cursor-pointer ${
+                    statusFilter === "shortlisted" ? "bg-blue-700" : "bg-blue-700/40"
+                  }`}
+                  onClick={() => setStatusFilter("shortlisted")}
+                >
                   <span className="text-sm md:text-base font-medium">
                     Shortlisted
                   </span>
@@ -196,7 +229,13 @@ const JobApplicantsPage = () => {
                     {shortlistedCount}
                   </span>
                 </div>
-                <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2 bg-green-700/40">
+
+                <div
+                  className={`flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2 cursor-pointer ${
+                    statusFilter === "hired" ? "bg-green-700" : "bg-green-700/40"
+                  }`}
+                  onClick={() => setStatusFilter("hired")}
+                >
                   <span className="text-sm md:text-base font-medium">
                     Hired
                   </span>
@@ -204,7 +243,13 @@ const JobApplicantsPage = () => {
                     {hiredCount}
                   </span>
                 </div>
-                <div className="flex-1 px-4 py-3 flex items-center justify-between md:justify-center gap-2 bg-red-700/40">
+
+                <div
+                  className={`flex-1 px-4 py-3 flex items-center justify-between md:justify-center gap-2 cursor-pointer ${
+                    statusFilter === "rejected" ? "bg-red-700" : "bg-red-700/40"
+                  }`}
+                  onClick={() => setStatusFilter("rejected")}
+                >
                   <span className="text-sm md:text-base font-medium">
                     Rejected
                   </span>
@@ -217,11 +262,11 @@ const JobApplicantsPage = () => {
 
             {loading ? (
               <p>Loading applicants...</p>
-            ) : applications.length === 0 ? (
-              <p>No applicants for this job yet.</p>
+            ) : filteredApplications.length === 0 ? (
+              <p>No applicants for this filter.</p>
             ) : (
               <div className="space-y-4">
-                {applications.map((app) => {
+                {filteredApplications.map((app) => {
                   const { bdDate, bdTime } = formatAppliedDate(app.createdAt);
                   return (
                     <div
@@ -322,16 +367,18 @@ const JobApplicantsPage = () => {
                                 <span className="font-semibold text-pink-700">
                                   Recommendations:
                                 </span>{" "}
-                                {app.recommendationLetters.map((file, idx) => (
-                                  <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => openDoc(file)}
-                                    className="text-indigo-600 underline text-xs mr-2"
-                                  >
-                                    View Recommendation {idx + 1}
-                                  </button>
-                                ))}
+                                {app.recommendationLetters.map(
+                                  (file, idx) => (
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      onClick={() => openDoc(file)}
+                                      className="text-indigo-600 underline text-xs mr-2"
+                                    >
+                                      View Recommendation {idx + 1}
+                                    </button>
+                                  )
+                                )}
                               </p>
                             )}
 
@@ -359,7 +406,9 @@ const JobApplicantsPage = () => {
                       <div className="flex flex-col items-stretch justify-start gap-2 w-24">
                         <button
                           className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs w-full"
-                          onClick={() => updateStatus(app._id, "shortlisted")}
+                          onClick={() =>
+                            updateStatus(app._id, "shortlisted")
+                          }
                         >
                           Shortlist
                         </button>
@@ -395,6 +444,7 @@ const JobApplicantsPage = () => {
 };
 
 export default JobApplicantsPage;
+
 
 
 
