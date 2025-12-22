@@ -283,12 +283,12 @@ const UserProfilePage = () => {
     }
   };
 
-  // ✅ NEW: Open PDF in new tab
+  // Open PDF in new tab
   const openPdfInNewTab = (pdfUrl) => {
     window.open(pdfUrl, '_blank', 'noopener,noreferrer');
   };
 
-  // ✅ UPDATED: Open image viewer
+  // Open image viewer
   const openImageViewer = (imageUrl, title) => {
     setImageViewer({
       isOpen: true,
@@ -305,7 +305,7 @@ const UserProfilePage = () => {
     });
   };
 
-  // ✅ NEW: Check if file is PDF
+  // Check if file is PDF
   const isPdfFile = (url) => {
     if (!url) return false;
     return url.toLowerCase().endsWith('.pdf');
@@ -393,7 +393,10 @@ const UserProfilePage = () => {
             >
               Applied Jobs
             </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/followed-jobs")}
+            >
               Followed Jobs
             </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
@@ -469,13 +472,13 @@ const UserProfilePage = () => {
 
                 {isEditing && (
                   <label className="mt-3 bg-red-600 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-red-700 transition font-semibold">
-                    Change Photo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleFileChange(e, "profilePhoto")}
-                    />
+                      Change Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleFileChange(e, "profilePhoto")}
+                      />
                   </label>
                 )}
               </div>
@@ -711,7 +714,7 @@ const UserProfilePage = () => {
                 )}
               </div>
 
-              {/* ✅ MODIFIED: File Uploads Section - SHOWS EXISTING FILES IN EDIT MODE */}
+              {/* File Uploads Section */}
               <div className="grid grid-cols-2 gap-6 mb-6">
                 {/* Certificate Upload */}
                 <div>

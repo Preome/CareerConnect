@@ -1,3 +1,5 @@
+// backend/src/models/User.js
+
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
@@ -30,6 +32,14 @@ const userSchema = new mongoose.Schema(
     cvUrl: { type: String, default: "" },
     projectLink: { type: String, default: "" },
     linkedinLink: { type: String, default: "" },
+
+    // NEW: followed jobs list (for "Followed Jobs" feature)
+    followedJobs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Job",
+      },
+    ],
   },
   { timestamps: true }
 );

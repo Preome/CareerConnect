@@ -20,7 +20,11 @@ const UserDashboardPage = () => {
 
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showDepartmentMenu, setShowDepartmentMenu] = useState(false);
-  const [showStudentCategoryMenu, setShowStudentCategoryMenu] = useState(false);
+  const [showStudentCategoryMenu, setShowStudentCategoryMenu] =
+    useState(false);
+
+  // track which jobs are followed by this user
+  const [followedJobIds, setFollowedJobIds] = useState(new Set());
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -73,9 +77,98 @@ const UserDashboardPage = () => {
     }
   };
 
+  // fetch jobs the user is already following
+  const fetchFollowedJobs = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await axios.get(
+        "http://localhost:5000/api/jobs/user/followed",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const ids = new Set((res.data || []).map((job) => job._id));
+      setFollowedJobIds(ids);
+    } catch (err) {
+      console.error(
+        "Error fetching followed jobs:",
+        err.response?.data || err.message
+      );
+    }
+  };
+
+  // follow a job
+  const handleFollow = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to follow jobs");
+        return;
+      }
+
+      await axios.post(
+        `http://localhost:5000/api/jobs/${jobId}/follow`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setFollowedJobIds((prev) => new Set(prev).add(jobId));
+    } catch (err) {
+      console.error("Error following job:", err.response?.data || err.message);
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Failed to follow job"
+      );
+    }
+  };
+
+  // unfollow a job
+  const handleUnfollow = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to manage followed jobs");
+        return;
+      }
+
+      await axios.delete(`http://localhost:5000/api/jobs/${jobId}/follow`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setFollowedJobIds((prev) => {
+        const next = new Set(prev);
+        next.delete(jobId);
+        return next;
+      });
+    } catch (err) {
+      console.error(
+        "Error unfollowing job:",
+        err.response?.data || err.message
+      );
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Failed to unfollow job"
+      );
+    }
+  };
+
   useEffect(() => {
     const run = async () => {
       await fetchJobs();
+      await fetchFollowedJobs();
     };
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -155,7 +248,10 @@ const UserDashboardPage = () => {
             >
               Applied Jobs
             </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/followed-jobs")}
+            >
               Followed Jobs
             </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
@@ -301,6 +397,8 @@ const UserDashboardPage = () => {
                       ? companyName[0].toUpperCase()
                       : "C";
 
+                  const isFollowing = followedJobIds.has(job._id);
+
                   return (
                     <div
                       key={job._id}
@@ -347,9 +445,21 @@ const UserDashboardPage = () => {
                           >
                             Apply
                           </button>
-                          <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-1.5 rounded-full text-sm font-semibold shadow">
-                            Follow
-                          </button>
+                          {isFollowing ? (
+                            <button
+                              onClick={() => handleUnfollow(job._id)}
+                              className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-1.5 rounded-full text-sm font-semibold shadow"
+                            >
+                              Following
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleFollow(job._id)}
+                              className="bg-green-600 hover:bg-green-700 text-white px-6 py-1.5 rounded-full text-sm font-semibold shadow"
+                            >
+                              Follow
+                            </button>
+                          )}
                         </div>
                       </div>
 

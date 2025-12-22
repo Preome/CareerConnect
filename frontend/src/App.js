@@ -22,6 +22,7 @@ import ApplyJobPage from "./pages/ApplyJobPage";
 import AppliedJobsPage from "./pages/AppliedJobsPage";
 import CompanyCandidatesPage from "./pages/CompanyCandidatesPage";
 import JobApplicantsPage from "./pages/JobApplicantsPage";
+import FollowedJobsPage from "./pages/FollowedJobsPage";
 
 // Admin pages
 import AdminDashboardPage from "./pages/AdminDashboardPage";
@@ -45,11 +46,18 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
 
           {/* Company application/job routes */}
-          <Route path="/company/candidates" element={<CompanyCandidatesPage />} />
-          <Route path="/company/jobs/:jobId/applicants" element={<JobApplicantsPage />} />
+          <Route
+            path="/company/candidates"
+            element={<CompanyCandidatesPage />}
+          />
+          <Route
+            path="/company/jobs/:jobId/applicants"
+            element={<JobApplicantsPage />}
+          />
           <Route path="/company/jobs/new" element={<AddJobPage />} />
           <Route path="/apply-job/:jobId" element={<ApplyJobPage />} />
           <Route path="/applied-jobs" element={<AppliedJobsPage />} />
+          <Route path="/followed-jobs" element={<FollowedJobsPage />} />
           <Route path="/company/jobs/:id/edit" element={<EditJobPage />} />
           <Route path="/company/posted-jobs" element={<PostedJobsPage />} />
 
