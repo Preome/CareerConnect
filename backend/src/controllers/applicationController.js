@@ -2,6 +2,8 @@ const Application = require("../models/Application");
 const JobModel = require("../models/JobModel");
 const cloudinary = require("../config/cloudinary");
 const streamifier = require("streamifier");
+const { sendEmail } = require("../utils/mailer");
+
 
 // Helper function to upload buffer to Cloudinary
 const uploadToCloudinary = (buffer, folder) => {
@@ -293,6 +295,28 @@ exports.companyDeleteApplication = async (req, res) => {
     console.error("Company delete application error:", error);
     res.status(500).json({
       error: "Failed to delete application",
+      message: error.message,
+    });
+  }
+};
+
+
+exports.sendEmailToApplicant = async (req, res) => {
+  try {
+    const { to, subject, message } = req.body;
+    if (!to || !subject || !message) {
+      return res
+        .status(400)
+        .json({ error: "to, subject and message are required" });
+    }
+
+    await sendEmail({ to, subject, text: message });
+
+    res.json({ message: "Email sent successfully" });
+  } catch (error) {
+    console.error("Send email error:", error);
+    res.status(500).json({
+      error: "Failed to send email",
       message: error.message,
     });
   }

@@ -12,6 +12,15 @@ const JobApplicantsPage = () => {
   const [docView, setDocView] = useState({ url: null, isPdf: false });
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // email modal state
+  const [emailModal, setEmailModal] = useState({
+    open: false,
+    to: "",
+    name: "",
+    subject: "",
+    message: "",
+  });
+
   const jobTitle = location.state?.jobTitle || "Job Applicants";
 
   const fetchApplicants = async () => {
@@ -135,8 +144,49 @@ const JobApplicantsPage = () => {
     return a.status === statusFilter;
   });
 
+  // open email modal for given applicant
+  const openEmailModal = (app) => {
+    const to = app.userId?.email || "";
+    const name = app.userId?.name || "applicant";
+    setEmailModal({
+      open: true,
+      to,
+      name,
+      subject: `Regarding your application for ${app.jobTitle}`,
+      message: `Dear ${name},\n\n`,
+    });
+  };
+
+  const closeEmailModal = () =>
+    setEmailModal({ open: false, to: "", name: "", subject: "", message: "" });
+
+  const sendEmail = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:5000/api/applications/email",
+        {
+          to: emailModal.to,
+          subject: emailModal.subject,
+          message: emailModal.message,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("Email sent");
+      closeEmailModal();
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Failed to send email"
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+      {/* document viewer */}
       {docView.url && (
         <div
           className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
@@ -167,6 +217,47 @@ const JobApplicantsPage = () => {
         </div>
       )}
 
+      {/* email modal */}
+      {emailModal.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 z-40 flex items-center justify-center p-4">
+          <div className="bg-white text-slate-900 rounded-lg p-4 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-2">
+              Email to {emailModal.name}
+            </h3>
+            <p className="text-xs mb-1">To: {emailModal.to}</p>
+            <input
+              className="w-full border border-slate-300 rounded px-2 py-1 text-sm mb-2"
+              placeholder="Subject"
+              value={emailModal.subject}
+              onChange={(e) =>
+                setEmailModal((m) => ({ ...m, subject: e.target.value }))
+              }
+            />
+            <textarea
+              className="w-full h-40 border border-slate-300 rounded p-2 text-sm"
+              value={emailModal.message}
+              onChange={(e) =>
+                setEmailModal((m) => ({ ...m, message: e.target.value }))
+              }
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                className="px-3 py-1 rounded bg-slate-400 text-white text-xs"
+                onClick={closeEmailModal}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-3 py-1 rounded bg-indigo-600 text-white text-xs"
+                onClick={sendEmail}
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="w-full flex items-center justify-between px-6 py-3 bg-slate-900">
         <button
           onClick={() => navigate("/company/candidates")}
@@ -185,7 +276,7 @@ const JobApplicantsPage = () => {
               Applicants for: {jobTitle}
             </h2>
 
-            {/* STATUS BAR WITH "ALL" */}
+            {/* status bar with ALL */}
             <div className="mb-6">
               <div className="w-full bg-slate-800 text-white rounded-lg shadow flex flex-col md:flex-row">
                 <div
@@ -403,7 +494,7 @@ const JobApplicantsPage = () => {
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-stretch justify-start gap-2 w-24">
+                      <div className="flex flex-col items-stretch justify-start gap-2 w-28">
                         <button
                           className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs w-full"
                           onClick={() =>
@@ -423,6 +514,12 @@ const JobApplicantsPage = () => {
                           onClick={() => updateStatus(app._id, "rejected")}
                         >
                           Reject
+                        </button>
+                        <button
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs w-full"
+                          onClick={() => openEmailModal(app)}
+                        >
+                          Send Email
                         </button>
                         <button
                           className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs w-full"
