@@ -26,6 +26,7 @@ import JobApplicantsPage from "./pages/JobApplicantsPage";
 // Admin pages
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminPanelPage from "./pages/AdminPanelPage";
+import SearchPage from "./pages/SearchPage";
 
 function App() {
   return (
@@ -41,6 +42,8 @@ function App() {
           <Route path="/company-dashboard" element={<CompanyDashboardPage />} />
           <Route path="/user-profile" element={<UserProfilePage />} />
           <Route path="/company-profile" element={<CompanyProfilePage />} />
+          <Route path="/company/:id" element={<CompanyProfilePage />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/about" element={<AboutPage />} />
 

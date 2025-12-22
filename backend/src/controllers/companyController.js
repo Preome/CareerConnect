@@ -49,6 +49,18 @@ exports.searchCompanies = async (req, res) => {
   res.json(companies);
 };
 
+// Get company by id (public)
+exports.getCompanyById = async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id).lean();
+    if (!company) return res.status(404).json({ message: "Company not found" });
+    res.json(company);
+  } catch (err) {
+    console.error("Get company by id error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Add a job posting
 exports.addJob = async (req, res) => {
   try {

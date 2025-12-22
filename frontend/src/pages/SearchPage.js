@@ -8,8 +8,6 @@ const SearchPage = () => {
   const initial = searchParams.get("q") || "";
   const [q, setQ] = useState(initial);
   const [results, setResults] = useState([]);
-  const [expanded, setExpanded] = useState(null);
-  const [companyJobs, setCompanyJobs] = useState({});
   const [loading, setLoading] = useState(false);
   const timeoutRef = useRef(null);
 
@@ -41,111 +39,84 @@ const SearchPage = () => {
   };
 
   const openCompanyProfile = (company) => {
-    try {
-      const toStore = { ...company, id: company._id || company.id };
-      localStorage.setItem("profile", JSON.stringify(toStore));
-    } catch (e) {
-      console.error(e);
-    }
-    navigate("/company-profile");
-  };
-
-  const toggleExpand = async (company) => {
     const id = company._id || company.id;
-    if (expanded === id) {
-      setExpanded(null);
-      return;
-    }
-    setExpanded(id);
-
-    // fetch jobs for this company (uses new companyId filter)
-    if (!companyJobs[id]) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/jobs?companyId=${encodeURIComponent(id)}`);
-        const data = await res.json();
-        setCompanyJobs((s) => ({ ...s, [id]: Array.isArray(data) ? data : [] }));
-      } catch (err) {
-        console.error("Failed to fetch company jobs", err);
-        setCompanyJobs((s) => ({ ...s, [id]: [] }));
-      }
-    }
+    navigate(`/company/${id}`);
   };
 
-  const applyToJob = (job, company) => {
-    const jobId = job._id || job.id;
-    navigate(`/apply-job/${jobId}`, {
-      state: {
-        companyName: company.companyName || company.name,
-        companyId: company._id || company.id,
-        jobTitle: job.title || job.jobTitle || "",
-      },
-    });
+  const goBack = () => {
+    const token = localStorage.getItem("token");
+    const profile = JSON.parse(localStorage.getItem("profile") || "{}");
+    if (token && profile.role === "user") {
+      navigate("/user-dashboard");
+    } else if (token && profile.role === "company") {
+      navigate("/company-dashboard");
+    } else {
+      navigate("/");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-2xl mx-auto bg-white rounded shadow p-4">
-        <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+      {/* Header */}
+      <header className="w-full bg-blue-900 text-white px-8 py-4 shadow-md flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">CareerConnect - Search</h1>
+        <button 
+          onClick={goBack}
+          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-medium"
+        >
+          ← Back to Dashboard
+        </button>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 p-6">
+      <div className="max-w-4xl mx-auto bg-white rounded shadow p-6">
+        <h2 className="text-xl font-semibold mb-4">Search Companies & Jobs</h2>
+        <div className="flex items-center gap-2 mb-4">
           <input
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search companies..."
-            className="w-full px-3 py-2 border rounded"
+            placeholder="Type company name here..."
+            className="w-full px-4 py-2 border border-gray-300 rounded text-sm"
           />
-          <button onClick={() => setQ("")} className="px-3 py-2 bg-gray-200 rounded">Clear</button>
+          <button onClick={() => setQ("")} className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded text-sm font-medium">Clear</button>
         </div>
 
-        <div className="mt-4">
-          {loading && <div className="text-sm text-gray-500">Searching...</div>}
+        <div className="mt-6">
+          {loading && <div className="text-sm text-gray-500 text-center py-4">Searching...</div>}
 
           {!loading && results.length === 0 && q && (
-            <div className="text-sm text-gray-500">No results</div>
+            <div className="text-sm text-gray-500 text-center py-4">No companies found. Try another search.</div>
           )}
 
-          <ul className="mt-2">
+          {!loading && results.length === 0 && !q && (
+            <div className="text-sm text-gray-400 text-center py-8">Start typing to search for companies and their jobs</div>
+          )}
+
+          <ul className="space-y-3">
             {results.map((c) => {
               const id = c._id || c.id;
               return (
-                <li key={id} className="p-2 border-b">
-                  <div className="flex items-center gap-3">
-                    <img src={c.imageUrl || ""} alt="logo" className="w-10 h-10 rounded object-cover bg-gray-200" />
-                    <div className="flex-1">
-                      <div className="font-semibold">{c.companyName || c.name || "Company"}</div>
-                      <div className="text-xs text-gray-500">{c.industryType || c.tagline || ""}</div>
+                <li key={id} className="p-4 border border-gray-200 rounded hover:shadow-md transition">
+                  <div className="flex items-center gap-4">
+                    <img src={c.imageUrl || ""} alt="logo" className="w-12 h-12 rounded object-cover bg-gray-200 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-gray-800">{c.companyName || c.name || "Company"}</div>
+                      <div className="text-xs text-gray-500">{c.industryType || c.tagline || "Industry info not available"}</div>
                     </div>
-                    <div className="flex gap-2">
-                      <button onClick={() => openCompanyProfile(c)} className="px-3 py-1 bg-gray-100 rounded text-sm">Profile</button>
-                      <button onClick={() => toggleExpand(c)} className="px-3 py-1 bg-indigo-600 text-white rounded text-sm">Jobs</button>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button onClick={() => openCompanyProfile(c)} className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm font-medium">Profile</button>
+                      <button onClick={() => openCompanyProfile(c)} className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm font-medium">View Jobs</button>
                     </div>
                   </div>
 
-                  {expanded === id && (
-                    <div className="mt-2 ml-12">
-                      <h4 className="text-sm font-medium mb-2">Jobs</h4>
-                      <ul>
-                        {(companyJobs[id] || []).length === 0 && (
-                          <li className="text-xs text-gray-500">No jobs found for this company.</li>
-                        )}
-                        {(companyJobs[id] || []).map((job) => (
-                          <li key={job._id || job.id} className="flex items-center justify-between py-2">
-                            <div>
-                              <div className="font-medium">{job.title}</div>
-                              <div className="text-xs text-gray-500">{new Date(job.deadline || job.createdAt || "").toLocaleDateString()}</div>
-                            </div>
-                            <div className="flex gap-2">
-                              <button onClick={() => applyToJob(job, c)} className="px-3 py-1 bg-green-600 text-white rounded text-sm">Apply</button>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
                 </li>
               );
             })}
           </ul>
         </div>
+      </div>
       </div>
     </div>
   );

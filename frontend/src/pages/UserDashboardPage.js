@@ -167,7 +167,8 @@ const UserDashboardPage = () => {
               placeholder="Search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-transparent outline-none text-sm text-gray-700"
+              onFocus={() => window.open('/search', '_blank')}
+              className="bg-transparent outline-none text-sm text-gray-700 cursor-text"
             />
           </div>
 

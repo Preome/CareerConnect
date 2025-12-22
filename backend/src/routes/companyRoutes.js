@@ -9,6 +9,12 @@ const upload = require("../middleware/upload"); // multer for images
 // Public routes
 // -----------------------
 
+// Search companies (public)
+router.get("/search", CompanyController.searchCompanies);
+
+// Get company by id (public)
+router.get("/:id", CompanyController.getCompanyById);
+
 // (Optional) Company registration handled in authRoutes.js
 // router.post("/register", upload.single("image"), CompanyController.registerCompany);
 

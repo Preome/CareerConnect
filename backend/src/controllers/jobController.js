@@ -78,9 +78,14 @@ exports.createJob = async (req, res) => {
 // ===============================
 exports.getAllJobsForUsers = async (req, res) => {
   try {
-    const { category, department, studentCategory, search } = req.query;
+    const { category, department, studentCategory, search, companyId } = req.query;
 
     const filter = {};
+
+    // Allow filtering by company id for client-side company job lookups
+    if (companyId) {
+      filter.company = companyId;
+    }
 
     if (category && category !== "Any") {
       filter.category = category;

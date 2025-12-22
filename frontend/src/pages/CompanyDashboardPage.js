@@ -268,7 +268,7 @@ const CompanyDashboardPage = () => {
 
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/company-profile")}
+              onClick={() => navigate(`/company/${profile?.id || profile?._id}`)}
             >
               Profile
             </button>
