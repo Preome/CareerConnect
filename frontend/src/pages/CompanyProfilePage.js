@@ -45,6 +45,10 @@ const CompanyProfilePage = () => {
   const [expandedJob, setExpandedJob] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    loading: false
+  });
 
   const fileInputRefSidebar = useRef(null);
   const fileInputRefMain = useRef(null);
@@ -209,10 +213,37 @@ const CompanyProfilePage = () => {
   };
 
   const handleDelete = () => {
-    localStorage.removeItem("profile");
-    setProfile(normalizeProfile({}));
-    setTempProfile(normalizeProfile({}));
-    setIsEditing(false);
+    setDeleteModal({ isOpen: true, loading: false });
+  };
+
+  const confirmDelete = async () => {
+    setDeleteModal({ isOpen: true, loading: true });
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/company/delete-profile`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete company");
+      }
+
+      // Clear local storage and redirect to home page
+      localStorage.removeItem("profile");
+      localStorage.removeItem("token");
+      navigate("/");
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Error deleting company profile");
+      setDeleteModal({ isOpen: false, loading: false });
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, loading: false });
   };
 
   const handleFileSelected = (file) => {
@@ -568,14 +599,22 @@ const CompanyProfilePage = () => {
             </div>
 
             {/* Buttons (edit/save only for owner) */}
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3 mt-6 flex-wrap">
               {!isEditing && isOwner && (
-                <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
-                  onClick={() => setIsEditing(true)}
-                >
-                  Edit
-                </button>
+                <>
+                  <button
+                    className="bg-blue-600 text-white px-4 py-2 rounded"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                    onClick={handleDelete}
+                  >
+                    Delete Profile
+                  </button>
+                </>
               )}
 
               {isEditing && isOwner && (
@@ -593,18 +632,39 @@ const CompanyProfilePage = () => {
                   >
                     Cancel
                   </button>
-
-                  <button
-                    className="bg-red-600 text-white px-4 py-2 rounded"
-                    onClick={handleDelete}
-                  >
-                    Delete
-                  </button>
                 </>
               )}
             </div>
           </div>
         </main>
+
+        {/* Delete Confirmation Modal */}
+        {deleteModal.isOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
+              <h2 className="text-xl font-bold text-red-600 mb-4">Delete Company Profile</h2>
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete your company profile? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={cancelDelete}
+                  disabled={deleteModal.loading}
+                  className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleteModal.loading}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deleteModal.loading ? "Deleting..." : "Delete Profile"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -2,6 +2,10 @@
 const express = require("express");
 const router = express.Router();
 const DeleteRequest = require("../models/DeleteRequest");
+const authController = require("../controllers/authController");
+
+// GET /api/users/search - Search for users
+router.get("/search", authController.searchUsers);
 
 // POST /api/request-delete
 router.post("/request-delete", async (req, res) => {

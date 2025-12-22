@@ -132,3 +132,19 @@ exports.uploadImage = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// Delete company profile
+exports.deleteCompany = async (req, res) => {
+  try {
+    const companyId = req.user && req.user.id;
+    if (!companyId) return res.status(401).json({ message: "Unauthorized" });
+
+    const company = await Company.findByIdAndDelete(companyId);
+    if (!company) return res.status(404).json({ message: "Company not found" });
+
+    res.json({ message: "Company profile deleted successfully" });
+  } catch (err) {
+    console.error("Delete company error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};

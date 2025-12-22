@@ -74,6 +74,8 @@ exports.registerUser = async (req, res) => {
       "careerconnect/users"
     );
 
+    console.log("Creating user with:", { name, gender, email, mobile, studentType, department, imageUrl });
+
     const user = await User.create({
       name,
       gender,
@@ -84,6 +86,8 @@ exports.registerUser = async (req, res) => {
       department,
       imageUrl,
     });
+
+    console.log("User created:", user._id);
 
     const token = createToken(user._id, "user");
     res.status(201).json({
@@ -101,8 +105,8 @@ exports.registerUser = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Registration error:", err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
 
@@ -549,6 +553,53 @@ exports.deleteAccount = async (req, res) => {
 
     res.json({ message: "Account deleted successfully" });
 
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// GET /api/users/search - Search for users by name, email, skills
+exports.searchUsers = async (req, res) => {
+  try {
+    const { search } = req.query;
+    
+    if (!search) {
+      return res.json([]);
+    }
+
+    const searchRegex = new RegExp(search, 'i');
+    
+    const users = await User.find({
+      role: "user",
+      $or: [
+        { name: searchRegex },
+        { email: searchRegex },
+        { skills: searchRegex },
+        { currentAddress: searchRegex },
+        { university: searchRegex }
+      ]
+    }).select('-password'); // Exclude password field
+
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// GET /api/auth/user/:userId - Get a specific user's profile
+exports.getUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

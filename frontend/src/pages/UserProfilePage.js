@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
 // 🔔 SOCKET.IO
@@ -8,12 +8,16 @@ const socket = io("http://localhost:5000", { transports: ["websocket"] });
 
 const UserProfilePage = () => {
   const navigate = useNavigate();
+  const { userId } = useParams();
   const storedProfile = localStorage.getItem("profile");
   const initialProfile = storedProfile ? JSON.parse(storedProfile) : null;
   const token = localStorage.getItem("token");
+  
+  // Determine if we're viewing another user's profile or our own
+  const isViewingOtherUser = !!userId && userId !== initialProfile?.id;
 
   // State for profile data
-  const [profile, setProfile] = useState(initialProfile);
+  const [profile, setProfile] = useState(isViewingOtherUser ? null : initialProfile);
   
   // State for edit mode
   const [isEditing, setIsEditing] = useState(false);
@@ -96,6 +100,24 @@ const UserProfilePage = () => {
       });
     }
   }, [isEditing, profile]);
+
+  // Fetch other user's profile when viewing their profile
+  useEffect(() => {
+    if (isViewingOtherUser && userId) {
+      const fetchOtherUserProfile = async () => {
+        try {
+          const res = await axios.get(`${API_BASE_URL}/auth/user/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setProfile(res.data);
+        } catch (err) {
+          console.error("Failed to fetch user profile:", err);
+          navigate("/");
+        }
+      };
+      fetchOtherUserProfile();
+    }
+  }, [userId, isViewingOtherUser, token, navigate]);
 
   // 🔔 FETCH NOTIFICATIONS ON MOUNT
   useEffect(() => {
@@ -560,28 +582,32 @@ const UserProfilePage = () => {
                   {isEditing ? "Edit Student Profile" : "Student Profile"}
                 </h2>
                 
-                {!isEditing ? (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition font-semibold"
-                  >
-                    Edit
-                  </button>
-                ) : (
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleSaveProfile}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold"
-                    >
-                      Save Profile
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition font-semibold"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+                {!isViewingOtherUser && (
+                  <>
+                    {!isEditing ? (
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition font-semibold"
+                      >
+                        Edit
+                      </button>
+                    ) : (
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleSaveProfile}
+                          className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold"
+                        >
+                          Save Profile
+                        </button>
+                        <button
+                          onClick={handleCancel}
+                          className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition font-semibold"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 

@@ -28,7 +28,7 @@ const CompanySearchPage = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/users/search?search=${encodeURIComponent(term)}`, {
+      const res = await fetch(`${API_BASE_URL}/user/search?search=${encodeURIComponent(term)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -54,7 +54,7 @@ const CompanySearchPage = () => {
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Header */}
       <header className="w-full bg-blue-900 text-white px-8 py-4 shadow-md flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">CareerConnect - Search Candidates</h1>
+        <h1 className="text-2xl font-semibold">CareerConnect - Search Users</h1>
         <button 
           onClick={goBack}
           className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-medium"
@@ -66,13 +66,13 @@ const CompanySearchPage = () => {
       {/* Main Content */}
       <div className="flex-1 p-6">
       <div className="max-w-4xl mx-auto bg-white rounded shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Search Job Candidates</h2>
+        <h2 className="text-xl font-semibold mb-4">Search Users</h2>
         <div className="flex items-center gap-2 mb-4">
           <input
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search by name, skills, or location..."
+            placeholder="Search by user name..."
             className="w-full px-4 py-2 border border-gray-300 rounded text-sm"
           />
           <button onClick={() => setQ("")} className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded text-sm font-medium">Clear</button>
@@ -82,11 +82,11 @@ const CompanySearchPage = () => {
           {loading && <div className="text-sm text-gray-500 text-center py-4">Searching...</div>}
 
           {!loading && results.length === 0 && q && (
-            <div className="text-sm text-gray-500 text-center py-4">No candidates found. Try another search.</div>
+            <div className="text-sm text-gray-500 text-center py-4">No users found. Try another search.</div>
           )}
 
           {!loading && results.length === 0 && !q && (
-            <div className="text-sm text-gray-400 text-center py-8">Start typing to search for job candidates</div>
+            <div className="text-sm text-gray-400 text-center py-8">Start typing to search for users</div>
           )}
 
           <ul className="space-y-3">
@@ -99,10 +99,9 @@ const CompanySearchPage = () => {
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-gray-800">{user.fullName || user.name || "User"}</div>
                       <div className="text-xs text-gray-500">{user.email || "Email not available"}</div>
-                      {user.skills && user.skills.length > 0 && (
+                      {user.skills && user.skills.trim() !== "" && (
                         <div className="text-xs text-gray-600 mt-1">
-                          Skills: {user.skills.slice(0, 3).join(", ")}
-                          {user.skills.length > 3 && ` +${user.skills.length - 3}`}
+                          Skills: {user.skills}
                         </div>
                       )}
                     </div>

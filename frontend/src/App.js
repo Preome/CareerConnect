@@ -27,6 +27,7 @@ import JobApplicantsPage from "./pages/JobApplicantsPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminPanelPage from "./pages/AdminPanelPage";
 import SearchPage from "./pages/SearchPage";
+import CompanySearchPage from "./pages/CompanySearchPage";
 
 function App() {
   return (
@@ -41,9 +42,11 @@ function App() {
           <Route path="/user-dashboard" element={<UserDashboardPage />} />
           <Route path="/company-dashboard" element={<CompanyDashboardPage />} />
           <Route path="/user-profile" element={<UserProfilePage />} />
+          <Route path="/user-profile/:userId" element={<UserProfilePage />} />
           <Route path="/company-profile" element={<CompanyProfilePage />} />
           <Route path="/company/:id" element={<CompanyProfilePage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/company-search" element={<CompanySearchPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/about" element={<AboutPage />} />
 

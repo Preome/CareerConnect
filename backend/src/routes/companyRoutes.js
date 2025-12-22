@@ -37,6 +37,9 @@ router.post(
   CompanyController.uploadImage
 );
 
+// Delete company profile
+router.delete("/delete-profile", auth, isRole("company"), CompanyController.deleteCompany);
+
 module.exports = router;
 
 

@@ -16,6 +16,7 @@ const CompanyDashboardPage = () => {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const avatarUrl = profile?.imageUrl || null;
 
@@ -98,7 +99,10 @@ const CompanyDashboardPage = () => {
             <input
               type="text"
               placeholder="Search"
-              className="bg-transparent outline-none text-sm text-gray-700"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => window.open('/company-search', '_blank')}
+              className="bg-transparent outline-none text-sm text-gray-700 cursor-text"
             />
           </div>
 
