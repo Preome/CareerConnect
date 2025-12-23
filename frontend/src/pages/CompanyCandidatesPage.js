@@ -160,6 +160,13 @@ const CompanyCandidatesPage = () => {
             >
               Query Forum
             </button>
+            {/* NEW: Posted CareerEvents */}
+            <button
+              className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
+              onClick={() => navigate("/company/posted-career-events")}
+            >
+              Posted CareerEvents
+            </button>
             <button
               className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
               onClick={() => navigate("/company-profile")}
@@ -241,17 +248,3 @@ const CompanyCandidatesPage = () => {
 };
 
 export default CompanyCandidatesPage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-

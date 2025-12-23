@@ -130,6 +130,14 @@ const CompanyDashboardPage = () => {
             >
               Profile
             </button>
+
+            {/* NEW: Posted CareerEvents */}
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/company/posted-career-events")}
+            >
+              Posted CareerEvents
+            </button>
           </nav>
         </aside>
 
@@ -146,13 +154,23 @@ const CompanyDashboardPage = () => {
                 </p>
               </div>
 
-              {/* navigate to Add Job page */}
-              <button
-                className="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow"
-                onClick={() => navigate("/company/jobs/new")}
-              >
-                Add Job post
-              </button>
+              <div className="flex gap-3">
+                {/* NEW: navigate to Add CareerEvent page */}
+                <button
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md shadow"
+                  onClick={() => navigate("/company/career-events/new")}
+                >
+                  Add CareerEvents
+                </button>
+
+                {/* navigate to Add Job page */}
+                <button
+                  className="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow"
+                  onClick={() => navigate("/company/jobs/new")}
+                >
+                  Add Job post
+                </button>
+              </div>
             </div>
           </div>
         </main>
@@ -162,7 +180,3 @@ const CompanyDashboardPage = () => {
 };
 
 export default CompanyDashboardPage;
-
-
-
-

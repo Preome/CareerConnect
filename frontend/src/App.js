@@ -24,6 +24,10 @@ import CompanyCandidatesPage from "./pages/CompanyCandidatesPage";
 import JobApplicantsPage from "./pages/JobApplicantsPage";
 import FollowedJobsPage from "./pages/FollowedJobsPage";
 
+// Career events pages (NEW)
+import AddCareerEventPage from "./pages/AddCareerEventPage";
+import PostedCareerEventsPage from "./pages/PostedCareerEventsPage";
+
 // Admin pages
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminPanelPage from "./pages/AdminPanelPage";
@@ -60,6 +64,20 @@ function App() {
           <Route path="/followed-jobs" element={<FollowedJobsPage />} />
           <Route path="/company/jobs/:id/edit" element={<EditJobPage />} />
           <Route path="/company/posted-jobs" element={<PostedJobsPage />} />
+
+          {/* Company career-events routes (NEW) */}
+          <Route
+            path="/company/career-events/new"
+            element={<AddCareerEventPage />}
+          />
+          <Route
+            path="/company/career-events/:id/edit"
+            element={<AddCareerEventPage />}
+          />
+          <Route
+            path="/company/posted-career-events"
+            element={<PostedCareerEventsPage />}
+          />
 
           {/* Admin routes */}
           <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
