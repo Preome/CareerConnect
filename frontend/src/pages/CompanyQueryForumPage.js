@@ -231,13 +231,13 @@ const CompanyQueryForumPage = () => {
             </button>
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/posted-jobs")}
+              onClick={() => navigate("/company/posted-jobs")}
             >
               Posted Jobs
             </button>
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/candidate-list")}
+              onClick={() => navigate("/company/candidates")}
             >
               Candidate list
             </button>
