@@ -63,12 +63,10 @@ const CompanyProfilePage = () => {
   };
 
   const handleSave = async () => {
-    // Persist to backend and update localStorage with server's canonical data
     try {
       const token = localStorage.getItem("token");
       if (!token) return alert("Not authenticated");
 
-      // Preserve id from stored profile (login sets id), if present
       const stored = JSON.parse(localStorage.getItem("profile") || "{}");
       let companyId = stored.id || stored._id || profile.id;
       if (!companyId) return alert("Company id not found. Please re-login.");
@@ -88,12 +86,9 @@ const CompanyProfilePage = () => {
         return alert(data.message || "Failed to save profile");
       }
 
-      // Build a lightweight profile object to store in localStorage
       const newProfile = {
         id: data._id || data.id || companyId,
         role: "company",
-
-        // BASIC FIELDS
         companyName: data.companyName,
         email: data.email,
         contactNo: data.contactNo,
@@ -102,8 +97,6 @@ const CompanyProfilePage = () => {
         address: data.address,
         licenseNo: data.licenseNo,
         imageUrl: data.imageUrl,
-
-        // ADDITIONAL FIELDS (FULL SUPPORT)
         website: data.website,
         companySize: data.companySize,
         companyType: data.companyType,
@@ -115,7 +108,6 @@ const CompanyProfilePage = () => {
         hrEmail: data.hrEmail,
         hrPhone: data.hrPhone,
       };
-
 
       setProfile({ ...profile, ...tempProfile });
       setTempProfile({ ...tempProfile });
@@ -249,12 +241,52 @@ const CompanyProfilePage = () => {
           </div>
 
           <nav className="flex flex-col text-sm">
-            <button className="px-4 py-2 text-left hover:bg-slate-800" onClick={() => navigate("/company-dashboard")}>Dashboard</button>
-            <button className="px-4 py-2 text-left hover:bg-slate-800">Posted Jobs</button>
-            <button className="px-4 py-2 text-left hover:bg-slate-800">Candidate list</button>
-            <button className="px-4 py-2 text-left hover:bg-slate-800">Messages</button>
-            <button className="px-4 py-2 text-left hover:bg-slate-800">Query Forum</button>
-            <button className="px-4 py-2 text-left bg-indigo-600">Profile</button>
+            {/* Dashboard */}
+            <button 
+              className="px-4 py-2 text-left hover:bg-slate-800" 
+              onClick={() => navigate("/company-dashboard")}
+            >
+              Dashboard
+            </button>
+
+            {/* Posted Jobs */}
+            <button 
+              className="px-4 py-2 text-left hover:bg-slate-800"
+              onClick={() => navigate("/company/posted-jobs")}
+            >
+              Posted Jobs
+            </button>
+
+            {/* Candidate list */}
+            <button 
+              className="px-4 py-2 text-left hover:bg-slate-800"
+              onClick={() => navigate("/company/candidates")}
+            >
+              Candidate list
+            </button>
+
+            {/* Messages */}
+            <button className="px-4 py-2 text-left hover:bg-slate-800">
+              Messages
+            </button>
+
+            {/* Query Forum */}
+            <button className="px-4 py-2 text-left hover:bg-slate-800">
+              Query Forum
+            </button>
+
+            {/* Posted CareerEvents - BEFORE Profile */}
+            <button
+              className="px-4 py-2 text-left hover:bg-slate-800"
+              onClick={() => navigate("/company/posted-career-events")}
+            >
+              Posted CareerEvents
+            </button>
+
+            {/* Profile - ACTIVE (purple) - LAST */}
+            <button className="px-4 py-2 text-left bg-indigo-600">
+              Profile
+            </button>
           </nav>
         </aside>
 

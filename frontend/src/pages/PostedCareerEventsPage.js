@@ -128,61 +128,72 @@ const PostedCareerEventsPage = () => {
       </header>
 
       <div className="flex flex-1">
-        {/* Sidebar (company) */}
-        <aside className="w-52 bg-slate-900 text-white pt-6 sticky top-0 self-start h-screen border-r border-slate-700">
+        {/* Sidebar (company) - FIXED TO MATCH DASHBOARD */}
+        <aside className="w-56 bg-slate-900 text-white pt-6">
           <div className="flex flex-col items-center mb-6">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt="Company"
-                className="w-16 h-16 rounded-full bg-slate-700 mb-2 object-cover shadow-lg border-2 border-indigo-500"
+                className="w-16 h-16 rounded-md bg-slate-700 mb-2 object-cover"
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-slate-700 mb-2 flex items-center justify-center text-2xl">
-                🏢
-              </div>
+              <div className="w-16 h-16 rounded-md bg-slate-700 mb-2" />
             )}
-            <span className="text-sm font-semibold text-gray-200">
-              {companyProfile?.name || companyProfile?.companyName || "Company"}
+            <span className="text-xs text-gray-300">
+              {companyProfile?.companyName || companyProfile?.name || "Company"}
             </span>
           </div>
 
           <nav className="flex flex-col text-sm">
+            {/* Dashboard */}
             <button
-              className="text-left px-4 py-3 hover:bg-slate-800 transition-colors"
+              className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company-dashboard")}
             >
               Dashboard
             </button>
+
+            {/* Posted Jobs */}
             <button
-              className="text-left px-4 py-3 hover:bg-slate-800 transition-colors"
+              className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company/posted-jobs")}
             >
               Posted Jobs
             </button>
+
+            {/* Candidate list */}
             <button
-              className="text-left px-4 py-3 hover:bg-slate-800 transition-colors"
+              className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company/candidates")}
             >
               Candidate list
             </button>
-            <button className="text-left px-4 py-3 hover:bg-slate-800 transition-colors">
+
+            {/* Messages */}
+            <button className="text-left px-4 py-2 hover:bg-slate-800">
               Messages
             </button>
-            <button className="text-left px-4 py-3 hover:bg-slate-800 transition-colors">
+
+            {/* Query Forum */}
+            <button className="text-left px-4 py-2 hover:bg-slate-800">
               Query Forum
             </button>
+
+            {/* Posted CareerEvents - ACTIVE (clean purple, no bold) */}
+            <button className="text-left px-4 py-2 bg-indigo-600">
+              Posted CareerEvents
+            </button>
+
+            {/* Profile */}
             <button
-              className="text-left px-4 py-3 hover:bg-slate-800 transition-colors"
+              className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company-profile")}
             >
               Profile
-            </button>
-            <button className="text-left px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 font-semibold border-l-4 border-indigo-400">
-              Posted CareerEvents
             </button>
           </nav>
         </aside>

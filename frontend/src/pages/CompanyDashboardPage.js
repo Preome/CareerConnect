@@ -17,7 +17,7 @@ const CompanyDashboardPage = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
-    navigate("/"); // redirect to homepage
+    navigate("/");
   };
 
   return (
@@ -89,7 +89,7 @@ const CompanyDashboardPage = () => {
           </div>
 
           <nav className="flex flex-col text-sm">
-            {/* stay on dashboard */}
+            {/* Dashboard - ACTIVE (purple background) */}
             <button
               className="text-left px-4 py-2 bg-indigo-600"
               onClick={() => navigate("/company-dashboard")}
@@ -97,7 +97,7 @@ const CompanyDashboardPage = () => {
               Dashboard
             </button>
 
-            {/* go to posted jobs page */}
+            {/* Posted Jobs */}
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company/posted-jobs")}
@@ -105,7 +105,7 @@ const CompanyDashboardPage = () => {
               Posted Jobs
             </button>
 
-            {/* go to candidate list page */}
+            {/* Candidate list */}
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company/candidates")}
@@ -113,6 +113,7 @@ const CompanyDashboardPage = () => {
               Candidate list
             </button>
 
+            {/* Messages */}
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company/messages")}
@@ -120,23 +121,25 @@ const CompanyDashboardPage = () => {
               Messages
             </button>
 
+            {/* Query Forum */}
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Query Forum
             </button>
 
-            <button
-              className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/company-profile")}
-            >
-              Profile
-            </button>
-
-            {/* NEW: Posted CareerEvents */}
+            {/* Posted CareerEvents - BEFORE Profile */}
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company/posted-career-events")}
             >
               Posted CareerEvents
+            </button>
+
+            {/* Profile - LAST */}
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/company-profile")}
+            >
+              Profile
             </button>
           </nav>
         </aside>
@@ -155,7 +158,7 @@ const CompanyDashboardPage = () => {
               </div>
 
               <div className="flex gap-3">
-                {/* NEW: navigate to Add CareerEvent page */}
+                {/* Add CareerEvents button */}
                 <button
                   className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md shadow"
                   onClick={() => navigate("/company/career-events/new")}
@@ -163,7 +166,7 @@ const CompanyDashboardPage = () => {
                   Add CareerEvents
                 </button>
 
-                {/* navigate to Add Job page */}
+                {/* Add Job post button */}
                 <button
                   className="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow"
                   onClick={() => navigate("/company/jobs/new")}
