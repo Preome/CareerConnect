@@ -24,7 +24,8 @@ const AdminLayout = ({ profile, children }) => {
             <input
               type="text"
               placeholder="Search"
-              className="ml-2 bg-transparent outline-none text-sm text-gray-700"
+              onFocus={() => navigate('/search')}
+              className="ml-2 bg-transparent outline-none text-sm text-gray-700 cursor-text"
             />
           </div>
 

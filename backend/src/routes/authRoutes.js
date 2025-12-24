@@ -9,7 +9,8 @@ const {
   googleLogin,
   changePassword,
   updateUserProfile,
-  deleteAccount
+  deleteAccount,
+  getUserProfile
 } = require("../controllers/authController");
 
 // user registration WITH image file named "image"
@@ -40,6 +41,9 @@ router.put(
 
 // NEW: delete account route
 router.delete("/delete-account", deleteAccount);
+
+// NEW: get specific user profile
+router.get("/user/:userId", getUserProfile);
 
 module.exports = router;
 

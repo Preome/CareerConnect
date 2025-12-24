@@ -12,6 +12,7 @@ const AdminPanelPage = () => {
   const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [jobPosts, setJobPosts] = useState([]);
+  const [pendingJobs, setPendingJobs] = useState([]);
   const [pending, setPending] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -27,22 +28,33 @@ const AdminPanelPage = () => {
       try {
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [usersRes, companiesRes, jobsRes, pendingRes] = await Promise.all([
+        const [usersRes, companiesRes, jobsRes, pendingJobsRes, pendingRes] = await Promise.all([
           fetch(`${API_BASE_URL}/admin/users`, { headers }),
           fetch(`${API_BASE_URL}/admin/companies`, { headers }),
           fetch(`${API_BASE_URL}/admin/jobs`, { headers }),
+          fetch(`${API_BASE_URL}/admin/pending-jobs`, { headers }),
           fetch(`${API_BASE_URL}/admin/pending`, { headers }),
         ]);
 
-        setUsers(await usersRes.json());
-        setCompanies(await companiesRes.json());
-        setJobPosts(await jobsRes.json());
+        const usersData = await usersRes.json();
+        const companiesData = await companiesRes.json();
+        const jobsData = await jobsRes.json();
+        const pendingJobsData = await pendingJobsRes.json();
+        const pendingData = await pendingRes.json();
 
-        const pendingJson = await pendingRes.json();
-        setPending([
-          ...(pendingJson.pendingCompanies || []),
-          ...(pendingJson.pendingUsers || []),
-        ]);
+        setUsers(Array.isArray(usersData) ? usersData : usersData.users || []);
+        setCompanies(Array.isArray(companiesData) ? companiesData : companiesData.companies || []);
+        setJobPosts(Array.isArray(jobsData) ? jobsData : jobsData.jobs || []);
+        setPendingJobs(Array.isArray(pendingJobsData) ? pendingJobsData : []);
+
+        const pendingCompanies = Array.isArray(pendingData.pendingCompanies)
+          ? pendingData.pendingCompanies
+          : (pendingData.pendingCompanies?.data || []);
+        const pendingUsers = Array.isArray(pendingData.pendingUsers)
+          ? pendingData.pendingUsers
+          : (pendingData.pendingUsers?.data || []);
+
+        setPending([...pendingCompanies, ...pendingUsers]);
       } catch (err) {
         console.error("Admin panel fetch error:", err);
       } finally {
@@ -53,21 +65,33 @@ const AdminPanelPage = () => {
     loadData();
   }, [token, navigate]);
 
-  const handleDelete = async (type, id) => {
+  const handleDelete = async (type, id, isPending = false) => {
     if (!window.confirm("Are you sure?")) return;
 
-    const map = { users: "user", companies: "company", jobs: "job" };
+    const map = { users: "user", companies: "company", jobs: "jobs" };
 
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/${map[type]}/${id}`, {
+      let endpoint = `${API_BASE_URL}/admin/${map[type]}/${id}`;
+
+      // For pending requests, use different endpoints
+      if (isPending) {
+        if (type === "companies") {
+          endpoint = `${API_BASE_URL}/admin/pending-company/${id}`;
+        } else if (type === "users") {
+          endpoint = `${API_BASE_URL}/admin/pending-user/${id}`;
+        }
+      }
+
+      const res = await fetch(endpoint, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
-        if (type === "users") setUsers((p) => p.filter((u) => u._id !== id));
-        if (type === "companies") setCompanies((p) => p.filter((c) => c._id !== id));
+        if (type === "users" && !isPending) setUsers((p) => p.filter((u) => u._id !== id));
+        if (type === "companies" && !isPending) setCompanies((p) => p.filter((c) => c._id !== id));
         if (type === "jobs") setJobPosts((p) => p.filter((j) => j._id !== id));
+        if (isPending) setPending((p) => p.filter((item) => item._id !== id));
       }
     } catch {}
   };
@@ -83,7 +107,7 @@ const AdminPanelPage = () => {
           </div>
 
           <div className="flex gap-2">
-            {["users", "companies", "jobs", "pending"].map((tab) => (
+            {["users", "companies", "jobs", "pending-jobs", "pending"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setPanelTab(tab)}
@@ -91,7 +115,7 @@ const AdminPanelPage = () => {
                   panelTab === tab ? "bg-indigo-600 text-white" : "bg-gray-100"
                 }`}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab === "pending-jobs" ? "Pending Jobs" : tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
             ))}
           </div>
@@ -154,6 +178,11 @@ const AdminPanelPage = () => {
                     <th key={col} className="py-2 px-3 text-left">{col}</th>
                   ))}
 
+                {panelTab === "pending-jobs" &&
+                  ["Job Title", "Company", "Created", "Action"].map((col) => (
+                    <th key={col} className="py-2 px-3 text-left">{col}</th>
+                  ))}
+
                 {panelTab === "pending" &&
                   ["Title", "Type", "Action"].map((col) => (
                     <th key={col} className="py-2 px-3 text-left">{col}</th>
@@ -192,6 +221,57 @@ const AdminPanelPage = () => {
                     <td className="py-2 px-3">
                       <button
                         onClick={() => handleDelete("companies", c._id)}
+                        className="text-red-600"
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+              {panelTab === "jobs" &&
+                jobPosts.map((j) => (
+                  <tr key={j._id} className="hover:bg-gray-100">
+                    <td className="py-2 px-3">{j.title}</td>
+                    <td className="py-2 px-3">{j.company?.companyName || "N/A"}</td>
+                    <td className="py-2 px-3">
+                      <button
+                        onClick={() => handleDelete("jobs", j._id)}
+                        className="text-red-600"
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+              {panelTab === "pending-jobs" &&
+                pendingJobs.map((j) => (
+                  <tr key={j._id} className="hover:bg-gray-100">
+                    <td className="py-2 px-3">{j.title}</td>
+                    <td className="py-2 px-3">{j.company?.companyName || "N/A"}</td>
+                    <td className="py-2 px-3">
+                      {new Date(j.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-2 px-3">
+                      <button
+                        onClick={() => handleDelete("jobs", j._id)}
+                        className="text-red-600"
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+              {panelTab === "pending" &&
+                pending.map((p) => (
+                  <tr key={p._id} className="hover:bg-gray-100">
+                    <td className="py-2 px-3">{p.companyName || p.name || "Pending Item"}</td>
+                    <td className="py-2 px-3">{p.companyName ? "Company" : "User"}</td>
+                    <td className="py-2 px-3">
+                      <button
+                        onClick={() => handleDelete(p.companyName ? "companies" : "users", p._id, true)}
                         className="text-red-600"
                       >
                         <FaTrash />

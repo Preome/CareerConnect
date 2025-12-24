@@ -114,7 +114,7 @@ const PostedJobsPage = () => {
       <div className="flex flex-1">
         {/* left sidebar: sticky so it stays while scrolling */}
         <aside className="w-56 bg-slate-900 text-white pt-6 hidden md:flex flex-col items-center sticky top-0 self-start h-screen">
-          <div className="mb-6 flex flex-col items-center">
+            <div className="mb-6 flex flex-col items-center">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
@@ -132,7 +132,7 @@ const PostedJobsPage = () => {
             </span>
           </div>
 
-          <nav className="w-full space-y-1 px-3 text-sm">
+            <nav className="w-full space-y-1 px-3 text-sm">
             <button
               className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
               onClick={() => navigate("/company-dashboard")}
@@ -166,7 +166,7 @@ const PostedJobsPage = () => {
             </button>
             <button
               className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
-              onClick={() => navigate("/company-profile")}
+              onClick={() => navigate(`/company/${profile?.id || profile?._id}`)}
             >
               Profile
             </button>
