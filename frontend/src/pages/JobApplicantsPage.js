@@ -12,13 +12,14 @@ const JobApplicantsPage = () => {
   const [docView, setDocView] = useState({ url: null, isPdf: false });
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // email modal state
   const [emailModal, setEmailModal] = useState({
     open: false,
     to: "",
     name: "",
     subject: "",
     message: "",
+    multiple: false,
+    recipients: [],
   });
 
   const jobTitle = location.state?.jobTitle || "Job Applicants";
@@ -33,7 +34,6 @@ const JobApplicantsPage = () => {
       );
       setApplications(res.data || []);
     } catch (err) {
-      console.error(err.response?.data || err.message);
       alert(
         err.response?.data?.error ||
           err.response?.data?.message ||
@@ -98,7 +98,6 @@ const JobApplicantsPage = () => {
         )
       );
     } catch (err) {
-      console.error(err.response?.data || err.message);
       alert(
         err.response?.data?.error ||
           err.response?.data?.message ||
@@ -117,7 +116,6 @@ const JobApplicantsPage = () => {
       );
       setApplications((prev) => prev.filter((a) => a._id !== applicationId));
     } catch (err) {
-      console.error(err.response?.data || err.message);
       alert(
         err.response?.data?.error ||
           err.response?.data?.message ||
@@ -144,7 +142,7 @@ const JobApplicantsPage = () => {
     return a.status === statusFilter;
   });
 
-  // open email modal for given applicant
+  // single‑applicant email
   const openEmailModal = (app) => {
     const to = app.userId?.email || "";
     const name = app.userId?.name || "applicant";
@@ -154,28 +152,85 @@ const JobApplicantsPage = () => {
       name,
       subject: `Regarding your application for ${app.jobTitle}`,
       message: `Dear ${name},\n\n`,
+      multiple: false,
+      recipients: [],
+    });
+  };
+
+  // bulk email by status
+  const openBulkEmailModal = (status) => {
+    const recipients = applications
+      .filter((a) => a.status === status)
+      .map((a) => a.userId?.email)
+      .filter(Boolean);
+
+    if (recipients.length === 0) {
+      alert(`No ${status} applicants to email.`);
+      return;
+    }
+
+    const label =
+      status === "shortlisted"
+        ? "shortlisted"
+        : status === "hired"
+        ? "hired"
+        : "rejected";
+
+    setEmailModal({
+      open: true,
+      to: `${recipients.length} ${label} applicant(s)`,
+      name: `${label} applicants`,
+      subject: `Update about your application for ${jobTitle}`,
+      message: `Dear applicant,\n\n`,
+      multiple: true,
+      recipients,
     });
   };
 
   const closeEmailModal = () =>
-    setEmailModal({ open: false, to: "", name: "", subject: "", message: "" });
+    setEmailModal({
+      open: false,
+      to: "",
+      name: "",
+      subject: "",
+      message: "",
+      multiple: false,
+      recipients: [],
+    });
 
   const sendEmail = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
-        "http://localhost:5000/api/applications/email",
-        {
-          to: emailModal.to,
-          subject: emailModal.subject,
-          message: emailModal.message,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+
+      if (emailModal.multiple) {
+        await Promise.all(
+          emailModal.recipients.map((to) =>
+            axios.post(
+              "http://localhost:5000/api/applications/email",
+              {
+                to,
+                subject: emailModal.subject,
+                message: emailModal.message,
+              },
+              { headers: { Authorization: `Bearer ${token}` } }
+            )
+          )
+        );
+      } else {
+        await axios.post(
+          "http://localhost:5000/api/applications/email",
+          {
+            to: emailModal.to,
+            subject: emailModal.subject,
+            message: emailModal.message,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
       alert("Email sent");
       closeEmailModal();
     } catch (err) {
-      console.error(err.response?.data || err.message);
       alert(
         err.response?.data?.error ||
           err.response?.data?.message ||
@@ -276,8 +331,8 @@ const JobApplicantsPage = () => {
               Applicants for: {jobTitle}
             </h2>
 
-            {/* status bar with ALL */}
-            <div className="mb-6">
+            {/* status bar */}
+            <div className="mb-4">
               <div className="w-full bg-slate-800 text-white rounded-lg shadow flex flex-col md:flex-row">
                 <div
                   className={`flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2 cursor-pointer ${
@@ -309,7 +364,9 @@ const JobApplicantsPage = () => {
 
                 <div
                   className={`flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2 cursor-pointer ${
-                    statusFilter === "shortlisted" ? "bg-blue-700" : "bg-blue-700/40"
+                    statusFilter === "shortlisted"
+                      ? "bg-blue-700"
+                      : "bg-blue-700/40"
                   }`}
                   onClick={() => setStatusFilter("shortlisted")}
                 >
@@ -323,7 +380,9 @@ const JobApplicantsPage = () => {
 
                 <div
                   className={`flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-slate-700 flex items-center justify-between md:justify-center gap-2 cursor-pointer ${
-                    statusFilter === "hired" ? "bg-green-700" : "bg-green-700/40"
+                    statusFilter === "hired"
+                      ? "bg-green-700"
+                      : "bg-green-700/40"
                   }`}
                   onClick={() => setStatusFilter("hired")}
                 >
@@ -337,7 +396,9 @@ const JobApplicantsPage = () => {
 
                 <div
                   className={`flex-1 px-4 py-3 flex items-center justify-between md:justify-center gap-2 cursor-pointer ${
-                    statusFilter === "rejected" ? "bg-red-700" : "bg-red-700/40"
+                    statusFilter === "rejected"
+                      ? "bg-red-700"
+                      : "bg-red-700/40"
                   }`}
                   onClick={() => setStatusFilter("rejected")}
                 >
@@ -350,6 +411,38 @@ const JobApplicantsPage = () => {
                 </div>
               </div>
             </div>
+
+            {/* single bulk button for current tab */}
+            {statusFilter === "shortlisted" && shortlistedCount > 0 && (
+              <div className="mb-6">
+                <button
+                  className="px-3 py-1 rounded bg-blue-600 text-white text-xs"
+                  onClick={() => openBulkEmailModal("shortlisted")}
+                >
+                  Email all shortlisted
+                </button>
+              </div>
+            )}
+            {statusFilter === "hired" && hiredCount > 0 && (
+              <div className="mb-6">
+                <button
+                  className="px-3 py-1 rounded bg-green-600 text-white text-xs"
+                  onClick={() => openBulkEmailModal("hired")}
+                >
+                  Email all hired
+                </button>
+              </div>
+            )}
+            {statusFilter === "rejected" && rejectedCount > 0 && (
+              <div className="mb-6">
+                <button
+                  className="px-3 py-1 rounded bg-red-600 text-white text-xs"
+                  onClick={() => openBulkEmailModal("rejected")}
+                >
+                  Email all rejected
+                </button>
+              </div>
+            )}
 
             {loading ? (
               <p>Loading applicants...</p>
@@ -458,48 +551,43 @@ const JobApplicantsPage = () => {
                                 <span className="font-semibold text-pink-700">
                                   Recommendations:
                                 </span>{" "}
-                                {app.recommendationLetters.map(
-                                  (file, idx) => (
-                                    <button
-                                      key={idx}
-                                      type="button"
-                                      onClick={() => openDoc(file)}
-                                      className="text-indigo-600 underline text-xs mr-2"
-                                    >
-                                      View Recommendation {idx + 1}
-                                    </button>
-                                  )
-                                )}
-                              </p>
-                            )}
-
-                          {app.careerSummary &&
-                            app.careerSummary.length > 0 && (
-                              <p className="mt-1">
-                                <span className="font-semibold text-pink-700">
-                                  Career Summary:
-                                </span>{" "}
-                                {app.careerSummary.map((file, idx) => (
+                                {app.recommendationLetters.map((file, idx) => (
                                   <button
                                     key={idx}
                                     type="button"
                                     onClick={() => openDoc(file)}
                                     className="text-indigo-600 underline text-xs mr-2"
                                   >
-                                    View Career Summary {idx + 1}
+                                    View Recommendation {idx + 1}
                                   </button>
                                 ))}
                               </p>
                             )}
+
+                          {app.careerSummary && app.careerSummary.length > 0 && (
+                            <p className="mt-1">
+                              <span className="font-semibold text-pink-700">
+                                Career Summary:
+                              </span>{" "}
+                              {app.careerSummary.map((file, idx) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => openDoc(file)}
+                                  className="text-indigo-600 underline text-xs mr-2"
+                                >
+                                  View Career Summary {idx + 1}
+                                </button>
+                              ))}
+                            </p>
+                          )}
                         </div>
                       </div>
 
                       <div className="flex flex-col items-stretch justify-start gap-2 w-28">
                         <button
                           className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs w-full"
-                          onClick={() =>
-                            updateStatus(app._id, "shortlisted")
-                          }
+                          onClick={() => updateStatus(app._id, "shortlisted")}
                         >
                           Shortlist
                         </button>
@@ -541,6 +629,9 @@ const JobApplicantsPage = () => {
 };
 
 export default JobApplicantsPage;
+
+
+
 
 
 

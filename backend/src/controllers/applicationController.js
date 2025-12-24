@@ -301,18 +301,43 @@ exports.companyDeleteApplication = async (req, res) => {
 };
 
 
+// SINGLE + BULK EMAIL
+// body:
+//   single: { to, subject, message }
+//   bulk:   { recipients: [email1, ...], subject, message }
 exports.sendEmailToApplicant = async (req, res) => {
   try {
-    const { to, subject, message } = req.body;
-    if (!to || !subject || !message) {
+    const { to, recipients, subject, message } = req.body;
+
+    if (!subject || !message) {
       return res
         .status(400)
-        .json({ error: "to, subject and message are required" });
+        .json({ error: "subject and message are required" });
+    }
+
+    // bulk: array from frontend (Email all shortlisted/hired/rejected)
+    if (Array.isArray(recipients) && recipients.length > 0) {
+      await sendEmail({
+        to: recipients,          // Nodemailer accepts array
+        subject,
+        text: message,
+      });
+      return res.json({
+        message: "Bulk email sent successfully",
+        count: recipients.length,
+      });
+    }
+
+    // single: existing behaviour
+    if (!to) {
+      return res
+        .status(400)
+        .json({ error: "to (recipient email) is required" });
     }
 
     await sendEmail({ to, subject, text: message });
 
-    res.json({ message: "Email sent successfully" });
+    res.json({ message: "Email sent successfully", count: 1 });
   } catch (error) {
     console.error("Send email error:", error);
     res.status(500).json({
@@ -321,3 +346,4 @@ exports.sendEmailToApplicant = async (req, res) => {
     });
   }
 };
+
