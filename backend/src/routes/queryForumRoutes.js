@@ -18,10 +18,37 @@ router.get("/", async (req, res) => {
   }
 });
 
+// NEW: GET only questions for a company, based on name in query string
+// GET /api/query-forum/company?name=Company%20ABC
+router.get("/company", async (req, res) => {
+  try {
+    const rawName = (req.query.name || "").trim();
+    if (!rawName) return res.json([]);
+
+    const regex = new RegExp(rawName, "i");
+
+    const questions = await Question.find({
+      $or: [{ title: regex }, { body: regex }, { companyName: regex }],
+    }).sort({ createdAt: -1 });
+
+    res.json(questions);
+  } catch (err) {
+    console.error("GET /api/query-forum/company error", err);
+    res.status(500).json({ error: "Failed to load company queries" });
+  }
+});
+
 // POST new question
 router.post("/", async (req, res) => {
   try {
-    const { title, body, authorId, authorName, authorImageUrl } = req.body;
+    const {
+      title,
+      body,
+      authorId,
+      authorName,
+      authorImageUrl,
+      companyName,
+    } = req.body;
 
     if (!title || !body || !authorId) {
       return res
@@ -35,6 +62,7 @@ router.post("/", async (req, res) => {
       authorId,
       authorName,
       authorImageUrl,
+      companyName: companyName || null, // can be null
     });
 
     res.status(201).json(question);
@@ -47,7 +75,7 @@ router.post("/", async (req, res) => {
 // DELETE question – only author
 router.delete("/:id", async (req, res) => {
   try {
-    const { authorId } = req.body; // sent from frontend axios.delete(... { data: { authorId } })
+    const { authorId } = req.body; // from axios.delete(... { data: { authorId } })
     if (!authorId) {
       return res.status(400).json({ error: "authorId is required" });
     }

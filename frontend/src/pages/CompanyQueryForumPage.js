@@ -17,7 +17,8 @@ const CompanyQueryForumPage = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [showMenu, setShowMenu] = useState(false);
-  const [view, setView] = useState("latest"); // "latest" | "famous"
+  // now supports "company"
+  const [view, setView] = useState("latest"); // "latest" | "famous" | "company"
 
   const avatarUrl = profile?.imageUrl || null;
   const authorId = profile?.id;
@@ -57,9 +58,7 @@ const CompanyQueryForumPage = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setQuestions((prev) =>
-        prev.map((q) => (q._id === qId ? res.data : q))
-      );
+      setQuestions((prev) => prev.map((q) => (q._id === qId ? res.data : q)));
       setReplyText((prev) => ({ ...prev, [qId]: "" }));
     } catch (err) {
       console.error("POST /query-forum/:id/replies error", err);
@@ -74,9 +73,7 @@ const CompanyQueryForumPage = () => {
         { authorId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setQuestions((prev) =>
-        prev.map((q) => (q._id === qId ? res.data : q))
-      );
+      setQuestions((prev) => prev.map((q) => (q._id === qId ? res.data : q)));
     } catch (err) {
       console.error("POST /query-forum/:id/upvote error", err);
       alert(err.response?.data?.error || "Failed to upvote");
@@ -101,9 +98,7 @@ const CompanyQueryForumPage = () => {
         { text: editingReplyText.trim(), authorId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setQuestions((prev) =>
-        prev.map((q) => (q._id === qId ? res.data : q))
-      );
+      setQuestions((prev) => prev.map((q) => (q._id === qId ? res.data : q)));
       setEditingReplyId(null);
       setEditingReplyText("");
     } catch (err) {
@@ -119,9 +114,7 @@ const CompanyQueryForumPage = () => {
         data: { authorId },
         headers: { Authorization: `Bearer ${token}` },
       });
-      setQuestions((prev) =>
-        prev.map((q) => (q._id === qId ? res.data : q))
-      );
+      setQuestions((prev) => prev.map((q) => (q._id === qId ? res.data : q)));
     } catch (err) {
       console.error("DELETE /query-forum/:id/replies/:replyId error", err);
       alert(err.response?.data?.error || "Failed to delete reply");
@@ -135,7 +128,21 @@ const CompanyQueryForumPage = () => {
   const famousQuestions = [...questions].sort(
     (a, b) => (b.upvotes || 0) - (a.upvotes || 0)
   );
-  const baseList = view === "latest" ? latestQuestions : famousQuestions;
+
+  // company-specific list (title/body contains company name)
+  const companyName = (profile?.name || "").toLowerCase();
+  const companyQuestions = questions.filter((q) => {
+    if (!companyName) return false;
+    const text = `${q.title} ${q.body}`.toLowerCase();
+    return text.includes(companyName);
+  });
+
+  const baseList =
+    view === "latest"
+      ? latestQuestions
+      : view === "famous"
+      ? famousQuestions
+      : companyQuestions;
 
   const filteredQuestions = baseList.filter((q) => {
     const s = search.trim().toLowerCase();
@@ -284,6 +291,17 @@ const CompanyQueryForumPage = () => {
                   }`}
                 >
                   Famous queries
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView("company")}
+                  className={`px-3 py-1 text-sm rounded ${
+                    view === "company"
+                      ? "bg-[#6c3cf0] text-white"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  Company queries
                 </button>
               </div>
 
@@ -478,3 +496,4 @@ const CompanyQueryForumPage = () => {
 };
 
 export default CompanyQueryForumPage;
+
