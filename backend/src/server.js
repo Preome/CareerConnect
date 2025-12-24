@@ -22,8 +22,11 @@ app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/jobs", require("./routes/jobRoutes"));
 app.use("/api/applications", require("./routes/applicationRoutes"));
 
-// ✅ NEW: career events routes (company creates/manages events)
+// ✅ Career events routes (company creates/manages events)
 app.use("/api/career-events", require("./routes/careerEventRoutes"));
+
+// ✅ NEW: Event registration routes (user views/registers for events)
+app.use("/api/event-registrations", require("./routes/eventRegistrationRoutes"));
 
 // Global error handler
 app.use((err, req, res, next) => {

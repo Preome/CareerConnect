@@ -24,9 +24,15 @@ import CompanyCandidatesPage from "./pages/CompanyCandidatesPage";
 import JobApplicantsPage from "./pages/JobApplicantsPage";
 import FollowedJobsPage from "./pages/FollowedJobsPage";
 
-// Career events pages (NEW)
+// Career events pages (Company side)
 import AddCareerEventPage from "./pages/AddCareerEventPage";
 import PostedCareerEventsPage from "./pages/PostedCareerEventsPage";
+
+// Career events pages (User side)
+import ViewCareerEventsPage from "./pages/ViewCareerEventsPage";
+import RegisterEventPage from "./pages/RegisterEventPage";
+import VerifyEventRegistrationPage from "./pages/VerifyEventRegistrationPage";
+import RegisteredEventsPage from "./pages/RegisteredEventsPage"; // ✅ NEW
 
 // Admin pages
 import AdminDashboardPage from "./pages/AdminDashboardPage";
@@ -65,7 +71,7 @@ function App() {
           <Route path="/company/jobs/:id/edit" element={<EditJobPage />} />
           <Route path="/company/posted-jobs" element={<PostedJobsPage />} />
 
-          {/* Company career-events routes (NEW) */}
+          {/* Company career-events routes */}
           <Route
             path="/company/career-events/new"
             element={<AddCareerEventPage />}
@@ -77,6 +83,25 @@ function App() {
           <Route
             path="/company/posted-career-events"
             element={<PostedCareerEventsPage />}
+          />
+
+          {/* User career-events routes */}
+          <Route
+            path="/view-career-events"
+            element={<ViewCareerEventsPage />}
+          />
+          <Route
+            path="/register-event/:eventId"
+            element={<RegisterEventPage />}
+          />
+          <Route
+            path="/verify-event-registration"
+            element={<VerifyEventRegistrationPage />}
+          />
+          {/* ✅ NEW: Registered Events route */}
+          <Route
+            path="/registered-events"
+            element={<RegisteredEventsPage />}
           />
 
           {/* Admin routes */}

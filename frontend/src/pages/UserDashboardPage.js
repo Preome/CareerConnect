@@ -254,6 +254,19 @@ const UserDashboardPage = () => {
             >
               Followed Jobs
             </button>
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/view-career-events")}
+            >
+              View CareerEvents
+            </button>
+            {/* ✅ NEW: Registered Events button */}
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/registered-events")}
+            >
+              Registered Events
+            </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Messages
             </button>
@@ -356,7 +369,7 @@ const UserDashboardPage = () => {
                   }}
                 >
                   Filter by Student Category
-                  <span className="text-xs bg:white/20 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
                     {studentCategoryFilter}
                   </span>
                 </button>

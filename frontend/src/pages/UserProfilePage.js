@@ -399,6 +399,13 @@ const UserProfilePage = () => {
             >
               Followed Jobs
             </button>
+            {/* ✅ NEW: View CareerEvents button (after Followed Jobs) */}
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/view-career-events")}
+            >
+              View CareerEvents
+            </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Messages
             </button>
