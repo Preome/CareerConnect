@@ -3,25 +3,31 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+
 const FollowedJobsPage = () => {
   const navigate = useNavigate();
+
 
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
   const avatarUrl = profile?.imageUrl || null;
 
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [followedJobs, setFollowedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
+
   const [sortOption, setSortOption] = useState("newest");
   const [lastUpdated, setLastUpdated] = useState(null);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
     navigate("/");
   };
+
 
   const fetchFollowedJobs = async () => {
     try {
@@ -33,6 +39,7 @@ const FollowedJobsPage = () => {
         return;
       }
 
+
       const res = await axios.get(
         "http://localhost:5000/api/jobs/user/followed",
         {
@@ -41,6 +48,7 @@ const FollowedJobsPage = () => {
           },
         }
       );
+
 
       setFollowedJobs(res.data || []);
       setLastUpdated(new Date());
@@ -59,6 +67,7 @@ const FollowedJobsPage = () => {
     }
   };
 
+
   const handleUnfollow = async (jobId) => {
     try {
       const token = localStorage.getItem("token");
@@ -67,11 +76,13 @@ const FollowedJobsPage = () => {
         return;
       }
 
+
       await axios.delete(`http://localhost:5000/api/jobs/${jobId}/follow`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
 
       setFollowedJobs((prev) => prev.filter((job) => job._id !== jobId));
       setLastUpdated(new Date());
@@ -88,12 +99,15 @@ const FollowedJobsPage = () => {
     }
   };
 
+
   useEffect(() => {
     fetchFollowedJobs();
   }, []);
 
+
   const sortedJobs = useMemo(() => {
     const copy = [...followedJobs];
+
 
     if (sortOption === "newest") {
       const newestFirst = (a, b) => {
@@ -119,21 +133,26 @@ const FollowedJobsPage = () => {
       });
     }
 
+
     return copy;
   }, [followedJobs, sortOption]);
 
+
   const totalFollowed = followedJobs.length;
+
 
   const formatLastUpdated = () => {
     if (!lastUpdated) return "";
     return `${lastUpdated.toLocaleDateString()} ${lastUpdated.toLocaleTimeString()}`;
   };
 
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
       {/* Top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative shadow-md">
         <h1 className="text-2xl font-semibold tracking-wide">CareerConnect</h1>
+
 
         <div className="flex items-center gap-4 relative">
           <div className="hidden md:flex items-center bg-white rounded-full px-3 py-1 shadow-sm">
@@ -145,12 +164,14 @@ const FollowedJobsPage = () => {
             />
           </div>
 
+
           <button
             className="text-2xl font-bold relative"
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             ☰
           </button>
+
 
           {menuOpen && (
             <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
@@ -174,6 +195,7 @@ const FollowedJobsPage = () => {
         </div>
       </header>
 
+
       <div className="flex flex-1">
         {/* Left sidebar */}
         <aside className="w-52 bg-slate-900 text-white pt-6 sticky top-0 self-start h-screen">
@@ -195,6 +217,7 @@ const FollowedJobsPage = () => {
             </span>
           </div>
 
+
           <nav className="flex flex-col text-sm">
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
@@ -211,13 +234,6 @@ const FollowedJobsPage = () => {
             <button className="text-left px-4 py-2 bg-indigo-600">
               Followed Jobs
             </button>
-            {/* ✅ NEW: View CareerEvents button (after Followed Jobs) */}
-            <button
-              className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/view-career-events")}
-            >
-              View CareerEvents
-            </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Messages
             </button>
@@ -230,8 +246,21 @@ const FollowedJobsPage = () => {
             >
               Profile
             </button>
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/view-career-events")}
+            >
+              View CareerEvents
+            </button>
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/registered-events")}
+            >
+              Registered Events
+            </button>
           </nav>
         </aside>
+
 
         {/* Main content */}
         <main className="flex-1 bg-gradient-to-b from-slate-100 via-slate-50 to-slate-200 py-10 px-4 md:px-8">
@@ -247,6 +276,7 @@ const FollowedJobsPage = () => {
                   place. Apply quickly or unfollow whenever you change your
                   mind.
                 </p>
+
 
                 {lastUpdated && (
                   <div className="inline-flex items-center gap-4 px-5 py-3 rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 shadow-lg border border-indigo-400">
@@ -264,6 +294,7 @@ const FollowedJobsPage = () => {
                   </div>
                 )}
               </div>
+
 
               {/* Tracker card */}
               <div className="relative">
@@ -293,6 +324,7 @@ const FollowedJobsPage = () => {
                 </div>
               </div>
             </div>
+
 
             {/* Sort bar */}
             {totalFollowed > 0 && (
@@ -337,6 +369,7 @@ const FollowedJobsPage = () => {
               </div>
             )}
 
+
             {/* Followed jobs grid / empty state */}
             {loading ? (
               <p className="text-sm text-gray-600">Loading followed jobs...</p>
@@ -373,6 +406,7 @@ const FollowedJobsPage = () => {
                       ? companyName[0].toUpperCase()
                       : "C";
 
+
                   return (
                     <div
                       key={job._id}
@@ -405,10 +439,12 @@ const FollowedJobsPage = () => {
                             </div>
                           </div>
 
+
                           <span className="text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold shadow-sm">
                             Following
                           </span>
                         </div>
+
 
                         <p className="text-sm font-semibold text-slate-900 mb-1">
                           {job.title}
@@ -423,10 +459,12 @@ const FollowedJobsPage = () => {
                             : "N/A"}
                         </p>
 
+
                         <div className="mt-2 text-xs text-gray-700 line-clamp-3">
                           {job.description}
                         </div>
                       </div>
+
 
                       <div className="mt-4 flex items-center justify-between">
                         <button
@@ -443,6 +481,7 @@ const FollowedJobsPage = () => {
                         >
                           Apply Now
                         </button>
+
 
                         <button
                           onClick={() => handleUnfollow(job._id)}
@@ -462,5 +501,6 @@ const FollowedJobsPage = () => {
     </div>
   );
 };
+
 
 export default FollowedJobsPage;

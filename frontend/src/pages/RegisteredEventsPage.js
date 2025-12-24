@@ -4,22 +4,27 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
 
+
 const RegisteredEventsPage = () => {
   const navigate = useNavigate();
+
 
   const storedProfile = localStorage.getItem("profile");
   const userProfile = storedProfile ? JSON.parse(storedProfile) : null;
   const avatarUrl = userProfile?.imageUrl || null;
 
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
     navigate("/");
   };
+
 
   const fetchRegistrations = async () => {
     try {
@@ -48,14 +53,17 @@ const RegisteredEventsPage = () => {
     }
   };
 
+
   useEffect(() => {
     fetchRegistrations();
   }, []);
+
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
+
 
   const handleCancelRegistration = async (registrationId) => {
     if (
@@ -65,6 +73,7 @@ const RegisteredEventsPage = () => {
     ) {
       return;
     }
+
 
     try {
       const token = localStorage.getItem("token");
@@ -86,11 +95,13 @@ const RegisteredEventsPage = () => {
     }
   };
 
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
       {/* Top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative shadow-lg">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
+
 
         <div className="flex items-center gap-4 relative">
           <div className="flex items-center bg-white rounded-full px-3 py-1">
@@ -102,12 +113,14 @@ const RegisteredEventsPage = () => {
             />
           </div>
 
+
           <button
             className="text-2xl font-bold relative hover:scale-110 transition-transform"
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             ☰
           </button>
+
 
           {menuOpen && (
             <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
@@ -131,6 +144,7 @@ const RegisteredEventsPage = () => {
         </div>
       </header>
 
+
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside className="w-52 bg-slate-900 text-white pt-6 sticky top-0 self-start h-screen">
@@ -152,6 +166,7 @@ const RegisteredEventsPage = () => {
             </span>
           </div>
 
+
           <nav className="flex flex-col text-sm">
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
@@ -171,16 +186,6 @@ const RegisteredEventsPage = () => {
             >
               Followed Jobs
             </button>
-            <button
-              className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/view-career-events")}
-            >
-              View CareerEvents
-            </button>
-            {/* Active page */}
-            <button className="text-left px-4 py-2 bg-indigo-600">
-              Registered Events
-            </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Messages
             </button>
@@ -193,8 +198,18 @@ const RegisteredEventsPage = () => {
             >
               Profile
             </button>
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/view-career-events")}
+            >
+              View CareerEvents
+            </button>
+            <button className="text-left px-4 py-2 bg-indigo-600">
+              Registered Events
+            </button>
           </nav>
         </aside>
+
 
         {/* Main content */}
         <main className="flex-1 bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 py-10 px-4 md:px-10 overflow-y-auto">
@@ -203,6 +218,7 @@ const RegisteredEventsPage = () => {
             <div className="relative bg-gradient-to-r from-indigo-700 via-purple-600 to-pink-500 text-white rounded-3xl shadow-2xl p-10 mb-10 overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+
 
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-3">
@@ -225,6 +241,7 @@ const RegisteredEventsPage = () => {
               </div>
             </div>
 
+
             {loading ? (
               <div className="flex flex-col items-center justify-center py-24">
                 <div className="relative">
@@ -241,6 +258,7 @@ const RegisteredEventsPage = () => {
                   <div className="absolute top-10 left-10 w-32 h-32 bg-indigo-500 rounded-full blur-3xl"></div>
                   <div className="absolute bottom-10 right-10 w-40 h-40 bg-purple-500 rounded-full blur-3xl"></div>
                 </div>
+
 
                 <div className="relative z-10">
                   <div className="text-8xl mb-8 animate-bounce">📝</div>
@@ -264,6 +282,7 @@ const RegisteredEventsPage = () => {
                   const event = registration.eventId;
                   if (!event) return null;
 
+
                   return (
                     <div
                       key={registration._id}
@@ -283,6 +302,7 @@ const RegisteredEventsPage = () => {
                         </span>
                       </div>
 
+
                       {/* Cover image */}
                       {event.coverImageUrl && (
                         <div className="relative h-64 overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100">
@@ -293,6 +313,7 @@ const RegisteredEventsPage = () => {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
 
+
                           {/* Event type badge */}
                           <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg">
                             <span className="text-purple-600 font-black text-xs uppercase">
@@ -301,6 +322,7 @@ const RegisteredEventsPage = () => {
                           </div>
                         </div>
                       )}
+
 
                       {/* Content */}
                       <div className="p-6">
@@ -312,6 +334,7 @@ const RegisteredEventsPage = () => {
                           {event.eventSubtitle}
                         </p>
 
+
                         {/* Company */}
                         <div className="mb-4 inline-block bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 px-4 py-2 rounded-xl">
                           <span className="text-violet-700 font-bold text-sm flex items-center gap-2">
@@ -319,6 +342,7 @@ const RegisteredEventsPage = () => {
                             {event.company?.companyName || "Company"}
                           </span>
                         </div>
+
 
                         {/* Event Details */}
                         <div className="grid grid-cols-2 gap-3 mb-4">
@@ -340,6 +364,7 @@ const RegisteredEventsPage = () => {
                           </div>
                         </div>
 
+
                         {/* Registration Info */}
                         <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-4 mb-4">
                           <p className="text-xs text-purple-700 font-bold uppercase mb-2">
@@ -360,6 +385,7 @@ const RegisteredEventsPage = () => {
                             </p>
                           </div>
                         </div>
+
 
                         {/* Actions */}
                         <div className="flex gap-3">
@@ -390,6 +416,7 @@ const RegisteredEventsPage = () => {
         </main>
       </div>
 
+
       {/* Animation keyframes */}
       <style jsx>{`
         @keyframes fadeInUp {
@@ -406,5 +433,6 @@ const RegisteredEventsPage = () => {
     </div>
   );
 };
+
 
 export default RegisteredEventsPage;

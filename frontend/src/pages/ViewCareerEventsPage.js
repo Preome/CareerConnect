@@ -4,22 +4,27 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
 
+
 const ViewCareerEventsPage = () => {
   const navigate = useNavigate();
+
 
   const storedProfile = localStorage.getItem("profile");
   const userProfile = storedProfile ? JSON.parse(storedProfile) : null;
   const avatarUrl = userProfile?.imageUrl || null;
 
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
     navigate("/");
   };
+
 
   const fetchEvents = async () => {
     try {
@@ -41,20 +46,24 @@ const ViewCareerEventsPage = () => {
     }
   };
 
+
   useEffect(() => {
     fetchEvents();
   }, []);
+
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "short", day: "numeric" };
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
 
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
       {/* Top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative shadow-lg">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
+
 
         <div className="flex items-center gap-4 relative">
           <div className="flex items-center bg-white rounded-full px-3 py-1">
@@ -66,12 +75,14 @@ const ViewCareerEventsPage = () => {
             />
           </div>
 
+
           <button
             className="text-2xl font-bold relative hover:scale-110 transition-transform"
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             ☰
           </button>
+
 
           {menuOpen && (
             <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
@@ -95,6 +106,7 @@ const ViewCareerEventsPage = () => {
         </div>
       </header>
 
+
       <div className="flex flex-1">
         {/* Sidebar (user) */}
         <aside className="w-52 bg-slate-900 text-white pt-6 sticky top-0 self-start h-screen">
@@ -116,6 +128,7 @@ const ViewCareerEventsPage = () => {
             </span>
           </div>
 
+
           <nav className="flex flex-col text-sm">
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
@@ -135,17 +148,6 @@ const ViewCareerEventsPage = () => {
             >
               Followed Jobs
             </button>
-            {/* Active page */}
-            <button className="text-left px-4 py-2 bg-indigo-600">
-              View CareerEvents
-            </button>
-            {/* ✅ NEW: Registered Events button */}
-            <button
-              className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/registered-events")}
-            >
-              Registered Events
-            </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Messages
             </button>
@@ -158,8 +160,18 @@ const ViewCareerEventsPage = () => {
             >
               Profile
             </button>
+            <button className="text-left px-4 py-2 bg-indigo-600">
+              View CareerEvents
+            </button>
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/registered-events")}
+            >
+              Registered Events
+            </button>
           </nav>
         </aside>
+
 
         {/* Main content */}
         <main className="flex-1 bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 py-10 px-4 md:px-10 overflow-y-auto">
@@ -168,6 +180,7 @@ const ViewCareerEventsPage = () => {
             <div className="relative bg-gradient-to-r from-blue-700 via-cyan-600 to-teal-500 text-white rounded-3xl shadow-2xl p-10 mb-10 overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+
 
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-3">
@@ -190,6 +203,7 @@ const ViewCareerEventsPage = () => {
               </div>
             </div>
 
+
             {loading ? (
               <div className="flex flex-col items-center justify-center py-24">
                 <div className="relative">
@@ -206,6 +220,7 @@ const ViewCareerEventsPage = () => {
                   <div className="absolute top-10 left-10 w-32 h-32 bg-blue-500 rounded-full blur-3xl"></div>
                   <div className="absolute bottom-10 right-10 w-40 h-40 bg-teal-500 rounded-full blur-3xl"></div>
                 </div>
+
 
                 <div className="relative z-10">
                   <div className="text-8xl mb-8 animate-bounce">📅</div>
@@ -237,12 +252,14 @@ const ViewCareerEventsPage = () => {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
 
+
                         {/* Event type badge */}
                         <div className="absolute top-5 right-5 bg-white/95 backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-2xl border border-white/50">
                           <span className="text-teal-600 font-black text-sm uppercase tracking-wider">
                             {event.eventType}
                           </span>
                         </div>
+
 
                         {/* Date badge */}
                         <div className="absolute bottom-5 left-5 bg-gradient-to-r from-blue-600 to-teal-500 text-white px-5 py-2 rounded-xl shadow-lg">
@@ -252,6 +269,7 @@ const ViewCareerEventsPage = () => {
                         </div>
                       </div>
                     )}
+
 
                     {/* Content */}
                     <div className="p-8">
@@ -266,6 +284,7 @@ const ViewCareerEventsPage = () => {
                         </p>
                       </div>
 
+
                       {/* Company Badge */}
                       <div className="mb-6 inline-block">
                         <div className="bg-gradient-to-r from-violet-50 via-purple-50 to-indigo-50 border-2 border-violet-200 px-5 py-3 rounded-2xl shadow-sm">
@@ -275,6 +294,7 @@ const ViewCareerEventsPage = () => {
                           </span>
                         </div>
                       </div>
+
 
                       {/* Date & Location */}
                       <div className="grid grid-cols-3 gap-4 mb-6">
@@ -304,6 +324,7 @@ const ViewCareerEventsPage = () => {
                         </div>
                       </div>
 
+
                       {/* Event Details */}
                       <div className="mb-6 bg-gradient-to-br from-slate-50 to-gray-50 p-5 rounded-2xl border-2 border-slate-200 shadow-sm">
                         <p className="text-xs text-slate-500 uppercase font-black mb-3 flex items-center gap-2 tracking-wider">
@@ -314,6 +335,7 @@ const ViewCareerEventsPage = () => {
                           {event.eventDetails}
                         </p>
                       </div>
+
 
                       {/* Website Link */}
                       <div className="mb-6">
@@ -334,6 +356,7 @@ const ViewCareerEventsPage = () => {
                           </span>
                         </a>
                       </div>
+
 
                       {/* Activity Schedule */}
                       {event.activityList && event.activityList.length > 0 && (
@@ -365,6 +388,7 @@ const ViewCareerEventsPage = () => {
                         </div>
                       )}
 
+
                       {/* Register Button */}
                       <button
                         onClick={() => navigate(`/register-event/${event._id}`)}
@@ -384,6 +408,7 @@ const ViewCareerEventsPage = () => {
         </main>
       </div>
 
+
       {/* Animation keyframes */}
       <style jsx>{`
         @keyframes fadeInUp {
@@ -400,5 +425,6 @@ const ViewCareerEventsPage = () => {
     </div>
   );
 };
+
 
 export default ViewCareerEventsPage;

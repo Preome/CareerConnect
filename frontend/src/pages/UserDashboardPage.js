@@ -3,34 +3,42 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+
 const UserDashboardPage = () => {
   const navigate = useNavigate();
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
 
+
   const avatarUrl = profile?.imageUrl || null;
+
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
+
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [studentCategoryFilter, setStudentCategoryFilter] = useState("All");
+
 
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showDepartmentMenu, setShowDepartmentMenu] = useState(false);
   const [showStudentCategoryMenu, setShowStudentCategoryMenu] =
     useState(false);
 
+
   // track which jobs are followed by this user
   const [followedJobIds, setFollowedJobIds] = useState(new Set());
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
     navigate("/");
   };
+
 
   const departmentOptions = [
     "All",
@@ -46,11 +54,14 @@ const UserDashboardPage = () => {
     "General education",
   ];
 
+
   const studentCategoryOptions = ["All", "Undergraduate", "Graduate"];
+
 
   const fetchJobs = async () => {
     try {
       setLoading(true);
+
 
       const params = new URLSearchParams();
       if (categoryFilter !== "All") params.append("category", categoryFilter);
@@ -59,9 +70,11 @@ const UserDashboardPage = () => {
       if (studentCategoryFilter !== "All")
         params.append("studentCategory", studentCategoryFilter);
 
+
       const url = `http://localhost:5000/api/jobs${
         params.toString() ? `?${params.toString()}` : ""
       }`;
+
 
       const res = await axios.get(url);
       setJobs(res.data || []);
@@ -77,11 +90,13 @@ const UserDashboardPage = () => {
     }
   };
 
+
   // fetch jobs the user is already following
   const fetchFollowedJobs = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
+
 
       const res = await axios.get(
         "http://localhost:5000/api/jobs/user/followed",
@@ -91,6 +106,7 @@ const UserDashboardPage = () => {
           },
         }
       );
+
 
       const ids = new Set((res.data || []).map((job) => job._id));
       setFollowedJobIds(ids);
@@ -102,6 +118,7 @@ const UserDashboardPage = () => {
     }
   };
 
+
   // follow a job
   const handleFollow = async (jobId) => {
     try {
@@ -110,6 +127,7 @@ const UserDashboardPage = () => {
         alert("Please login to follow jobs");
         return;
       }
+
 
       await axios.post(
         `http://localhost:5000/api/jobs/${jobId}/follow`,
@@ -120,6 +138,7 @@ const UserDashboardPage = () => {
           },
         }
       );
+
 
       setFollowedJobIds((prev) => new Set(prev).add(jobId));
     } catch (err) {
@@ -132,6 +151,7 @@ const UserDashboardPage = () => {
     }
   };
 
+
   // unfollow a job
   const handleUnfollow = async (jobId) => {
     try {
@@ -141,11 +161,13 @@ const UserDashboardPage = () => {
         return;
       }
 
+
       await axios.delete(`http://localhost:5000/api/jobs/${jobId}/follow`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
 
       setFollowedJobIds((prev) => {
         const next = new Set(prev);
@@ -165,6 +187,7 @@ const UserDashboardPage = () => {
     }
   };
 
+
   useEffect(() => {
     const run = async () => {
       await fetchJobs();
@@ -174,11 +197,13 @@ const UserDashboardPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryFilter, departmentFilter, studentCategoryFilter]);
 
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
       {/* Top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
+
 
         <div className="flex items-center gap-4 relative">
           <div className="flex items-center bg-white rounded-full px-3 py-1">
@@ -190,12 +215,14 @@ const UserDashboardPage = () => {
             />
           </div>
 
+
           <button
             className="text-2xl font-bold relative"
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             ☰
           </button>
+
 
           {menuOpen && (
             <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
@@ -219,6 +246,7 @@ const UserDashboardPage = () => {
         </div>
       </header>
 
+
       <div className="flex flex-1">
         {/* Left sidebar – sticky */}
         <aside className="w-52 bg-slate-900 text-white pt-6 sticky top-0 self-start h-screen">
@@ -240,6 +268,7 @@ const UserDashboardPage = () => {
             </span>
           </div>
 
+
           <nav className="flex flex-col text-sm">
             <button className="text-left px-4 py-2 bg-indigo-600">Home</button>
             <button
@@ -254,19 +283,6 @@ const UserDashboardPage = () => {
             >
               Followed Jobs
             </button>
-            <button
-              className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/view-career-events")}
-            >
-              View CareerEvents
-            </button>
-            {/* ✅ NEW: Registered Events button */}
-            <button
-              className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/registered-events")}
-            >
-              Registered Events
-            </button>
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Messages
             </button>
@@ -279,8 +295,21 @@ const UserDashboardPage = () => {
             >
               Profile
             </button>
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/view-career-events")}
+            >
+              View CareerEvents
+            </button>
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/registered-events")}
+            >
+              Registered Events
+            </button>
           </nav>
         </aside>
+
 
         {/* Main area: job feed */}
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 py-8 px-4 md:px-8">
@@ -304,6 +333,7 @@ const UserDashboardPage = () => {
                   </span>
                 </button>
 
+
                 {showCategoryMenu && (
                   <div className="absolute z-20 mt-1 w-40 bg-white rounded-md shadow border text-sm text-gray-700">
                     {["All", "Part-time", "Full-time"].map((cat) => (
@@ -322,6 +352,7 @@ const UserDashboardPage = () => {
                 )}
               </div>
 
+
               {/* Department filter */}
               <div className="relative">
                 <button
@@ -338,6 +369,7 @@ const UserDashboardPage = () => {
                     {departmentFilter}
                   </span>
                 </button>
+
 
                 {showDepartmentMenu && (
                   <div className="absolute z-20 mt-1 w-56 bg-white rounded-md shadow border text-sm text-gray-700 max-h-64 overflow-y-auto">
@@ -357,6 +389,7 @@ const UserDashboardPage = () => {
                 )}
               </div>
 
+
               {/* Student Category filter */}
               <div className="relative">
                 <button
@@ -373,6 +406,7 @@ const UserDashboardPage = () => {
                     {studentCategoryFilter}
                   </span>
                 </button>
+
 
                 {showStudentCategoryMenu && (
                   <div className="absolute z-20 mt-1 w-56 bg-white rounded-md shadow border text-sm text-gray-700 max-h-64 overflow-y-auto">
@@ -393,6 +427,7 @@ const UserDashboardPage = () => {
               </div>
             </div>
 
+
             {loading ? (
               <p className="text-sm text-gray-600">Loading jobs...</p>
             ) : jobs.length === 0 ? (
@@ -410,7 +445,9 @@ const UserDashboardPage = () => {
                       ? companyName[0].toUpperCase()
                       : "C";
 
+
                   const isFollowing = followedJobIds.has(job._id);
+
 
                   return (
                     <div
@@ -442,6 +479,7 @@ const UserDashboardPage = () => {
                             </p>
                           </div>
                         </div>
+
 
                         <div className="flex flex-col gap-2">
                           <button
@@ -476,6 +514,7 @@ const UserDashboardPage = () => {
                         </div>
                       </div>
 
+
                       {/* job meta + details */}
                       <div className="text-xs md:text-sm text-slate-900 leading-relaxed">
                         <div className="space-x-4">
@@ -498,6 +537,7 @@ const UserDashboardPage = () => {
                             {job.department}
                           </span>
                         </div>
+
 
                         <div className="space-x-4 mt-1">
                           <span>
@@ -522,12 +562,14 @@ const UserDashboardPage = () => {
                           </span>
                         </div>
 
+
                         <p className="mt-1">
                           <span className="font-semibold text-pink-700">
                             Address:
                           </span>{" "}
                           {job.address}
                         </p>
+
 
                         <p className="mt-3 font-semibold text-pink-700">
                           Job Description
@@ -536,12 +578,14 @@ const UserDashboardPage = () => {
                           {job.description}
                         </div>
 
+
                         <p className="mt-3 font-semibold text-pink-700">
                           Job Requirements
                         </p>
                         <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
                           {job.requirements}
                         </div>
+
 
                         <p className="mt-3 font-semibold text-pink-700">
                           Job Benefits
@@ -550,12 +594,14 @@ const UserDashboardPage = () => {
                           {job.benefits}
                         </div>
 
+
                         <p className="mt-3 font-semibold text-pink-700">
                           Job Experience
                         </p>
                         <div className="mt-1 bg-slate-50 border border-slate-200 rounded-md p-3 text-xs md:text-sm text-gray-700 whitespace-pre-line">
                           {job.experience}
                         </div>
+
 
                         <p className="mt-3 font-semibold text-pink-700">
                           Salary Range
@@ -575,5 +621,6 @@ const UserDashboardPage = () => {
     </div>
   );
 };
+
 
 export default UserDashboardPage;
