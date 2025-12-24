@@ -24,6 +24,10 @@ const UserDashboardPage = () => {
   const [showStudentCategoryMenu, setShowStudentCategoryMenu] = useState(false);
   const [showDateMenu, setShowDateMenu] = useState(false);
 
+  // NEW: hide-applied filter + user applications
+  const [hideApplied, setHideApplied] = useState(false);
+  const [myApplications, setMyApplications] = useState([]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
@@ -75,9 +79,25 @@ const UserDashboardPage = () => {
     }
   };
 
+  // NEW: fetch user's applications
+  const fetchMyApplications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const res = await axios.get(
+        "http://localhost:5000/api/applications/user",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMyApplications(res.data || []);
+    } catch (err) {
+      console.error("Failed to load applications", err.response?.data || err);
+    }
+  };
+
   useEffect(() => {
     const run = async () => {
       await fetchJobs();
+      await fetchMyApplications();
     };
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,7 +117,6 @@ const UserDashboardPage = () => {
       } else if (dateFilter === "Oldest") {
         return timeA - timeB; // oldest first
       } else if (dateFilter === "Approaching deadline") {
-        // earlier deadlines first; jobs without deadline go last
         const dA = a.deadline ? new Date(a.deadline).getTime() : Infinity;
         const dB = b.deadline ? new Date(b.deadline).getTime() : Infinity;
         return dA - dB;
@@ -106,6 +125,21 @@ const UserDashboardPage = () => {
     });
     return copy;
   }, [jobs, dateFilter]);
+
+  // NEW: apply "only not applied" filter on top of sortedJobs
+  // apply "only not applied" filter on top of sortedJobs
+  const visibleJobs = useMemo(() => {
+    if (!hideApplied) return sortedJobs;
+
+    const appliedIds = new Set(
+      (myApplications || []).map((a) =>
+        a.jobId?._id ? a.jobId._id.toString() : a.jobId?.toString()
+      )
+    );
+
+    return sortedJobs.filter((job) => !appliedIds.has(job._id?.toString()));
+  }, [sortedJobs, hideApplied, myApplications]);
+
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
@@ -326,7 +360,7 @@ const UserDashboardPage = () => {
                 )}
               </div>
 
-              {/* Date filter (with approaching deadline) */}
+              {/* Date filter */}
               <div className="relative">
                 <button
                   className="bg-indigo-500 text-white px-6 py-2 rounded-md text-sm font-semibold shadow flex items-center gap-2"
@@ -361,15 +395,26 @@ const UserDashboardPage = () => {
                   </div>
                 )}
               </div>
+
+              {/* NEW: Only not applied toggle */}
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-md text-sm font-semibold shadow text-white ${
+                  hideApplied ? "bg-purple-600" : "bg-purple-500/70"
+                }`}
+                onClick={() => setHideApplied((v) => !v)}
+              >
+                Not Appled Jobs
+              </button>
             </div>
 
             {loading ? (
               <p className="text-sm text-gray-600">Loading jobs...</p>
-            ) : sortedJobs.length === 0 ? (
+            ) : visibleJobs.length === 0 ? (
               <p className="text-sm text-gray-600">No jobs available.</p>
             ) : (
               <div className="space-y-6">
-                {sortedJobs.map((job) => {
+                {visibleJobs.map((job) => {
                   const companyName =
                     job.company?.companyName ||
                     job.company?.name ||
@@ -533,6 +578,7 @@ const UserDashboardPage = () => {
 };
 
 export default UserDashboardPage;
+
 
 
 
