@@ -4,47 +4,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
-// existing route files used by other pages
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const jobRoutes = require("./routes/jobRoutes");
-const applicationRoutes = require("./routes/applicationRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-
-
-// new query forum routes
-const queryForumRoutes = require("./routes/queryForumRoutes");
-
-<<<<<<< HEAD
-// src/server.js
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-require("dotenv").config();
-
-// core for Socket.IO (both branches added socket support)
-const http = require("http");
-const { Server } = require("socket.io");
-
-// route files used by different pages/features (include both branches' routes)
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const jobRoutes = require("./routes/jobRoutes");
-const applicationRoutes = require("./routes/applicationRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const companyRoutes = require("./routes/companyRoutes");
-const notificationRoutes = require("./routes/notificationRoutes");
-const queryForumRoutes = require("./routes/queryForumRoutes");
-
-const app = express();
-
-// middleware
-// src/server.js
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-require("dotenv").config();
-
 // core for Socket.IO (both branches added socket support)
 const http = require("http");
 const { Server } = require("socket.io");
@@ -118,3 +77,4 @@ io.on("connection", (socket) => {
 // Start server (use the http server so Socket.IO works)
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
