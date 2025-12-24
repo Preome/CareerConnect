@@ -38,6 +38,28 @@ exports.updateCompany = async (req, res) => {
   }
 };
 
+//search companies
+exports.searchCompanies = async (req, res) => {
+  const { search } = req.query;
+
+  const companies = await Company.find({
+    companyName: { $regex: search, $options: "i" },
+  });
+
+  res.json(companies);
+};
+
+// Get company by id (public)
+exports.getCompanyById = async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id).lean();
+    if (!company) return res.status(404).json({ message: "Company not found" });
+    res.json(company);
+  } catch (err) {
+    console.error("Get company by id error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 // Add a job posting
 exports.addJob = async (req, res) => {
@@ -107,6 +129,22 @@ exports.uploadImage = async (req, res) => {
     if (!company) return res.status(404).json({ message: "Company not found" });
     res.json(company);
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Delete company profile
+exports.deleteCompany = async (req, res) => {
+  try {
+    const companyId = req.user && req.user.id;
+    if (!companyId) return res.status(401).json({ message: "Unauthorized" });
+
+    const company = await Company.findByIdAndDelete(companyId);
+    if (!company) return res.status(404).json({ message: "Company not found" });
+
+    res.json({ message: "Company profile deleted successfully" });
+  } catch (err) {
+    console.error("Delete company error:", err);
     res.status(500).json({ message: err.message });
   }
 };

@@ -37,7 +37,7 @@ const uploadToCloudinary = (buffer, folder) => {
 };
 
 // POST /api/auth/register-user
-const registerUser = async (req, res) => {
+exports.registerUser = async (req, res) => {
   try {
     const { name, gender, email, mobile, password, studentType, department } =
       req.body;
@@ -74,6 +74,8 @@ const registerUser = async (req, res) => {
       "careerconnect/users"
     );
 
+    console.log("Creating user with:", { name, gender, email, mobile, studentType, department, imageUrl });
+
     const user = await User.create({
       name,
       gender,
@@ -84,6 +86,8 @@ const registerUser = async (req, res) => {
       department,
       imageUrl,
     });
+
+    console.log("User created:", user._id);
 
     const token = createToken(user._id, "user");
     res.status(201).json({
@@ -101,13 +105,13 @@ const registerUser = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Registration error:", err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
 
 // POST /api/auth/register-company
-const registerCompany = async (req, res) => {
+exports.registerCompany = async (req, res) => {
   try {
     const {
       companyName,
@@ -188,7 +192,7 @@ const registerCompany = async (req, res) => {
 };
 
 // POST /api/auth/login (email+password)
-const login = async (req, res) => {
+exports.login = async (req, res) => {
   try {
     const { email, password, role } = req.body; // role: "user" or "company"
 
@@ -254,7 +258,7 @@ const login = async (req, res) => {
 };
 
 // POST /api/auth/google-login  (works for BOTH user and company)
-const googleLogin = async (req, res) => {
+exports.googleLogin = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -322,7 +326,7 @@ const googleLogin = async (req, res) => {
 };
 
 // POST /api/auth/change-password
-const changePassword = async (req, res) => {
+exports.changePassword = async (req, res) => {
   try {
     const authHeader = req.headers.authorization || "";
     const token = authHeader.startsWith("Bearer ")
@@ -377,7 +381,7 @@ const changePassword = async (req, res) => {
 };
 
 // PUT /api/auth/update-profile (NOW HANDLES NAME, EMAIL, MOBILE, GENDER, STUDENT TYPE AND DEPARTMENT)
-const updateUserProfile = async (req, res) => {
+exports.updateUserProfile = async (req, res) => {
   try {
     // Extract token from Authorization header
     const authHeader = req.headers.authorization || "";
@@ -509,7 +513,7 @@ const updateUserProfile = async (req, res) => {
 };
 
 // DELETE /api/auth/delete-account
-const deleteAccount = async (req, res) => {
+exports.deleteAccount = async (req, res) => {
   try {
     // Extract token from Authorization header
     const authHeader = req.headers.authorization || "";
@@ -555,12 +559,49 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-module.exports = {
-  registerUser,
-  registerCompany,
-  login,
-  googleLogin,
-  changePassword,
-  updateUserProfile,
-  deleteAccount
+// GET /api/users/search - Search for users by name, email, skills
+exports.searchUsers = async (req, res) => {
+  try {
+    const { search } = req.query;
+    
+    if (!search) {
+      return res.json([]);
+    }
+
+    const searchRegex = new RegExp(search, 'i');
+    
+    const users = await User.find({
+      role: "user",
+      $or: [
+        { name: searchRegex },
+        { email: searchRegex },
+        { skills: searchRegex },
+        { currentAddress: searchRegex },
+        { university: searchRegex }
+      ]
+    }).select('-password'); // Exclude password field
+
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// GET /api/auth/user/:userId - Get a specific user's profile
+exports.getUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
