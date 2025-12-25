@@ -280,10 +280,9 @@ const UserDashboardPage = () => {
   const sortedJobs = useMemo(() => {
     const copy = [...jobs];
     copy.sort((a, b) => {
-      const rawA = a.deadline || a.createdAt;
-      const rawB = b.deadline || b.createdAt;
-      const timeA = rawA ? new Date(rawA).getTime() : 0;
-      const timeB = rawB ? new Date(rawB).getTime() : 0;
+      const timeA = new Date(a.createdAt).getTime();
+      const timeB = new Date(b.createdAt).getTime();
+     
 
       if (dateFilter === "Latest") {
         return timeB - timeA; // newest first
