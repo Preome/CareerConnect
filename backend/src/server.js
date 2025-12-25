@@ -48,6 +48,12 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/query-forum", queryForumRoutes);
 
+// ✅ Career events routes (company creates/manages events)
+app.use("/api/career-events", require("./routes/careerEventRoutes"));
+
+// ✅ NEW: Event registration routes (user views/registers for events)
+app.use("/api/event-registrations", require("./routes/eventRegistrationRoutes"));
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error("Global error:", err);

@@ -3,15 +3,18 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE_URL } from "../config";
 
+
 const CompanyProfilePage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+
 
   // -----------------------------
   // 💡 AUTO-FIX COMPANY NAME HERE
   // -----------------------------
   const normalizeProfile = (data) => {
     if (!data) return {};
+
 
     return {
       id: data.id || data._id || null,
@@ -38,8 +41,13 @@ const CompanyProfilePage = () => {
     };
   };
 
-  const [profile, setProfile] = useState(normalizeProfile({}));
-  const [tempProfile, setTempProfile] = useState(normalizeProfile({}));
+  const storedProfile = localStorage.getItem("profile");
+  const defaultProfile = storedProfile
+    ? normalizeProfile(JSON.parse(storedProfile))
+    : normalizeProfile({});
+
+  const [profile, setProfile] = useState(defaultProfile);
+  const [tempProfile, setTempProfile] = useState(defaultProfile);
   const [jobs, setJobs] = useState([]);
   const [isOwner, setIsOwner] = useState(false);
   const [expandedJob, setExpandedJob] = useState(null);
@@ -50,10 +58,13 @@ const CompanyProfilePage = () => {
     loading: false
   });
 
+
   const fileInputRefSidebar = useRef(null);
   const fileInputRefMain = useRef(null);
 
+
   const avatarUrl = profile?.imageUrl || null;
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -142,16 +153,17 @@ const CompanyProfilePage = () => {
     setTempProfile({ ...tempProfile, [e.target.name]: e.target.value });
   };
 
+
   const handleSave = async () => {
-    // Persist to backend and update localStorage with server's canonical data
     try {
       const token = localStorage.getItem("token");
       if (!token) return alert("Not authenticated");
 
-      // Preserve id from stored profile (login sets id), if present
+
       const stored = JSON.parse(localStorage.getItem("profile") || "{}");
       let companyId = stored.id || stored._id || profile.id;
       if (!companyId) return alert("Company id not found. Please re-login.");
+
 
       const res = await fetch(`${API_BASE_URL}/company/${companyId}`, {
         method: "PUT",
@@ -162,18 +174,17 @@ const CompanyProfilePage = () => {
         body: JSON.stringify(tempProfile),
       });
 
+
       const data = await res.json();
       if (!res.ok) {
         console.error("Save failed", data);
         return alert(data.message || "Failed to save profile");
       }
 
-      // Build a lightweight profile object to store in localStorage
+
       const newProfile = {
         id: data._id || data.id || companyId,
         role: "company",
-
-        // BASIC FIELDS
         companyName: data.companyName,
         email: data.email,
         contactNo: data.contactNo,
@@ -182,8 +193,6 @@ const CompanyProfilePage = () => {
         address: data.address,
         licenseNo: data.licenseNo,
         imageUrl: data.imageUrl,
-
-        // ADDITIONAL FIELDS (FULL SUPPORT)
         website: data.website,
         companySize: data.companySize,
         companyType: data.companyType,
@@ -207,10 +216,12 @@ const CompanyProfilePage = () => {
     }
   };
 
+
   const handleCancel = () => {
     setTempProfile(profile);
     setIsEditing(false);
   };
+
 
   const handleDelete = () => {
     setDeleteModal({ isOpen: true, loading: false });
@@ -246,8 +257,10 @@ const CompanyProfilePage = () => {
     setDeleteModal({ isOpen: false, loading: false });
   };
 
+
   const handleFileSelected = (file) => {
     if (!file) return;
+
 
     const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
     if (!allowed.includes(file.type)) {
@@ -255,7 +268,7 @@ const CompanyProfilePage = () => {
       return;
     }
 
-    // If user is owner and authenticated, upload via backend endpoint
+  // If user is owner and authenticated, upload via backend endpoint
     const token = localStorage.getItem("token");
     if (isOwner && token) {
       (async () => {
@@ -312,11 +325,11 @@ const CompanyProfilePage = () => {
     reader.readAsDataURL(file);
   };
 
+
   const triggerSidebarFile = () => fileInputRefSidebar.current?.click();
   const triggerMainFile = () => fileInputRefMain.current?.click();
 
   const handleDeleteImage = async () => {
-    // If owner, request server to clear image; otherwise just clear local preview
     const token = localStorage.getItem("token");
     const stored = JSON.parse(localStorage.getItem("profile") || "{}");
     const companyId = id || stored.id || stored._id || profile.id;
@@ -336,7 +349,6 @@ const CompanyProfilePage = () => {
         const norm = normalizeProfile(data);
         setProfile(norm);
         setTempProfile(norm);
-        // update stored profile image if matches
         if (stored.id && (stored.id === data._id || stored.id === data.id)) {
           stored.imageUrl = "";
           localStorage.setItem("profile", JSON.stringify(stored));
@@ -356,11 +368,13 @@ const CompanyProfilePage = () => {
     localStorage.setItem("profile", JSON.stringify(updated));
   };
 
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
       {/* Top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
+
 
         <div className="flex items-center gap-4 relative">
           <div className="flex items-center bg-white rounded-full px-3 py-1">
@@ -373,12 +387,14 @@ const CompanyProfilePage = () => {
             />
           </div>
 
+
           <button
             className="text-2xl font-bold"
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             ☰
           </button>
+
 
           {menuOpen && (
             <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40">
@@ -402,6 +418,7 @@ const CompanyProfilePage = () => {
         </div>
       </header>
 
+
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside className="w-56 bg-slate-900 text-white pt-6">
@@ -412,12 +429,11 @@ const CompanyProfilePage = () => {
               <div className="w-16 h-16 rounded-md bg-slate-700" />
             )}
 
-            {isOwner && (
-              <div className="flex gap-2 mt-2">
-                <button onClick={triggerSidebarFile} className="bg-white px-2 py-1 rounded shadow-md text-xs">📷</button>
-                <button onClick={handleDeleteImage} className="bg-red-600 px-2 py-1 rounded shadow-md text-white text-xs">🗑️</button>
-              </div>
-            )}
+            <div className="flex gap-2 mt-2">
+              <button onClick={triggerSidebarFile} className="bg-white px-2 py-1 rounded shadow-md text-xs">📷</button>
+              <button onClick={handleDeleteImage} className="bg-red-600 px-2 py-1 rounded shadow-md text-white text-xs">🗑️</button>
+            </div>
+
 
             <input
               ref={fileInputRefSidebar}
@@ -431,25 +447,68 @@ const CompanyProfilePage = () => {
               }}
             />
 
+
             <span className="text-xs text-gray-300 mt-2">
               {profile.companyName || "Company"}
             </span>
           </div>
 
+
           <nav className="flex flex-col text-sm">
-            <button className="px-4 py-2 text-left hover:bg-slate-800" onClick={() => navigate("/company-dashboard")}>Dashboard</button>
-            <button className="px-4 py-2 text-left hover:bg-slate-800">Posted Jobs</button>
-            <button className="px-4 py-2 text-left hover:bg-slate-800">Candidate list</button>
-            <button className="px-4 py-2 text-left hover:bg-slate-800">Messages</button>
-            <button className="px-4 py-2 text-left hover:bg-slate-800">Query Forum</button>
-            <button className="px-4 py-2 text-left bg-indigo-600">Profile</button>
+            <button 
+              className="px-4 py-2 text-left hover:bg-slate-800" 
+              onClick={() => navigate("/company-dashboard")}
+            >
+              Dashboard
+            </button>
+
+
+            <button 
+              className="px-4 py-2 text-left hover:bg-slate-800"
+              onClick={() => navigate("/company/posted-jobs")}
+            >
+              Posted Jobs
+            </button>
+
+
+            <button 
+              className="px-4 py-2 text-left hover:bg-slate-800"
+              onClick={() => navigate("/company/candidates")}
+            >
+              Candidate list
+            </button>
+
+
+            <button className="px-4 py-2 text-left hover:bg-slate-800">
+              Messages
+            </button>
+
+
+            <button className="px-4 py-2 text-left hover:bg-slate-800">
+              Query Forum
+            </button>
+
+
+            <button className="px-4 py-2 text-left bg-indigo-600">
+              Profile
+            </button>
+
+
+            <button
+              className="px-4 py-2 text-left hover:bg-slate-800"
+              onClick={() => navigate("/company/posted-career-events")}
+            >
+              Posted CareerEvents
+            </button>
           </nav>
         </aside>
+
 
         {/* Main content */}
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 p-6 flex items-center justify-center">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl p-8">
             <h2 className="text-lg font-semibold mb-6">Company Information</h2>
+
 
             <div className="flex flex-col items-center mb-2">
               {avatarUrl ? (
@@ -458,12 +517,11 @@ const CompanyProfilePage = () => {
                 <div className="w-24 h-24 rounded-full bg-slate-700" />
               )}
 
-              {isOwner && (
-                <div className="flex gap-2 mt-2">
-                  <button onClick={triggerMainFile} className="bg-white px-3 py-1 rounded shadow-md text-sm">📷</button>
-                  <button onClick={handleDeleteImage} className="bg-red-600 px-3 py-1 rounded shadow-md text-white text-sm">🗑️</button>
-                </div>
-              )}
+              <div className="flex gap-2 mt-2">
+                <button onClick={triggerMainFile} className="bg-white px-3 py-1 rounded shadow-md text-sm">📷</button>
+                <button onClick={handleDeleteImage} className="bg-red-600 px-3 py-1 rounded shadow-md text-white text-sm">🗑️</button>
+              </div>
+
 
               <input
                 ref={fileInputRefMain}
@@ -477,6 +535,7 @@ const CompanyProfilePage = () => {
                 }}
               />
             </div>
+
 
             {/* Profile Fields */}
             <div className="border rounded-md overflow-hidden text-sm">
@@ -504,6 +563,7 @@ const CompanyProfilePage = () => {
                 </div>
               ))}
             </div>
+
 
             {/* Additional Info */}
             <h3 className="mt-4 mb-2 font-semibold text-gray-700">Additional Information</h3>
@@ -598,7 +658,7 @@ const CompanyProfilePage = () => {
               ))}
             </div>
 
-            {/* Buttons (edit/save only for owner) */}
+            {/* Buttons */}
             <div className="flex gap-3 mt-6 flex-wrap">
               {!isEditing && isOwner && (
                 <>
@@ -669,5 +729,6 @@ const CompanyProfilePage = () => {
     </div>
   );
 };
+
 
 export default CompanyProfilePage;

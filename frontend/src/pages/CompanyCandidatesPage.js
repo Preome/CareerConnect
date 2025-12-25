@@ -3,22 +3,27 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+
 const CompanyCandidatesPage = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
 
+
   const navigate = useNavigate();
+
 
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
   const avatarUrl = profile?.imageUrl || null;
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
     navigate("/");
   };
+
 
   const fetchCandidates = async () => {
     try {
@@ -43,9 +48,11 @@ const CompanyCandidatesPage = () => {
     }
   };
 
+
   useEffect(() => {
     fetchCandidates();
   }, []);
+
 
   const groupedByJob = applications.reduce((acc, app) => {
     const key = app.jobId?._id || app.jobId || app.jobTitle;
@@ -60,11 +67,13 @@ const CompanyCandidatesPage = () => {
     return acc;
   }, {});
 
+
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
       {/* top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
+
 
         <div className="flex items-center gap-4 relative">
           <div className="flex items-center bg-white rounded-full px-3 py-1">
@@ -76,6 +85,7 @@ const CompanyCandidatesPage = () => {
             />
           </div>
 
+
           <div className="relative">
             <button
               className="text-2xl font-bold"
@@ -84,6 +94,7 @@ const CompanyCandidatesPage = () => {
             >
               ☰
             </button>
+
 
             {menuOpen && (
               <div className="absolute right-0 top-8 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
@@ -108,6 +119,7 @@ const CompanyCandidatesPage = () => {
         </div>
       </header>
 
+
       <div className="flex flex-1">
         {/* left sidebar */}
         <aside className="w-56 bg-slate-900 text-white pt-6 hidden md:flex flex-col items-center">
@@ -128,6 +140,7 @@ const CompanyCandidatesPage = () => {
               {profile?.companyName || profile?.name || "Company"}
             </span>
           </div>
+
 
           <nav className="w-full space-y-1 px-3 text-sm">
             <button
@@ -166,8 +179,15 @@ const CompanyCandidatesPage = () => {
             >
               Profile
             </button>
+            <button
+              className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
+              onClick={() => navigate("/company/posted-career-events")}
+            >
+              Posted CareerEvents
+            </button>
           </nav>
         </aside>
+
 
         {/* main content */}
         <main className="flex-1 bg-gradient-to-b from-slate-200 to-slate-400 py-8 flex justify-center">
@@ -176,6 +196,7 @@ const CompanyCandidatesPage = () => {
             <div className="bg-green-500 text-white px-4 py-2 rounded-t-xl shadow-md mb-0">
               <h2 className="text-lg font-semibold">Jobs and Applicants</h2>
             </div>
+
 
             <div className="bg-white rounded-b-xl shadow-2xl p-6 md:p-8">
               {loading ? (
@@ -188,6 +209,7 @@ const CompanyCandidatesPage = () => {
                     const anyApp = group.anyApp;
                     const jobId = anyApp?.jobId?._id || anyApp?.jobId;
 
+
                     const colorClasses = [
                       "from-indigo-50 to-indigo-100 border-indigo-200",
                       "from-pink-50 to-pink-100 border-pink-200",
@@ -196,6 +218,7 @@ const CompanyCandidatesPage = () => {
                     ];
                     const chosen =
                       colorClasses[index % colorClasses.length];
+
 
                     return (
                       <button
@@ -240,18 +263,5 @@ const CompanyCandidatesPage = () => {
   );
 };
 
+
 export default CompanyCandidatesPage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
