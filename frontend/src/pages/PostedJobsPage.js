@@ -3,15 +3,18 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+
 const PostedJobsPage = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
   const avatarUrl = profile?.imageUrl || null;
+
 
   const fetchJobs = async () => {
     try {
@@ -33,9 +36,11 @@ const PostedJobsPage = () => {
     }
   };
 
+
   useEffect(() => {
     fetchJobs();
   }, []);
+
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this job?")) return;
@@ -55,17 +60,20 @@ const PostedJobsPage = () => {
     }
   };
 
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
     navigate("/");
   };
 
+
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
       {/* top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
+
 
         <div className="flex items-center gap-4 relative">
           <div className="flex items-center bg-white rounded-full px-3 py-1">
@@ -77,6 +85,7 @@ const PostedJobsPage = () => {
             />
           </div>
 
+
           {/* hamburger menu with dropdown */}
           <div className="relative">
             <button
@@ -86,6 +95,7 @@ const PostedJobsPage = () => {
             >
               ☰
             </button>
+
 
             {menuOpen && (
               <div className="absolute right-0 top-8 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
@@ -110,6 +120,7 @@ const PostedJobsPage = () => {
         </div>
       </header>
 
+
       {/* main area with sidebar + content */}
       <div className="flex flex-1">
         {/* left sidebar: sticky so it stays while scrolling */}
@@ -131,6 +142,7 @@ const PostedJobsPage = () => {
               {profile?.companyName || profile?.name || "Company"}
             </span>
           </div>
+
 
           <nav className="w-full space-y-1 px-3 text-sm">
             <button
@@ -157,19 +169,11 @@ const PostedJobsPage = () => {
             >
               Messages
             </button>
-            {/* NEW: Query Forum */}
             <button
               className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
               onClick={() => navigate("/company/query-forum")}
             >
               Query Forum
-            </button>
-            {/* NEW: Posted CareerEvents */}
-            <button
-              className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
-              onClick={() => navigate("/company/posted-career-events")}
-            >
-              Posted CareerEvents
             </button>
             <button
               className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
@@ -177,8 +181,15 @@ const PostedJobsPage = () => {
             >
               Profile
             </button>
+            <button
+              className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
+              onClick={() => navigate("/company/posted-career-events")}
+            >
+              Posted CareerEvents
+            </button>
           </nav>
         </aside>
+
 
         {/* content pane */}
         <main className="flex-1 bg-gradient-to-b from-slate-200 to-slate-400 py-10 flex justify-center">
@@ -189,6 +200,7 @@ const PostedJobsPage = () => {
                   Posted Jobs
                 </h2>
               </div>
+
 
               {loading ? (
                 <p>Loading...</p>
@@ -223,6 +235,7 @@ const PostedJobsPage = () => {
                           </p>
                         </div>
 
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-1">
                           <p>
                             <span className="font-semibold text-pink-700">
@@ -246,12 +259,14 @@ const PostedJobsPage = () => {
                           </p>
                         </div>
 
+
                         <p className="mt-1">
                           <span className="font-semibold text-pink-700">
                             Address:
                           </span>{" "}
                           {job.address}
                         </p>
+
 
                         <p className="font-semibold text-pink-700 mt-3">
                           Job Description
@@ -260,12 +275,14 @@ const PostedJobsPage = () => {
                           {job.description}
                         </p>
 
+
                         <p className="font-semibold text-pink-700 mt-3">
                           Job Requirements
                         </p>
                         <p className="whitespace-pre-line text-gray-700">
                           {job.requirements}
                         </p>
+
 
                         <p className="font-semibold text-pink-700 mt-3">
                           Job Benefits
@@ -274,6 +291,7 @@ const PostedJobsPage = () => {
                           {job.benefits}
                         </p>
 
+
                         <p className="font-semibold text-pink-700 mt-3">
                           Job Experience
                         </p>
@@ -281,11 +299,13 @@ const PostedJobsPage = () => {
                           {job.experience}
                         </p>
 
+
                         <p className="font-semibold text-pink-700 mt-3">
                           Salary Range
                         </p>
                         <p className="text-gray-700">{job.salaryRange}</p>
                       </div>
+
 
                       <div className="flex flex-col space-y-2 items-stretch">
                         <button
@@ -314,5 +334,6 @@ const PostedJobsPage = () => {
     </div>
   );
 };
+
 
 export default PostedJobsPage;

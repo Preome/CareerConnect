@@ -4,16 +4,20 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
 
+
 const PostedCareerEventsPage = () => {
   const navigate = useNavigate();
+
 
   const storedProfile = localStorage.getItem("profile");
   const companyProfile = storedProfile ? JSON.parse(storedProfile) : null;
   const avatarUrl = companyProfile?.imageUrl || null;
 
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+
 
   // Ensure only company can see this
   useEffect(() => {
@@ -23,6 +27,7 @@ const PostedCareerEventsPage = () => {
       navigate("/login");
     }
   }, [companyProfile, navigate]);
+
 
   const fetchEvents = async () => {
     try {
@@ -45,15 +50,18 @@ const PostedCareerEventsPage = () => {
     }
   };
 
+
   useEffect(() => {
     fetchEvents();
   }, []);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("profile");
     navigate("/");
   };
+
 
   const handleDelete = async (eventId) => {
     if (!window.confirm("Are you sure you want to delete this event?")) {
@@ -77,16 +85,19 @@ const PostedCareerEventsPage = () => {
     }
   };
 
+
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "short", day: "numeric" };
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
       {/* Top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative shadow-lg">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
+
 
         <div className="flex items-center gap-4 relative">
           <div className="flex items-center bg-white rounded-full px-3 py-1">
@@ -98,12 +109,14 @@ const PostedCareerEventsPage = () => {
             />
           </div>
 
+
           <button
             className="text-2xl font-bold relative hover:scale-110 transition-transform"
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             ☰
           </button>
+
 
           {menuOpen && (
             <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
@@ -127,6 +140,7 @@ const PostedCareerEventsPage = () => {
         </div>
       </header>
 
+
       <div className="flex flex-1">
         {/* Sidebar (company) - FIXED TO MATCH DASHBOARD */}
         <aside className="w-56 bg-slate-900 text-white pt-6">
@@ -148,8 +162,8 @@ const PostedCareerEventsPage = () => {
             </span>
           </div>
 
+
           <nav className="flex flex-col text-sm">
-            {/* Dashboard */}
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company-dashboard")}
@@ -157,7 +171,7 @@ const PostedCareerEventsPage = () => {
               Dashboard
             </button>
 
-            {/* Posted Jobs */}
+
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company/posted-jobs")}
@@ -165,7 +179,7 @@ const PostedCareerEventsPage = () => {
               Posted Jobs
             </button>
 
-            {/* Candidate list */}
+
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company/candidates")}
@@ -173,30 +187,31 @@ const PostedCareerEventsPage = () => {
               Candidate list
             </button>
 
-            {/* Messages */}
+
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Messages
             </button>
 
-            {/* Query Forum */}
+
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Query Forum
             </button>
 
-            {/* Posted CareerEvents - ACTIVE (clean purple, no bold) */}
-            <button className="text-left px-4 py-2 bg-indigo-600">
-              Posted CareerEvents
-            </button>
 
-            {/* Profile */}
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company-profile")}
             >
               Profile
             </button>
+
+
+            <button className="text-left px-4 py-2 bg-indigo-600">
+              Posted CareerEvents
+            </button>
           </nav>
         </aside>
+
 
         {/* Main content */}
         <main className="flex-1 bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 py-10 px-4 md:px-10 overflow-y-auto">
@@ -246,6 +261,7 @@ const PostedCareerEventsPage = () => {
                 </button>
               </div>
             </div>
+
 
             {loading ? (
               <div className="flex flex-col items-center justify-center py-24">
@@ -310,6 +326,7 @@ const PostedCareerEventsPage = () => {
                           </span>
                         </div>
 
+
                         {/* Gradient badge at bottom */}
                         <div className="absolute bottom-5 left-5 bg-gradient-to-r from-blue-600 to-teal-500 text-white px-5 py-2 rounded-xl shadow-lg">
                           <p className="text-xs font-bold uppercase tracking-wide">
@@ -318,6 +335,7 @@ const PostedCareerEventsPage = () => {
                         </div>
                       </div>
                     )}
+
 
                     {/* Content with enhanced spacing */}
                     <div className="p-8">
@@ -332,6 +350,7 @@ const PostedCareerEventsPage = () => {
                         </p>
                       </div>
 
+
                       {/* Premium Company Badge */}
                       <div className="mb-6 inline-block">
                         <div className="bg-gradient-to-r from-violet-50 via-purple-50 to-indigo-50 border-2 border-violet-200 px-5 py-3 rounded-2xl shadow-sm">
@@ -341,6 +360,7 @@ const PostedCareerEventsPage = () => {
                           </span>
                         </div>
                       </div>
+
 
                       {/* Enhanced Date & Location Grid */}
                       <div className="grid grid-cols-3 gap-4 mb-6">
@@ -370,6 +390,7 @@ const PostedCareerEventsPage = () => {
                         </div>
                       </div>
 
+
                       {/* Event Details with icon */}
                       <div className="mb-6 bg-gradient-to-br from-slate-50 to-gray-50 p-5 rounded-2xl border-2 border-slate-200 shadow-sm">
                         <p className="text-xs text-slate-500 uppercase font-black mb-3 flex items-center gap-2 tracking-wider">
@@ -380,6 +401,7 @@ const PostedCareerEventsPage = () => {
                           {event.eventDetails}
                         </p>
                       </div>
+
 
                       {/* Stylish Website Link */}
                       <div className="mb-6">
@@ -400,6 +422,7 @@ const PostedCareerEventsPage = () => {
                           </span>
                         </a>
                       </div>
+
 
                       {/* Premium Activity Schedule - Soft Peach/Orange */}
                       {event.activityList && event.activityList.length > 0 && (
@@ -433,6 +456,7 @@ const PostedCareerEventsPage = () => {
                         </div>
                       )}
 
+
                       {/* Premium Action Buttons */}
                       <div className="flex gap-4">
                         <button
@@ -465,6 +489,7 @@ const PostedCareerEventsPage = () => {
         </main>
       </div>
 
+
       {/* Add animation keyframes */}
       <style jsx>{`
         @keyframes fadeInUp {
@@ -481,5 +506,6 @@ const PostedCareerEventsPage = () => {
     </div>
   );
 };
+
 
 export default PostedCareerEventsPage;

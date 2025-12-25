@@ -5,8 +5,10 @@ import axios from "axios";
 import { API_BASE_URL } from "../config";
 
 
+
 const RegisteredEventsPage = () => {
   const navigate = useNavigate();
+
 
 
   const storedProfile = localStorage.getItem("profile");
@@ -14,9 +16,11 @@ const RegisteredEventsPage = () => {
   const avatarUrl = userProfile?.imageUrl || null;
 
 
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
+
 
 
   const handleLogout = () => {
@@ -24,6 +28,7 @@ const RegisteredEventsPage = () => {
     localStorage.removeItem("profile");
     navigate("/");
   };
+
 
 
   const fetchRegistrations = async () => {
@@ -38,9 +43,9 @@ const RegisteredEventsPage = () => {
           },
         }
       );
-      // Filter only confirmed registrations
+      // Filter only confirmed registrations AND events that still exist (not deleted)
       const confirmed = (res.data || []).filter(
-        (reg) => reg.status === "confirmed" && reg.isEmailVerified
+        (reg) => reg.status === "confirmed" && reg.isEmailVerified && reg.eventId
       );
       setRegistrations(confirmed);
     } catch (err) {
@@ -54,15 +59,18 @@ const RegisteredEventsPage = () => {
   };
 
 
+
   useEffect(() => {
     fetchRegistrations();
   }, []);
+
 
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
+
 
 
   const handleCancelRegistration = async (registrationId) => {
@@ -73,6 +81,7 @@ const RegisteredEventsPage = () => {
     ) {
       return;
     }
+
 
 
     try {
@@ -96,11 +105,13 @@ const RegisteredEventsPage = () => {
   };
 
 
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
       {/* Top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative shadow-lg">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
+
 
 
         <div className="flex items-center gap-4 relative">
@@ -114,12 +125,14 @@ const RegisteredEventsPage = () => {
           </div>
 
 
+
           <button
             className="text-2xl font-bold relative hover:scale-110 transition-transform"
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             ☰
           </button>
+
 
 
           {menuOpen && (
@@ -145,6 +158,7 @@ const RegisteredEventsPage = () => {
       </header>
 
 
+
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside className="w-52 bg-slate-900 text-white pt-6 sticky top-0 self-start h-screen">
@@ -165,6 +179,7 @@ const RegisteredEventsPage = () => {
               {userProfile?.name || "User"}
             </span>
           </div>
+
 
 
           <nav className="flex flex-col text-sm">
@@ -211,6 +226,7 @@ const RegisteredEventsPage = () => {
         </aside>
 
 
+
         {/* Main content */}
         <main className="flex-1 bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 py-10 px-4 md:px-10 overflow-y-auto">
           <div className="max-w-7xl mx-auto">
@@ -218,6 +234,7 @@ const RegisteredEventsPage = () => {
             <div className="relative bg-gradient-to-r from-indigo-700 via-purple-600 to-pink-500 text-white rounded-3xl shadow-2xl p-10 mb-10 overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+
 
 
               <div className="relative z-10">
@@ -242,6 +259,7 @@ const RegisteredEventsPage = () => {
             </div>
 
 
+
             {loading ? (
               <div className="flex flex-col items-center justify-center py-24">
                 <div className="relative">
@@ -258,6 +276,7 @@ const RegisteredEventsPage = () => {
                   <div className="absolute top-10 left-10 w-32 h-32 bg-indigo-500 rounded-full blur-3xl"></div>
                   <div className="absolute bottom-10 right-10 w-40 h-40 bg-purple-500 rounded-full blur-3xl"></div>
                 </div>
+
 
 
                 <div className="relative z-10">
@@ -283,6 +302,7 @@ const RegisteredEventsPage = () => {
                   if (!event) return null;
 
 
+
                   return (
                     <div
                       key={registration._id}
@@ -303,6 +323,7 @@ const RegisteredEventsPage = () => {
                       </div>
 
 
+
                       {/* Cover image */}
                       {event.coverImageUrl && (
                         <div className="relative h-64 overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100">
@@ -314,6 +335,7 @@ const RegisteredEventsPage = () => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
 
 
+
                           {/* Event type badge */}
                           <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg">
                             <span className="text-purple-600 font-black text-xs uppercase">
@@ -322,6 +344,7 @@ const RegisteredEventsPage = () => {
                           </div>
                         </div>
                       )}
+
 
 
                       {/* Content */}
@@ -335,6 +358,7 @@ const RegisteredEventsPage = () => {
                         </p>
 
 
+
                         {/* Company */}
                         <div className="mb-4 inline-block bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 px-4 py-2 rounded-xl">
                           <span className="text-violet-700 font-bold text-sm flex items-center gap-2">
@@ -342,6 +366,7 @@ const RegisteredEventsPage = () => {
                             {event.company?.companyName || "Company"}
                           </span>
                         </div>
+
 
 
                         {/* Event Details */}
@@ -365,6 +390,7 @@ const RegisteredEventsPage = () => {
                         </div>
 
 
+
                         {/* Registration Info */}
                         <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-4 mb-4">
                           <p className="text-xs text-purple-700 font-bold uppercase mb-2">
@@ -385,6 +411,7 @@ const RegisteredEventsPage = () => {
                             </p>
                           </div>
                         </div>
+
 
 
                         {/* Actions */}
@@ -417,6 +444,7 @@ const RegisteredEventsPage = () => {
       </div>
 
 
+
       {/* Animation keyframes */}
       <style jsx>{`
         @keyframes fadeInUp {
@@ -433,6 +461,7 @@ const RegisteredEventsPage = () => {
     </div>
   );
 };
+
 
 
 export default RegisteredEventsPage;

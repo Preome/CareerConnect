@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+
 const CompanyDashboardPage = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const storedProfile = localStorage.getItem("profile");
   const profile = storedProfile ? JSON.parse(storedProfile) : null;
 
+
   useEffect(() => {
     if (!token) navigate("/login");
   }, [token, navigate]);
 
+
   const avatarUrl = profile?.imageUrl || null;
   const [menuOpen, setMenuOpen] = useState(false);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -20,11 +24,13 @@ const CompanyDashboardPage = () => {
     navigate("/");
   };
 
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
       {/* Top bar */}
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
+
 
         <div className="flex items-center gap-4 relative">
           <div className="flex items-center bg-white rounded-full px-3 py-1">
@@ -36,6 +42,7 @@ const CompanyDashboardPage = () => {
             />
           </div>
 
+
           {/* menu button */}
           <button
             className="text-2xl font-bold relative"
@@ -43,6 +50,7 @@ const CompanyDashboardPage = () => {
           >
             ☰
           </button>
+
 
           {/* dropdown */}
           {menuOpen && (
@@ -67,6 +75,7 @@ const CompanyDashboardPage = () => {
         </div>
       </header>
 
+
       <div className="flex flex-1">
         {/* Left sidebar */}
         <aside className="w-56 bg-slate-900 text-white pt-6">
@@ -88,6 +97,7 @@ const CompanyDashboardPage = () => {
             </span>
           </div>
 
+
           <nav className="flex flex-col text-sm">
             {/* Dashboard - ACTIVE (purple background) */}
             <button
@@ -97,6 +107,7 @@ const CompanyDashboardPage = () => {
               Dashboard
             </button>
 
+
             {/* Posted Jobs */}
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
@@ -104,6 +115,7 @@ const CompanyDashboardPage = () => {
             >
               Posted Jobs
             </button>
+
 
             {/* Candidate list */}
             <button
@@ -113,6 +125,7 @@ const CompanyDashboardPage = () => {
               Candidate list
             </button>
 
+
             {/* Messages */}
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
@@ -121,28 +134,32 @@ const CompanyDashboardPage = () => {
               Messages
             </button>
 
+
             {/* Query Forum */}
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Query Forum
             </button>
 
-            {/* Posted CareerEvents - BEFORE Profile */}
-            <button
-              className="text-left px-4 py-2 hover:bg-slate-800"
-              onClick={() => navigate("/company/posted-career-events")}
-            >
-              Posted CareerEvents
-            </button>
 
-            {/* Profile - LAST */}
+            {/* Profile */}
             <button
               className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/company-profile")}
             >
               Profile
             </button>
+
+
+            {/* Posted CareerEvents - MOVED TO BOTTOM */}
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/company/posted-career-events")}
+            >
+              Posted CareerEvents
+            </button>
           </nav>
         </aside>
+
 
         {/* Main area (dashboard content) */}
         <main className="flex-1 bg-gradient-to-b from-gray-100 to-gray-300 flex">
@@ -157,6 +174,7 @@ const CompanyDashboardPage = () => {
                 </p>
               </div>
 
+
               <div className="flex gap-3">
                 {/* Add CareerEvents button */}
                 <button
@@ -165,6 +183,7 @@ const CompanyDashboardPage = () => {
                 >
                   Add CareerEvents
                 </button>
+
 
                 {/* Add Job post button */}
                 <button
@@ -181,5 +200,6 @@ const CompanyDashboardPage = () => {
     </div>
   );
 };
+
 
 export default CompanyDashboardPage;

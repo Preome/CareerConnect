@@ -1,3 +1,4 @@
+// frontend/src/pages/UserProfilePage.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -897,7 +898,7 @@ const UserProfilePage = () => {
                 </div>
               </div>
 
-              {/* Links Section */}
+              {/* Links Section - FIXED VERSION */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block text-sm font-semibold mb-1 flex items-center gap-2">
@@ -912,13 +913,20 @@ const UserProfilePage = () => {
                       placeholder="https://github.com/yourusername/project"
                       className="w-full px-3 py-2 border rounded-md"
                     />
+                  ) : profile.projectLink ? (
+                    <a
+                      href={profile.projectLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full px-3 py-2 border rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition break-all"
+                      style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                    >
+                      {profile.projectLink}
+                    </a>
                   ) : (
-                    <input
-                      type="text"
-                      value={profile.projectLink || ""}
-                      disabled
-                      className="w-full px-3 py-2 border rounded-md bg-gray-50"
-                    />
+                    <div className="w-full px-3 py-2 border rounded-md bg-gray-50 text-gray-400">
+                      No project link provided
+                    </div>
                   )}
                 </div>
 
@@ -935,13 +943,20 @@ const UserProfilePage = () => {
                       placeholder="https://linkedin.com/in/yourprofile"
                       className="w-full px-3 py-2 border rounded-md"
                     />
+                  ) : profile.linkedinLink ? (
+                    <a
+                      href={profile.linkedinLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full px-3 py-2 border rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition break-all"
+                      style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                    >
+                      {profile.linkedinLink}
+                    </a>
                   ) : (
-                    <input
-                      type="text"
-                      value={profile.linkedinLink || ""}
-                      disabled
-                      className="w-full px-3 py-2 border rounded-md bg-gray-50"
-                    />
+                    <div className="w-full px-3 py-2 border rounded-md bg-gray-50 text-gray-400">
+                      No LinkedIn link provided
+                    </div>
                   )}
                 </div>
               </div>
