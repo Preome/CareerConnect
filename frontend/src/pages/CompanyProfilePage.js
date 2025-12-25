@@ -429,10 +429,12 @@ const CompanyProfilePage = () => {
               <div className="w-16 h-16 rounded-md bg-slate-700" />
             )}
 
-            <div className="flex gap-2 mt-2">
-              <button onClick={triggerSidebarFile} className="bg-white px-2 py-1 rounded shadow-md text-xs">📷</button>
-              <button onClick={handleDeleteImage} className="bg-red-600 px-2 py-1 rounded shadow-md text-white text-xs">🗑️</button>
-            </div>
+            {isOwner && (
+              <div className="flex gap-2 mt-2">
+                <button onClick={triggerSidebarFile} className="bg-white px-2 py-1 rounded shadow-md text-xs">📷</button>
+                <button onClick={handleDeleteImage} className="bg-red-600 px-2 py-1 rounded shadow-md text-white text-xs">🗑️</button>
+              </div>
+            )}
 
 
             <input
@@ -517,10 +519,12 @@ const CompanyProfilePage = () => {
                 <div className="w-24 h-24 rounded-full bg-slate-700" />
               )}
 
-              <div className="flex gap-2 mt-2">
-                <button onClick={triggerMainFile} className="bg-white px-3 py-1 rounded shadow-md text-sm">📷</button>
-                <button onClick={handleDeleteImage} className="bg-red-600 px-3 py-1 rounded shadow-md text-white text-sm">🗑️</button>
-              </div>
+              {isOwner && (
+                <div className="flex gap-2 mt-2">
+                  <button onClick={triggerMainFile} className="bg-white px-3 py-1 rounded shadow-md text-sm">📷</button>
+                  <button onClick={handleDeleteImage} className="bg-red-600 px-3 py-1 rounded shadow-md text-white text-sm">🗑️</button>
+                </div>
+              )}
 
 
               <input
