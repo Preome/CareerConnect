@@ -263,6 +263,12 @@ const CompanyQueryForumPage = () => {
             >
               Profile
             </button>
+            <button
+              className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/company/posted-career-events")}
+            >
+              Posted CareerEvents
+            </button>
           </nav>
         </aside>
 

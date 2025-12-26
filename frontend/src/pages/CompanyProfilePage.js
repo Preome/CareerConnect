@@ -486,7 +486,9 @@ const CompanyProfilePage = () => {
             </button>
 
 
-            <button className="px-4 py-2 text-left hover:bg-slate-800">
+            <button className="px-4 py-2 text-left hover:bg-slate-800"
+            onClick={() => navigate("/company-query-forum")}
+            >
               Query Forum
             </button>
 
