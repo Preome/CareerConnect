@@ -414,7 +414,8 @@ const UserProfilePage = () => {
             <input
               type="text"
               placeholder="Search"
-              className="bg-transparent outline-none text-sm text-gray-700"
+              onFocus={() => window.open("/search", "_blank")}
+              className="bg-transparent outline-none text-sm text-gray-700 w-32"
             />
           </div>
 
