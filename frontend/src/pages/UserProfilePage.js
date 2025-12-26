@@ -567,7 +567,9 @@ const UserProfilePage = () => {
             <button className="text-left px-4 py-2 hover:bg-slate-800">
               Messages
             </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
+            <button className="text-left px-4 py-2 hover:bg-slate-800"
+              onClick={() => navigate("/query-forum")}
+            >
               Query Forum
             </button>
             <button className="text-left px-4 py-2 bg-indigo-600">
