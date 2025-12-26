@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
 
+// 🔔 SOCKET.IO
+import { io } from "socket.io-client";
+const socket = io("http://localhost:5000", { transports: ["websocket"] });
+
 
 const AppliedJobsPage = () => {
   const navigate = useNavigate();
@@ -16,6 +20,14 @@ const AppliedJobsPage = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // 🔍 SEARCH STATE
+  const [search, setSearch] = useState("");
+
+  // 🔔 NOTIFICATION STATE
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
 
   // One fullscreen modal for both images and PDFs
@@ -57,9 +69,66 @@ const AppliedJobsPage = () => {
     }
   };
 
+  // 🔔 NOTIFICATION FUNCTIONS
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      console.log("🔔 Fetching notifications...");
+      const res = await axios.get("http://localhost:5000/api/notifications", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications(res.data || []);
+      console.log("✅ Notifications loaded:", res.data?.length || 0);
+    } catch (err) {
+      console.error("❌ Failed to fetch notifications:", err);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        "http://localhost:5000/api/notifications/unread-count",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUnreadCount(res.data.unreadCount || 0);
+      console.log("🔔 Unread count:", res.data.unreadCount || 0);
+    } catch (err) {
+      console.error("❌ Failed to fetch unread count:", err);
+    }
+  };
+
+  const markAsRead = async (notifId) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        `http://localhost:5000/api/notifications/${notifId}/read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await fetchNotifications();
+      await fetchUnreadCount();
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
+  };
+
 
   useEffect(() => {
     fetchApplications();
+    fetchNotifications();
+    fetchUnreadCount();
+  }, []);
+
+  // 🔔 SOCKET LISTENER
+  useEffect(() => {
+    socket.on("notification", async (data) => {
+      await fetchNotifications();
+      await fetchUnreadCount();
+      alert(`🔔 ${data.title}\n${data.message}`);
+    });
+
+    return () => socket.off("notification");
   }, []);
 
 
@@ -236,26 +305,92 @@ const AppliedJobsPage = () => {
       <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative">
         <h1 className="text-2xl font-semibold">CareerConnect</h1>
 
-
         <div className="flex items-center gap-4 relative">
+          {/* 🔍 SEARCH BOX */}
           <div className="flex items-center bg-white rounded-full px-3 py-1">
             <span className="text-gray-500 mr-2">🔍</span>
             <input
               type="text"
               placeholder="Search"
-              className="bg-transparent outline-none text-sm text-gray-700"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onFocus={() => window.open("/search", "_blank")}
+              className="bg-transparent outline-none text-sm text-gray-700 w-32"
             />
           </div>
 
-
+          {/* 🔔 NOTIFICATION BUTTON */}
           <button
-            className="text-2xl font-bold relative"
+            className="text-2xl relative hover:scale-110 transition-transform"
+            onClick={() => setNotificationOpen((prev) => !prev)}
+          >
+            🔔
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* 📅 GOOGLE CALENDAR ICON */}
+          <a
+            href="https://calendar.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-2xl hover:scale-110 transition-transform"
+            title="Google Calendar"
+          >
+            📅
+          </a>
+
+          {/* ☰ HAMBURGER MENU */}
+          <button
+            className="text-2xl font-bold relative hover:scale-110 transition-transform"
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             ☰
           </button>
 
+          {/* 🔔 NOTIFICATION DROPDOWN */}
+          {notificationOpen && (
+            <div className="absolute right-0 top-12 bg-white text-gray-800 rounded-md shadow-lg w-80 max-h-96 overflow-y-auto z-20">
+              <div className="px-4 py-2 border-b border-gray-200 font-semibold">
+                Notifications ({notifications.length})
+              </div>
+              {notifications.length === 0 ? (
+                <div className="px-4 py-6 text-center text-gray-500">
+                  No notifications
+                </div>
+              ) : (
+                notifications.map((notif) => (
+                  <div
+                    key={notif._id}
+                    className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => markAsRead(notif._id)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">
+                          {notif.title}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {notif.message}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(notif.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      {!notif.isRead && (
+                        <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full"></span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
 
+          {/* ☰ HAMBURGER DROPDOWN */}
           {menuOpen && (
             <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
               <button
