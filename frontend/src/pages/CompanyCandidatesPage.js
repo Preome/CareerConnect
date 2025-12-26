@@ -3,6 +3,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
+// 🔔 SOCKET.IO
+import { io } from "socket.io-client";
+const socket = io("http://localhost:5000", { transports: ["websocket"] });
 
 
 const CompanyCandidatesPage = () => {
@@ -54,8 +57,39 @@ const CompanyCandidatesPage = () => {
     fetchCandidates();
   }, []);
 
+  // 🔔 SOCKET: Listen for job/applicant deletions and refresh
+  useEffect(() => {
+    socket.on("job_deleted", async () => {
+      console.log("Job deleted event received, refreshing candidates...");
+      await fetchCandidates();
+    });
 
-  const groupedByJob = applications.reduce((acc, app) => {
+    socket.on("application_deleted", async () => {
+      console.log("Application deleted event received, refreshing candidates...");
+      await fetchCandidates();
+    });
+
+    socket.on("notification", async () => {
+      console.log("Notification event received, refreshing candidates...");
+      await fetchCandidates();
+    });
+
+    return () => {
+      socket.off("job_deleted");
+      socket.off("application_deleted");
+      socket.off("notification");
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+  // Filter out applications whose jobs have been deleted
+  const validApplications = applications.filter((app) => {
+    // Only show applications where the job still exists
+    return app.jobId && (app.jobId._id || app.jobId);
+  });
+
+  const groupedByJob = validApplications.reduce((acc, app) => {
     const key = app.jobId?._id || app.jobId || app.jobTitle;
     if (!acc[key]) {
       acc[key] = {
@@ -149,7 +183,7 @@ const CompanyCandidatesPage = () => {
             <div className="bg-white rounded-b-xl shadow-2xl p-6 md:p-8">
               {loading ? (
                 <p>Loading candidates...</p>
-              ) : applications.length === 0 ? (
+              ) : Object.keys(groupedByJob).length === 0 ? (
                 <p>No applications yet.</p>
               ) : (
                 <div className="space-y-4">
