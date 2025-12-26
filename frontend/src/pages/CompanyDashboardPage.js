@@ -177,7 +177,7 @@ const CompanyDashboardPage = () => {
             <button className="text-left px-4 py-2 bg-indigo-600" onClick={() => navigate("/company-dashboard")}>Dashboard</button>
             <button className="text-left px-4 py-2 hover:bg-slate-800" onClick={() => navigate("/company/posted-jobs")}>Posted Jobs</button>
             <button className="text-left px-4 py-2 hover:bg-slate-800" onClick={() => navigate("/company/candidates")}>Candidate list</button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800" onClick={() => navigate("/company/messages")}>Messages</button>
+           
             <button className="text-left px-4 py-2 hover:bg-slate-800" onClick={() => navigate("/company-query-forum")}>Query Forum</button>
             <button className="text-left px-4 py-2 hover:bg-slate-800" onClick={() => navigate(`/company/${profile?.id || profile?._id}`)}>Profile</button>
             <button className="text-left px-4 py-2 hover:bg-slate-800" onClick={() => navigate("/company/posted-career-events")}>Posted CareerEvents</button>

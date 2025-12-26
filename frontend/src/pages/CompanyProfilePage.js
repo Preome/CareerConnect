@@ -481,9 +481,6 @@ const CompanyProfilePage = () => {
             </button>
 
 
-            <button className="px-4 py-2 text-left hover:bg-slate-800">
-              Messages
-            </button>
 
 
             <button className="px-4 py-2 text-left hover:bg-slate-800"

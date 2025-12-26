@@ -162,12 +162,7 @@ const PostedJobsPage = () => {
             >
               Candidate list
             </button>
-            <button
-              className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
-              onClick={() => navigate("/company/messages")}
-            >
-              Messages
-            </button>
+            
             <button
               className="w-full text-left px-4 py-2 rounded hover:bg-slate-800"
               onClick={() => navigate("/company-query-forum")}

@@ -148,9 +148,7 @@ const ViewCareerEventsPage = () => {
             >
               Followed Jobs
             </button>
-            <button className="text-left px-4 py-2 hover:bg-slate-800">
-              Messages
-            </button>
+            
             <button className="text-left px-4 py-2 hover:bg-slate-800"
               onClick={() => navigate("/query-forum")}
             >
