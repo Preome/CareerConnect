@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import TopBar from "../components/TopBar";
 
 const API = "http://localhost:5000/api/query-forum";
 
@@ -162,52 +163,7 @@ const CompanyQueryForumPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
-      <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative">
-        <h1 className="text-2xl font-semibold">CareerConnect</h1>
-
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center bg-white rounded-full px-3 py-1">
-            <span className="text-gray-500 mr-2">🔍</span>
-            <input
-              type="text"
-              placeholder="Search"
-              className="bg-transparent outline-none text-sm text-gray-700"
-            />
-          </div>
-
-          <button
-            className="flex flex-col justify-between w-6 h-5"
-            onClick={() => setShowMenu((prev) => !prev)}
-          >
-            <span className="h-[2px] bg-white rounded" />
-            <span className="h-[2px] bg-white rounded" />
-            <span className="h-[2px] bg-white rounded" />
-          </button>
-
-          {showMenu && (
-            <div className="absolute right-4 top-12 bg-white text-slate-900 rounded shadow-md text-sm w-44 z-20">
-              <button
-                className="w-full text-left px-4 py-2 hover:bg-slate-100"
-                onClick={() => {
-                  setShowMenu(false);
-                  navigate("/company-change-password");
-                }}
-              >
-                Change password
-              </button>
-              <button
-                className="w-full text-left px-4 py-2 hover:bg-slate-100 text-black"
-                onClick={() => {
-                  setShowMenu(false);
-                  handleLogout();
-                }}
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
+      <TopBar />
 
       <div className="flex flex-1">
         <aside className="w-52 bg-slate-900 text-white pt-6 sticky top-0 self-start h-screen">

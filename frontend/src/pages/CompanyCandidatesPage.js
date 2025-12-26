@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import TopBar from "../components/TopBar";
 
 
 const CompanyCandidatesPage = () => {
@@ -70,55 +71,7 @@ const CompanyCandidatesPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
-      {/* top bar */}
-      <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white">
-        <h1 className="text-2xl font-semibold">CareerConnect</h1>
-
-
-        <div className="flex items-center gap-4 relative">
-          <div className="flex items-center bg-white rounded-full px-3 py-1">
-            <span className="text-gray-500 mr-2">🔍</span>
-            <input
-              type="text"
-              placeholder="Search"
-              className="bg-transparent outline-none text-sm text-gray-700"
-            />
-          </div>
-
-
-          <div className="relative">
-            <button
-              className="text-2xl font-bold"
-              type="button"
-              onClick={() => setMenuOpen((prev) => !prev)}
-            >
-              ☰
-            </button>
-
-
-            {menuOpen && (
-              <div className="absolute right-0 top-8 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
-                <button
-                  onClick={() => {
-                    setMenuOpen(false);
-                    navigate("/change-password");
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                >
-                  Change password
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
+      <TopBar />
 
       <div className="flex flex-1">
         {/* left sidebar */}

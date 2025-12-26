@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE_URL } from "../config";
+import TopBar from "../components/TopBar";
 
 
 const CompanyProfilePage = () => {
@@ -371,53 +372,7 @@ const CompanyProfilePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900">
-      {/* Top bar */}
-      <header className="w-full flex items-center justify-between px-8 py-3 bg-slate-900 text-white relative">
-        <h1 className="text-2xl font-semibold">CareerConnect</h1>
-
-
-        <div className="flex items-center gap-4 relative">
-          <div className="flex items-center bg-white rounded-full px-3 py-1">
-            <span className="text-gray-500 mr-2">🔍</span>
-            <input
-              type="text"
-              placeholder="Search"
-              onFocus={() => navigate('/search')}
-              className="bg-transparent outline-none text-sm text-gray-700 cursor-text"
-            />
-          </div>
-
-
-          <button
-            className="text-2xl font-bold"
-            onClick={() => setMenuOpen((prev) => !prev)}
-          >
-            ☰
-          </button>
-
-
-          {menuOpen && (
-            <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40">
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  navigate("/change-password");
-                }}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-              >
-                Change password
-              </button>
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
-
+      <TopBar />
 
       <div className="flex flex-1">
         {/* Sidebar */}
