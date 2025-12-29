@@ -1,6 +1,6 @@
 // backend/src/controllers/careerEventController.js
 const CareerEvent = require("../models/CareerEvent");
-const EventRegistration = require("../models/EventRegistration"); // ADD THIS LINE
+const EventRegistration = require("../models/EventRegistration");
 
 
 // Helper: ensure user is a company
@@ -303,5 +303,43 @@ exports.deleteCareerEvent = async (req, res) => {
     res.status(err.statusCode || 500).json({
       message: err.message || "Failed to delete career event",
     });
+  }
+};
+
+
+// ✅ NEW: Upload event cover image (separate from company logo)
+// @route   POST /api/career-events/upload-event-cover
+// @access  Private (company)
+exports.uploadEventCover = async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== "company") {
+      return res.status(403).json({ message: "Only companies can upload event covers" });
+    }
+
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const cloudinary = require("../config/cloudinary");
+    const streamifier = require("streamifier");
+
+    const uploadFromBuffer = (buffer) =>
+      new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "event_covers" }, // Different folder than company logos!
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+        streamifier.createReadStream(buffer).pipe(uploadStream);
+      });
+
+    const result = await uploadFromBuffer(req.file.buffer);
+
+    res.json({ imageUrl: result.secure_url });
+  } catch (err) {
+    console.error("Event cover upload error:", err);
+    res.status(500).json({ message: err.message || "Failed to upload event cover" });
   }
 };
