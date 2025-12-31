@@ -1,34 +1,32 @@
 // backend/src/routes/careerEventRoutes.js
 const express = require("express");
 const router = express.Router();
+const careerEventController = require("../controllers/careerEventController");
+const { auth, isRole } = require("../middleware/authMiddleware"); // ✅ FIXED!
+const upload = require("../middleware/upload");
 
-const {
-  createCareerEvent,
-  getCompanyEvents,
-  getCareerEventById,
-  updateCareerEvent,
-  deleteCareerEvent,
-} = require("../controllers/careerEventController");
+// ✅ NEW: Upload event cover image (MUST BE BEFORE /:id routes!)
+router.post(
+  "/upload-event-cover",
+  auth,
+  isRole("company"),
+  upload.single("image"),
+  careerEventController.uploadEventCover
+);
 
-const { protect } = require("../middleware/authMiddleware");
-// adjust import if your middleware file exports differently
+// Get all events for logged-in company
+router.get("/company", auth, isRole("company"), careerEventController.getCompanyEvents);
 
-// All routes here are protected – only logged‑in users (companies) can access.
-// The controller itself additionally checks that req.user.role === "company".
+// Create a new career event
+router.post("/", auth, isRole("company"), careerEventController.createCareerEvent);
 
-// Create new event
-router.post("/", protect, createCareerEvent);
+// Get single event by ID
+router.get("/:id", auth, isRole("company"), careerEventController.getCareerEventById);
 
-// Get all events for the logged‑in company
-router.get("/company", protect, getCompanyEvents);
+// Update career event
+router.put("/:id", auth, isRole("company"), careerEventController.updateCareerEvent);
 
-// Get single event (for editing)
-router.get("/:id", protect, getCareerEventById);
-
-// Update existing event
-router.put("/:id", protect, updateCareerEvent);
-
-// Delete event
-router.delete("/:id", protect, deleteCareerEvent);
+// Delete career event
+router.delete("/:id", auth, isRole("company"), careerEventController.deleteCareerEvent);
 
 module.exports = router;

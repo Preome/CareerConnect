@@ -81,7 +81,7 @@ exports.registerUser = async (req, res) => {
       gender,
       email,
       mobile,
-      password: hashed,
+      password,
       studentType,
       department,
       imageUrl,

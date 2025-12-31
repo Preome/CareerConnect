@@ -126,6 +126,7 @@ const AddCareerEventPage = () => {
     });
   };
 
+  // ✅ FIXED: Upload event cover to separate endpoint
   const handleCoverUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -135,10 +136,11 @@ const AddCareerEventPage = () => {
       setError("");
       const token = localStorage.getItem("token");
       const form = new FormData();
-      form.append("image", file); // backend expects "image"
+      form.append("image", file);
 
+      // ✅ FIX: Use event-specific endpoint, NOT company profile endpoint
       const res = await axios.post(
-        `${API_BASE_URL}/company/upload-image`,
+        `${API_BASE_URL}/career-events/upload-event-cover`,
         form,
         {
           headers: {
