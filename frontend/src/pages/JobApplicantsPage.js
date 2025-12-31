@@ -29,7 +29,7 @@ const JobApplicantsPage = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        `http://localhost:5000/api/applications/company?jobId=${jobId}`,
+        `https://careerconnect-b7d9.onrender.com/api/applications/company?jobId=${jobId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setApplications(res.data || []);
@@ -51,7 +51,7 @@ const JobApplicantsPage = () => {
   const getFileUrl = (path) => {
     if (!path) return null;
     if (path.startsWith("http")) return path;
-    return `http://localhost:5000/${path}`;
+    return `https://careerconnect-b7d9.onrender.com/${path}`;
   };
 
   const openDoc = (path) => {
@@ -88,7 +88,7 @@ const JobApplicantsPage = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.patch(
-        `http://localhost:5000/api/applications/${applicationId}/status`,
+        `https://careerconnect-b7d9.onrender.com/api/applications/${applicationId}/status`,
         { status },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -111,7 +111,7 @@ const JobApplicantsPage = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `http://localhost:5000/api/applications/company/${applicationId}`,
+        `https://careerconnect-b7d9.onrender.com/api/applications/company/${applicationId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setApplications((prev) => prev.filter((a) => a._id !== applicationId));
@@ -206,7 +206,7 @@ const JobApplicantsPage = () => {
         await Promise.all(
           emailModal.recipients.map((to) =>
             axios.post(
-              "http://localhost:5000/api/applications/email",
+              "https://careerconnect-b7d9.onrender.com/api/applications/email",
               {
                 to,
                 subject: emailModal.subject,
@@ -218,7 +218,7 @@ const JobApplicantsPage = () => {
         );
       } else {
         await axios.post(
-          "http://localhost:5000/api/applications/email",
+          "https://careerconnect-b7d9.onrender.com/api/applications/email",
           {
             to: emailModal.to,
             subject: emailModal.subject,

@@ -30,7 +30,7 @@ const EditJobPage = () => {
         setLoading(true);
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          `http://localhost:5000/api/jobs/${id}`,
+          `https://careerconnect-b7d9.onrender.com/api/jobs/${id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const job = res.data || {};
@@ -75,7 +75,7 @@ const EditJobPage = () => {
       setSaving(true);
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:5000/api/jobs/${id}`,
+        `https://careerconnect-b7d9.onrender.com/api/jobs/${id}`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );

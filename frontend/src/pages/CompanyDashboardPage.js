@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 // 🔔 SOCKET.IO
 import { io } from "socket.io-client";
-const socket = io("http://localhost:5000", { transports: ["websocket"] });
+const socket = io("https://careerconnect-b7d9.onrender.com", { transports: ["websocket"] });
 
 
 const CompanyDashboardPage = () => {
@@ -24,7 +24,7 @@ const CompanyDashboardPage = () => {
 
   const fetchNotifications = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/notifications", {
+      const res = await axios.get("https://careerconnect-b7d9.onrender.com/api/notifications", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNotifications(res.data || []);
@@ -36,7 +36,7 @@ const CompanyDashboardPage = () => {
   const fetchUnreadCount = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/notifications/unread-count",
+        "https://careerconnect-b7d9.onrender.com/api/notifications/unread-count",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setUnreadCount(res.data.unreadCount || 0);
@@ -48,7 +48,7 @@ const CompanyDashboardPage = () => {
   const markAsRead = async (notifId) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/notifications/${notifId}/read`,
+        `https://careerconnect-b7d9.onrender.com/api/notifications/${notifId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

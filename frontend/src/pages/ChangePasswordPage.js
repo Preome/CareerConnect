@@ -1,7 +1,7 @@
 // src/pages/ChangePasswordPage.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../config"; // e.g. "http://localhost:5000/api"
+import { API_BASE_URL } from "../config"; // e.g. "https://careerconnect-b7d9.onrender.com/api"
 
 const ChangePasswordPage = () => {
   const navigate = useNavigate();

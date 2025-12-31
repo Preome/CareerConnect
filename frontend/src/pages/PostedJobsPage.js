@@ -21,7 +21,7 @@ const PostedJobsPage = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/jobs/company", {
+      const res = await axios.get("https://careerconnect-b7d9.onrender.com/api/jobs/company", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setJobs(res.data);
@@ -47,7 +47,7 @@ const PostedJobsPage = () => {
     if (!window.confirm("Delete this job?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/jobs/${id}`, {
+      await axios.delete(`https://careerconnect-b7d9.onrender.com/api/jobs/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setJobs((prev) => prev.filter((job) => job._id !== id));

@@ -42,7 +42,7 @@ const AddJobPage = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      await axios.post("http://localhost:5000/api/jobs", formData, {
+      await axios.post("https://careerconnect-b7d9.onrender.com/api/jobs", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

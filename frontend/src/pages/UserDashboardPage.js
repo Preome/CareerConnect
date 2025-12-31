@@ -5,7 +5,7 @@ import axios from "axios";
 
 // 🔔 SOCKET.IO
 import { io } from "socket.io-client";
-const socket = io("http://localhost:5000", { transports: ["websocket"] });
+const socket = io("https://careerconnect-b7d9.onrender.com", { transports: ["websocket"] });
 
 const UserDashboardPage = () => {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ const UserDashboardPage = () => {
 
   const fetchNotifications = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/notifications", {
+      const res = await axios.get("https://careerconnect-b7d9.onrender.com/api/notifications", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNotifications(res.data || []);
@@ -62,7 +62,7 @@ const UserDashboardPage = () => {
   const fetchUnreadCount = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/notifications/unread-count",
+        "https://careerconnect-b7d9.onrender.com/api/notifications/unread-count",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setUnreadCount(res.data.unreadCount || 0);
@@ -74,7 +74,7 @@ const UserDashboardPage = () => {
   const markAsRead = async (notifId) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/notifications/${notifId}/read`,
+        `https://careerconnect-b7d9.onrender.com/api/notifications/${notifId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -125,7 +125,7 @@ const UserDashboardPage = () => {
   // 🔍 ADD SEARCH PARAM
   if (search && search.trim()) params.append("search", search.trim());
 
-      const url = `http://localhost:5000/api/jobs${
+      const url = `https://careerconnect-b7d9.onrender.com/api/jobs${
         params.toString() ? `?${params.toString()}` : ""
       }`;
 
@@ -150,7 +150,7 @@ const UserDashboardPage = () => {
       const token = localStorage.getItem("token");
       if (!token) return;
       const res = await axios.get(
-        "http://localhost:5000/api/applications/user",
+        "https://careerconnect-b7d9.onrender.com/api/applications/user",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setMyApplications(res.data || []);
@@ -166,7 +166,7 @@ const UserDashboardPage = () => {
       if (!token) return;
 
       const res = await axios.get(
-        "http://localhost:5000/api/jobs/user/followed",
+        "https://careerconnect-b7d9.onrender.com/api/jobs/user/followed",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -194,7 +194,7 @@ const UserDashboardPage = () => {
       }
 
       await axios.post(
-        `http://localhost:5000/api/jobs/${jobId}/follow`,
+        `https://careerconnect-b7d9.onrender.com/api/jobs/${jobId}/follow`,
         {},
         {
           headers: {
@@ -223,7 +223,7 @@ const UserDashboardPage = () => {
         return;
       }
 
-      await axios.delete(`http://localhost:5000/api/jobs/${jobId}/follow`, {
+      await axios.delete(`https://careerconnect-b7d9.onrender.com/api/jobs/${jobId}/follow`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

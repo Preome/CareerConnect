@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE = "http://localhost:5000/api/auth";
+const API_BASE = "https://careerconnect-b7d9.onrender.com/api/auth";
 
 // password must have at least 1 letter, 1 number, 1 special char
 const isStrongPassword = (pwd) => {

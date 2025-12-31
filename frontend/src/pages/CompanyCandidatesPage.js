@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
 // 🔔 SOCKET.IO
 import { io } from "socket.io-client";
-const socket = io("http://localhost:5000", { transports: ["websocket"] });
+const socket = io("https://careerconnect-b7d9.onrender.com", { transports: ["websocket"] });
 
 
 const CompanyCandidatesPage = () => {
@@ -34,7 +34,7 @@ const CompanyCandidatesPage = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        "http://localhost:5000/api/applications/company",
+        "https://careerconnect-b7d9.onrender.com/api/applications/company",
         {
           headers: { Authorization: `Bearer ${token}` },
         }

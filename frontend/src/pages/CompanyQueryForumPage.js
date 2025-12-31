@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
 
-const API = "http://localhost:5000/api/query-forum";
+const API = "https://careerconnect-b7d9.onrender.com/api/query-forum";
 
 const CompanyQueryForumPage = () => {
   const navigate = useNavigate();
