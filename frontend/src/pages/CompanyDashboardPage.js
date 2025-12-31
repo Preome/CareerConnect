@@ -154,7 +154,7 @@ const CompanyDashboardPage = () => {
           {/* dropdown */}
           {menuOpen && (
             <div className="absolute right-0 top-10 bg-white text-gray-800 rounded-md shadow-lg py-2 w-40 z-10">
-              <button onClick={() => { setMenuOpen(false); navigate("/company-change-password"); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Change password</button>
+              <button onClick={() => { setMenuOpen(false); navigate("/change-password"); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Change password</button>
               <button onClick={() => { setMenuOpen(false); handleLogout(); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Logout</button>
             </div>
           )}
