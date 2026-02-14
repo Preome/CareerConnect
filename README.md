@@ -3,7 +3,7 @@ text
 
 ## Overview
 [](https://github.com/yourusername/CareerConnect-#overview)
-CareerConnect is a comprehensive career platform designed to connect job seekers with employers and opportunities. It offers user-friendly features for creating professional profiles, searching and applying for jobs, networking with peers, tracking applications, and receiving personalized job recommendations. The platform is built using modern web technologies to ensure seamless experience across devices.
+CareerConnect is a specialized job portal for BRAC University students and alumni, connecting them with global job opportunities, career events, and renowned companies. It offers profile management, advanced job filtering (department-wise, time-based), application tracking, real-time notifications via Google Calendar, query forums, and company tools for candidate sourcing and event creation. Designed exclusively for BRACU's ecosystem with Cloudinary storage and Google authentication, it bridges students and employers while improving recruitment efficiency and institutional reputation.
 
 ## Features
 [](https://github.com/yourusername/CareerConnect-#features)
