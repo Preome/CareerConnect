@@ -1,7 +1,6 @@
 Overview
 
 CareerConnect is a specialized job portal for BRAC University students and alumni, connecting them with global job opportunities, career events, and renowned companies. It offers profile management, advanced job filtering (department-wise, time-based), application tracking, real-time notifications via Google Calendar, query forums, and company tools for candidate sourcing and event creation. Designed exclusively for BRACU's ecosystem with Cloudinary storage and Google authentication, it bridges students and employers while improving recruitment efficiency and institutional reputation.
-b
 Features
 
 User Registration and Login: Secure account creation with email verification
