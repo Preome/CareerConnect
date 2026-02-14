@@ -3,18 +3,40 @@ text
 
 ## Overview
 [](https://github.com/yourusername/CareerConnect-#overview)
-CareerConnect is a comprehensive career platform designed to connect job seekers with employers and opportunities.
+CareerConnect is a comprehensive career platform designed to connect job seekers with employers and opportunities. It offers user-friendly features for creating professional profiles, searching and applying for jobs, networking with peers, tracking applications, and receiving personalized job recommendations. The platform is built using modern web technologies to ensure seamless experience across devices.
 
 ## Features
 [](https://github.com/yourusername/CareerConnect-#features)
-- **User Registration and Login**: Secure account creation with email verification
-- **User Profile Management**: Build detailed profiles with skills, experience, education, and resume uploads
-- **Job Search and Filter**: Advanced search by location, title, salary, experience, and remote options
-- **Job Applications**: One-click apply with application tracking and status updates
-- **Networking**: Connect with recruiters, mentors, and peers via professional dashboard
-- **Job Recommendations**: AI-powered matching based on user profiles and preferences
-- **Application Tracker**: Monitor application statuses, interviews, and follow-ups
-- **Notifications**: Real-time alerts for jobs, messages, and deadlines
+
+**Authentication & Profiles**
+- **User Registration/Login**: Students & companies register with name, email, password, role; Google SSO login
+- **Student Profiles**: Add academic background, CGPA, skills, projects, CVs, certifications; full profile management
+- **Company Profiles**: Update company details, profile information, and branding
+
+**Job Management**
+- **Job Posting**: Companies post jobs with full details; edit/delete from "Posted Jobs" dashboard
+- **Job Applications**: Students apply with CV; track applications in personal dashboard
+- **Job Filtering**: Filter by job type (full-time/part-time), department, category, deadlines, "not applied" jobs
+
+**Admin Controls**
+- **Admin Dashboard**: View total students, companies, posted jobs
+- **Account Management**: Delete suspicious user accounts or problematic job posts
+
+**Communication & Discovery**
+- **Candidate Management**: Companies view applicants, update status (Shortlisted/Hired/Rejected), bulk/individual emails
+- **Query Forum**: Students & companies discuss jobs; tabs for latest, popular (upvotes), company-specific queries
+- **Search**: Students search companies/jobs; employers search applicant profiles
+- **Follow Jobs**: Students follow interesting job posts; view followed jobs dashboard
+
+**Events & Notifications**
+- **Career Events**: Companies post events; students register and receive Email API confirmations
+- **Real-time Notifications**: Job updates, application status alerts
+- **Google Calendar**: Interview scheduling integration
+
+**Additional Features**
+- **Application Tracking**: Students track job statuses (Shortlisted/Hired/Rejected)
+- **Responsive Design**: Optimized for desktop, tablet, and mobile access
+
 
 ## Technologies Used
 [](https://github.com/yourusername/CareerConnect-#technologies-used)
