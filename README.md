@@ -55,5 +55,5 @@ CareerConnect is a specialized job portal for BRAC University students and alumn
 **Other:**
 - JWT Authentication
 - Socket.io (real-time notifications)
-- Cloudinary (resume/image storage)
+- Cloudinary (resume/image storage) 
 
